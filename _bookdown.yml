@@ -1,0 +1,16 @@
+delete_merged_file: true
+new_session: yes
+output_dir: "docs"
+
+rmd_files: [
+  "index.Rmd",
+
+  "spatial-data.Rmd",
+  "spatial-interpolation.Rmd",
+  "spatiotemporal-interpolation.Rmd",
+  "multiscale-models.Rmd",
+  "summary.Rmd",
+
+]
+
+before_chapter_script: "_common.R"

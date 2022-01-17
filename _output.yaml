@@ -1,0 +1,24 @@
+bookdown::bs4_book:
+  theme:
+    primary: "#637238"
+  repo: https://github.com/OpenGeoHub/spatial-sampling-ml
+  includes:
+    in_header: [ga_script.html]
+
+bookdown::gitbook:
+  includes:
+    in_header: [ga_script.html]
+  config:
+    toc:
+      collapse: section
+      before: |
+        <li><strong><a href="./">Spatial Sampling and Resampling for Machine Learning</a></strong></li>
+    edit:
+      link: https://github.com/OpenGeoHub/spatial-sampling-ml/edit/master/%s
+      text: "Edit"
+    sharing: no
+  css: r4ds.css
+
+bookdown::pdf_book:
+  latex_engine: "xelatex"
+

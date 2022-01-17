@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>1 Introduction to spatial and spatiotemporal data | Spatial and spatiotemporal interpolation using Ensemble Machine Learning</title>
+<meta name="author" content="Tom Hengl, Leandro Parente and Carmelo Bonannella">
+<!-- JS --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><script src="https://cdn.jsdelivr.net/npm/fuse.js@6.4.2"></script><script src="https://kit.fontawesome.com/6ecbd6c532.js" crossorigin="anonymous"></script><script src="libs/header-attrs-2.8.1/header-attrs.js"></script><script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<link href="libs/bootstrap-4.6.0/bootstrap.min.css" rel="stylesheet">
+<script src="libs/bootstrap-4.6.0/bootstrap.bundle.min.js"></script><script src="libs/bs3compat-0.3.1/transition.js"></script><script src="libs/bs3compat-0.3.1/tabs.js"></script><script src="libs/bs3compat-0.3.1/bs3compat.js"></script><link href="libs/bs4_book-1.0.0/bs4_book.css" rel="stylesheet">
+<script src="libs/bs4_book-1.0.0/bs4_book.js"></script><!-- Global site tag (gtag.js) - Google Analytics --><script async src="https://www.googletagmanager.com/gtag/js?id=G-L3N6WJWCR8"></script><script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-L3N6WJWCR8');
+    </script><script src="https://cdn.jsdelivr.net/autocomplete.js/0/autocomplete.jquery.min.js"></script><script src="https://cdn.jsdelivr.net/npm/mark.js@8.11.1/dist/mark.min.js"></script><!-- CSS -->
+</head>
+<body data-spy="scroll" data-target="#toc">
+
+<div class="container-fluid">
+<div class="row">
+  <header class="col-sm-12 col-lg-3 sidebar sidebar-book"><a class="sr-only sr-only-focusable" href="#content">Skip to main content</a>
+
+    <div class="d-flex align-items-start justify-content-between">
+      <h1>
+        <a href="index.html" title="">Spatial and spatiotemporal interpolation using Ensemble Machine Learning</a>
+      </h1>
+      <button class="btn btn-outline-primary d-lg-none ml-2 mt-1" type="button" data-toggle="collapse" data-target="#main-nav" aria-expanded="true" aria-controls="main-nav"><i class="fas fa-bars"></i><span class="sr-only">Show table of contents</span></button>
+    </div>
+
+    <div id="main-nav" class="collapse-lg">
+      <form role="search">
+        <input id="search" class="form-control" type="search" placeholder="Search" aria-label="Search">
+</form>
+
+      <nav aria-label="Table of contents"><h2>Table of contents</h2>
+        <ul class="book-toc list-unstyled">
+<li><a class="" href="index.html">Introduction</a></li>
+<li><a class="active" href="alt-text-introduction-to-spatial-and-spatiotemporal-data.html"><span class="header-section-number">1</span>  Introduction to spatial and spatiotemporal data</a></li>
+<li><a class="" href="alt-text-spatial-interpolation-using-ensemble-ml.html"><span class="header-section-number">2</span>  Spatial interpolation using Ensemble ML</a></li>
+<li><a class="" href="alt-text-spatiotemporal-interpolation-using-ensemble-ml.html"><span class="header-section-number">3</span>  Spatiotemporal interpolation using Ensemble ML</a></li>
+<li><a class="" href="alt-text-multi-scale-spatial-prediction-models.html"><span class="header-section-number">4</span>  Multi-scale spatial prediction models</a></li>
+<li><a class="" href="summary.html"><span class="header-section-number">5</span> Summary</a></li>
+<li><a class="" href="references.html"><span class="header-section-number">6</span> References</a></li>
+</ul>
+
+        <div class="book-extra">
+          <p><a id="book-repo" href="https://github.com/OpenGeoHub/spatial-sampling-ml">View book source <i class="fab fa-github"></i></a></p>
+        </div>
+      </nav>
+</div>
+  </header><main class="col-sm-12 col-md-9 col-lg-7" id="content"><div id="alt-text-introduction-to-spatial-and-spatiotemporal-data" class="section level1" number="1">
+<h1>
+<span class="header-section-number">1</span> <img src="tex/R_logo.svg.png" title="Spatiotemporal data" alt="alt text"> Introduction to spatial and spatiotemporal data<a class="anchor" aria-label="anchor" href="#alt-text-introduction-to-spatial-and-spatiotemporal-data"><i class="fas fa-link"></i></a>
+</h1>
+<div class="rmdnote">
+<p>You are reading the work-in-progress Spatial and spatiotemporal interpolation using Ensemble Machine Learning. This chapter is currently currently draft version, a peer-review publication is pending. You can find the polished first edition at <a href="https://opengeohub.github.io/spatial-prediction-eml/" class="uri">https://opengeohub.github.io/spatial-prediction-eml/</a>.</p>
+</div>
+<div id="spatial-data-and-spatial-interpolation" class="section level2" number="1.1">
+<h2>
+<span class="header-section-number">1.1</span> Spatial data and spatial interpolation<a class="anchor" aria-label="anchor" href="#spatial-data-and-spatial-interpolation"><i class="fas fa-link"></i></a>
+</h2>
+<p>Spatial and/or geospatial data is any data that is spatially referenced (in the
+case of geographical data referenced to Earth surface) i.e. <span class="math inline">\(X\)</span> and <span class="math inline">\(Y\)</span> coordinates
+are known. With the implementation of the GPS and Earth Observation technology,
+almost everything is becoming spatial data and hence tools such as Geographical
+Information Systems (GIS) and spatial analysis tools to process, analyze and
+visualize geospatial data are <a href="https://towardsdatascience.com/the-impact-of-geospatial-features-on-machine-learning-3a71c99f080a">becoming essential</a>.</p>
+<p><strong>Spatial interpolation</strong> and/or <strong>Spatial Prediction</strong> is a process of estimating values
+of the target variable over the whole area of interest by using some input training
+point data, algorithm and values of the covariates at new locations <span class="citation">(<a href="references.html#ref-Mitas1999Wiley" role="doc-biblioref">Mitas &amp; Mitasova, 1999</a>)</span>. Interpolation
+results in images or maps, which can then be used for decision making or similar.
+There is a small difference between <em>interpolation</em> and <em>prediction</em>: <em>prediction</em>
+can imply both interpolation and extrapolation. We will more commonly use the
+term <em>spatial prediction</em> in this tutorial, even though the term <em>spatial interpolation</em>
+has been more widely accepted <span class="citation">(<a href="references.html#ref-Mitas1999Wiley" role="doc-biblioref">Mitas &amp; Mitasova, 1999</a>)</span>. In geostatistics, e.g. in the
+case of <strong>ordinary kriging</strong>, interpolation corresponds to cases where the
+location being estimated is surrounded by the sampling locations and is within
+the spatial auto-correlation range <span class="citation">(<a href="references.html#ref-diggle1998model" role="doc-biblioref">Diggle, Tawn, &amp; Moyeed, 1998</a>)</span>. Prediction outside of the practical range
+(i.e. where prediction error exceeds the global variance) is referred to as
+<strong>spatial extrapolation</strong>. In other words, extrapolation is prediction at locations
+where we do not have enough statistical evidence to make significant predictions.</p>
+</div>
+<div id="spatial-interpolation-using-ensemble-machine-learning" class="section level2" number="1.2">
+<h2>
+<span class="header-section-number">1.2</span> Spatial interpolation using Ensemble Machine Learning<a class="anchor" aria-label="anchor" href="#spatial-interpolation-using-ensemble-machine-learning"><i class="fas fa-link"></i></a>
+</h2>
+<p><strong>Ensemble Machine Learning</strong> (Ensemble ML) is an approach to modeling where, instead of using a
+single best learner, we use multiple <strong>strong learners</strong> and then combine their
+predictive capabilities into a single union. This can both lead to higher
+accuracy and robustness <span class="citation">(<a href="references.html#ref-seni2010ensemble" role="doc-biblioref">Seni &amp; Elder, 2010</a>)</span>, but also helps with deriving
+model-free estimate of prediction errors. This way we can help decrease some
+methodological disadvantages of individual learners as shown in the previous
+example with synthetic data.</p>
+<p>Ensemble ML can be used to fit models and generate predictions using points data
+the same way ordinary kriging is used to generate interpolations. Ensemble ML
+for predictive mapping in 2D and 3D is discussed in detail in the first chapter
+of the tutorial. Spatiotemporal interpolation using EML (2D+T, 3D+T) is at the
+order of magnitude more computational <span class="citation">(<a href="references.html#ref-gasch2015spatio" role="doc-biblioref">Gasch et al., 2015</a>)</span> but it follows the same logic.</p>
+<p>Ensemble ML based on stacking is implemented in the mlr package <span class="citation">(<a href="references.html#ref-bischl2016mlr" role="doc-biblioref">Bischl et al., 2016</a>)</span>
+and can be initiated via the <code>makeStackedLearner</code> function e.g.:</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">m</span> <span class="op">=</span> <span class="fu">mlr</span><span class="fu">::</span><span class="fu"><a href="https://mlr.mlr-org.com/reference/makeStackedLearner.html">makeStackedLearner</a></span><span class="op">(</span>base.learners <span class="op">=</span> <span class="va">lrns</span>, 
+              super.learner <span class="op">=</span> <span class="st">"regr.ml"</span>, method <span class="op">=</span> <span class="st">"stack.cv"</span><span class="op">)</span></code></pre></div>
+<p>here the base learner predictions will be computed by 5-fold cross-validation
+(repeated re-fitting) and then used to determine the meta-learner. This algorithm
+is known as the <em>“SuperLearner”</em> algorithm <span class="citation">(<a href="references.html#ref-Polley2010" role="doc-biblioref">Polley &amp; van der Laan, 2010</a>)</span>.</p>
+<p>In the case of spatial prediction, we also want to <em>block</em> training points based on
+spatial proximity to prevent from producing bias predictions. For this we should
+know the range of spatial dependence for the model residuals or similar i.e. 
+something that can be derived by fitting a variogram, then limit the minimum
+spatial distance between training and validation points to avoid overfitting or
+similar (for more info refer to the <a href="https://opengeohub.github.io/spatial-sampling-ml/">Spatial Sampling tutorial</a>).</p>
+<p>To automate fitting of an Ensemble Machine Learning models for the purpose of
+spatial interpolation / prediction, one can now use the <a href="https://github.com/Envirometrix/landmap">landmap</a> package that combines:</p>
+<ul>
+<li>derivation of geographical distances,<br>
+</li>
+<li>conversion of grids to principal components,<br>
+</li>
+<li>automated filling of gaps in gridded data,<br>
+</li>
+<li>automated fitting of variogram and determination of spatial auto-correlation structure,<br>
+</li>
+<li>spatial overlay,<br>
+</li>
+<li>model training using spatial Cross-Validation <span class="citation">(<a href="references.html#ref-lovelace2019geocomputation" role="doc-biblioref">Lovelace, Nowosad, &amp; Muenchow, 2019</a>)</span>,<br>
+</li>
+<li>model stacking i.e. fitting of the final EML,</li>
+</ul>
+<p>The concept of automating spatial interpolation until the level that almost no
+human interaction is required is referred to as <strong>“automated mapping”</strong> or automated
+spatial interpolation <span class="citation">(<a href="references.html#ref-pebesma2011intamap" role="doc-biblioref">Pebesma et al., 2011</a>)</span>.</p>
+</div>
+<div id="spatiotemporal-data" class="section level2" number="1.3">
+<h2>
+<span class="header-section-number">1.3</span> Spatiotemporal data<a class="anchor" aria-label="anchor" href="#spatiotemporal-data"><i class="fas fa-link"></i></a>
+</h2>
+<p>Spatiotemporal data is practically any data that is referenced in both space and
+time. This implies that the following <em>coordinates</em> are known:</p>
+<ul>
+<li>geographic location (longitude and latitude or projected <span class="math inline">\(X,Y\)</span> coordinates);<br>
+</li>
+<li>spatial location accuracy or size of the block / volume in the case of bulking of samples;<br>
+</li>
+<li>height above the ground surface (elevation);<br>
+</li>
+<li>start and end time of measurement (year, month, day, hour, minute etc.);</li>
+</ul>
+<p>Consider for example daily temperature measured at some meteorological station.
+This would have the following coordinates:</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">temp</span> <span class="op">=</span> <span class="fl">22</span>
+<span class="va">lat</span> <span class="op">=</span> <span class="fl">44.56123</span>
+<span class="va">lon</span> <span class="op">=</span> <span class="fl">19.27734</span>
+<span class="va">delta.xy</span> <span class="op">=</span> <span class="fl">30</span>
+<span class="va">begin.time</span> <span class="op">=</span> <span class="st">"2013-09-02 00:00:00 CEST"</span>
+<span class="va">end.time</span> <span class="op">=</span> <span class="st">"2013-09-03 00:00:00 CEST"</span></code></pre></div>
+<p>which means that the measurement is fully spatiotemporally referenced with
+both <span class="math inline">\(X,Y\)</span> location defined, <code>delta.xy</code> location accuracy known, and begin and
+end time of measurement specified (in this case temporal support is 1 day).</p>
+<p>Analysis of spatiotemporal data is somewhat different from pure spatial
+analysis. Time is of course NOT <em>just another</em> spatial dimension i.e. it has
+specific properties and different statistical assumptions and methods apply to
+spatiotemporal data. For an introduction to spatiotemporal data in R please
+refer to the <strong>spacetime</strong> package tutorial <span class="citation">(<a href="references.html#ref-pebesma2012spacetime" role="doc-biblioref">Pebesma, 2012</a>)</span>.</p>
+<p>Conceptually speaking, spatiotemporal datasets and corresponding
+databases can be matched with the two major groups of features <span class="citation">(<a href="references.html#ref-erwig1999spatio" role="doc-biblioref">Erwig, Gu, Schneider, &amp; Vazirgiannis, 1999</a>)</span>: (1)
+<strong>moving or dynamic objects</strong> (discrete or vector geometries), and (2)
+dynamic <strong>regions</strong> (fields or continuous features). Distinct objects (entities)
+such as people, animals, vehicles and similar are best represented using
+vectors and <strong>trajectories</strong> (movement through time), and fields are commonly<br>
+represented using <strong>gridded structures</strong>. In the case of working with
+fields, we basically map either:</p>
+<ul>
+<li>dynamic changes in quantity or density of some material or chemical element,<br>
+</li>
+<li>energy flux or any similar physical measurements,<br>
+</li>
+<li>dynamic changes in probability of occurrence of some feature or object,</li>
+</ul>
+<p>Spatiotemporal data can be best visualized 2D+T plots <strong>space-time cubes</strong>. One
+example of a spacetime cube is the following plot in Fig. <a href="alt-text-introduction-to-spatial-and-spatiotemporal-data.html#fig:space-time-cube">1.1</a> <span class="citation">(<a href="references.html#ref-hengl2012spatio" role="doc-biblioref">T. Hengl, Heuvelink, Perčec-Tadić, &amp; Pebesma, 2012</a>; <a href="references.html#ref-hengl2015plotkml" role="doc-biblioref">T. Hengl, Roudier, Beaudette, &amp; Pebesma, 2015</a>)</span>.</p>
+<div class="figure" style="text-align: center">
+<span id="fig:space-time-cube"></span>
+<img src="img/Fig_space_time_cube.png" alt="Space-time cube visualized in R: (a) cloud plot showing location of meteorological stations in Croatia, (b) illustration of spatial and temporal support in the space-time cube." width="100%"><p class="caption">
+Figure 1.1: Space-time cube visualized in R: (a) cloud plot showing location of meteorological stations in Croatia, (b) illustration of spatial and temporal support in the space-time cube.
+</p>
+</div>
+<p>The plot above shows distribution of meteorological stations over Croatia, and
+then repeated measurements through time. This dataset is further used in the
+use-case examples to produce spatiotemporal predictions of daily temperatures.</p>
+</div>
+<div id="time-series-analysis" class="section level2" number="1.4">
+<h2>
+<span class="header-section-number">1.4</span> Time-series analysis<a class="anchor" aria-label="anchor" href="#time-series-analysis"><i class="fas fa-link"></i></a>
+</h2>
+<p>Field of statistics dealing with modeling changes of variables through time,
+including predicting values beyond the training data (forecasting) is
+<strong>time-series analysis</strong>. Some systematic guides on how to run time-series
+analysis in R can be found <a href="http://r-statistics.co/Time-Series-Analysis-With-R.html">here</a>.</p>
+<p>How a variable varies through time (time-series curves) can often be drastically different
+from how it changes in space (spatial patterns). In general, one can say that, for many
+environmental variables, variation of values through time can be separated into
+<strong>components</strong> such as:</p>
+<ul>
+<li>Long-term component (<strong>trend</strong>) determined by long-term geological and
+extraterrestrial processes,</li>
+<li>Seasonal monthly and/or daily component (<strong>seasonality</strong>) determined by Earth rotation and
+incoming sun radiation,</li>
+<li>
+<strong>Variation</strong> component which can be due to chaotic behavior and/or
+local factors (hence <em>autocorrelated</em>), and</li>
+<li>
+<strong>Pure noise</strong> i.e. measurement errors and similar,</li>
+</ul>
+<div class="figure" style="text-align: center">
+<span id="fig:decomp-time"></span>
+<img src="img/Fig_decomposition_timeseries.jpeg" alt="Illustration of decomposition of time-series into: (1) trend, (2) seasonality, and (3) random." width="100%"><p class="caption">
+Figure 1.2: Illustration of decomposition of time-series into: (1) trend, (2) seasonality, and (3) random.
+</p>
+</div>
+<p>Consider for example the case of the land surface temperature. The long-term
+component is determined by variations in Earth’s orbit and/or Sun’s
+energy output resulting in gradual drops and rises of global mean
+temperature (<a href="https://en.wikipedia.org/wiki/Ice_age">glacials and interglacials</a>).
+Fig. <a href="alt-text-introduction-to-spatial-and-spatiotemporal-data.html#fig:global-temp">1.3</a> shows example of a global temperature reconstruction from proxy data of <span class="citation"><a href="references.html#ref-Marcott1198" role="doc-biblioref">Marcott, Shakun, Clark, &amp; Mix</a> (<a href="references.html#ref-Marcott1198" role="doc-biblioref">2013</a>)</span>.</p>
+<div class="figure" style="text-align: center">
+<span id="fig:global-temp"></span>
+<img src="img/Fig_global_mean_temp_longterm_trend.png" alt="Global temperature reconstruction. This shows how global temperature varies on a long-term term scale. Graph by: Klaus Bitterman." width="100%"><p class="caption">
+Figure 1.3: Global temperature reconstruction. This shows how global temperature varies on a long-term term scale. Graph by: Klaus Bitterman.
+</p>
+</div>
+<p>Seasonal i.e. monthly and daily components of variation of land surface temperature
+are also quite systematic. They are basically determined by Earth’s rotation
+and angles of Sun in relation to Earth’s surface. This is a relatively stable
+pattern that looks like sinusoidal curves or similar. The plot below shows variation
+of values of soil moisture and soil temperature at one meteo station in USA
+across multiple years <span class="citation">(<a href="references.html#ref-gasch2015spatio" role="doc-biblioref">Gasch et al., 2015</a>)</span>.</p>
+<div class="figure" style="text-align: center">
+<span id="fig:cookfarm-plot"></span>
+<img src="img/Fig_cookfarm_plots_seasonality.png" alt="Sensor values from five depths (0.3, 0.6, 0.9, 1.2, and 1.5 m) at one station at Cook Agronomy Farm from January 2011–January 2014. The black line indicates locally fitted splines." width="100%"><p class="caption">
+Figure 1.4: Sensor values from five depths (0.3, 0.6, 0.9, 1.2, and 1.5 m) at one station at Cook Agronomy Farm from January 2011–January 2014. The black line indicates locally fitted splines.
+</p>
+</div>
+<p>The data set in Fig. <a href="alt-text-introduction-to-spatial-and-spatiotemporal-data.html#fig:cookfarm-plot">1.4</a> is further discussed in the case
+studies to demonstrate 3D+T spatiotemporal modeling <span class="citation">(<a href="references.html#ref-gasch2015spatio" role="doc-biblioref">Gasch et al., 2015</a>)</span>.
+As we will see later, the seasonal daily and monthly part of variation
+is systematic and can be modeling using latitude, altitude and time/day of the year.</p>
+</div>
+<div id="visualizing-spatiotemporal-data" class="section level2" number="1.5">
+<h2>
+<span class="header-section-number">1.5</span> Visualizing spatiotemporal data<a class="anchor" aria-label="anchor" href="#visualizing-spatiotemporal-data"><i class="fas fa-link"></i></a>
+</h2>
+<p>Spatial data is usually visualized using static or interactive maps (see e.g. <a href="https://r-spatial.github.io/mapview/">mapview</a> and/or <a href="https://cran.r-project.org/web/packages/tmap/vignettes/tmap-getstarted.html">tmap package</a>).
+Spatiotemporal data (2D+T) is more complex to visualize than 2D data, while 3D+T data
+can even require special software <span class="citation">(<a href="references.html#ref-hengl2015plotkml" role="doc-biblioref">T. Hengl, Roudier, Beaudette, &amp; Pebesma, 2015</a>)</span> before
+users can make any seamless interpretation.</p>
+<p>There are three possible groups of ways to visualize spatiotemporal
+data:</p>
+<ol style="list-style-type: decimal">
+<li>Using <strong>static images</strong> showing trend parameters together with
+time-series plots at selected representative point locations.<br>
+</li>
+<li>Using <strong>time-slices</strong> or series of visualizations of the same
+spatial domain but changing in time (time-lapses).<br>
+</li>
+<li>Using <strong>animations</strong> or <strong>interactive plots with time-sliders</strong>
+allowing users to choose <em>speed</em> and <em>direction</em> of animation.</li>
+</ol>
+<p>For an introduction to visualizing spatiotemporal and time-series data
+refer to <span class="citation"><a href="references.html#ref-lamigueiro2014displaying" role="doc-biblioref">Lamigueiro</a> (<a href="references.html#ref-lamigueiro2014displaying" role="doc-biblioref">2014</a>)</span>. More complex visualization of
+spatiotemporal / dynamic geographic features is possible by using the
+<a href="https://geemap.org/" class="uri">https://geemap.org/</a> package (a Python package for interactive mapping with Google Earth Engine, ipyleaflet, and ipywidgets).</p>
+<p>OpenLandMap.org also has multiple temporal datasets and users can interactive with
+the time-dimension by using time-slider implemented in <a href="http://osgl.grf.bg.ac.rs/books/gvvk-en/">OpenLayers and Geoserver</a> <span class="citation">(<a href="references.html#ref-KilibardaProtic2019" role="doc-biblioref">M. Kilibarda &amp; Protić, 2019</a>)</span>.</p>
+<div class="figure" style="text-align: center">
+<span id="fig:hilda"></span>
+<img src="img/Fig_HILDA_visualization_landcover.gif" alt="Visualization of [land cover change using animation](https://medium.com/nerd-for-tech/restoration-culture-what-is-land-degradation-how-to-measure-it-and-what-can-you-do-to-reverse-341e448994da) in www.OpenLandMap.org." width="100%"><p class="caption">
+Figure 1.5: Visualization of <a href="https://medium.com/nerd-for-tech/restoration-culture-what-is-land-degradation-how-to-measure-it-and-what-can-you-do-to-reverse-341e448994da">land cover change using animation</a> in www.OpenLandMap.org.
+</p>
+</div>
+</div>
+<div id="spatiotemporal-interpolation" class="section level2" number="1.6">
+<h2>
+<span class="header-section-number">1.6</span> Spatiotemporal interpolation<a class="anchor" aria-label="anchor" href="#spatiotemporal-interpolation"><i class="fas fa-link"></i></a>
+</h2>
+<p>Spatiotemporal interpolation and/or prediction implies that point
+samples are used to interpolate within the spacetime cube. This
+obviously assumes that enough point measurements are available, and which are spread in
+both space and time. We will show in this tutorial how Machine Learning can
+be used to interpolate values within the spacetime cube using real case-studies.
+Spatiotemporal interpolation using various kriging methods is implemented in
+the <a href="https://cran.r-project.org/web/packages/gstat/vignettes/spatio-temporal-kriging.pdf">gstat package</a> <span class="citation">(<a href="references.html#ref-Bivand2013Springer" role="doc-biblioref">Bivand, Pebesma, &amp; Rubio, 2013</a>)</span>, but is not addressed in this tutorial.</p>
+<p>For success of spatiotemporal interpolation (in terms of prediction accuracy),
+the key is to recognize systematic component of variation in spacetime, which
+is usually possible if we can find relationship between the target variable and
+some EO data that is available as a time-series and covers the same spacetime cube
+of interest. Once we establish a significant relation between <strong>dynamic target</strong> and
+<strong>dynamic covariates</strong>, we can use the fitted model to predict anywhere in spacetime cube.</p>
+<p>For more in-depth discussion on spatiotemporal data in R please refer to
+<span class="citation"><a href="references.html#ref-wikle2019spatio" role="doc-biblioref">Wikle, Zammit-Mangion, &amp; Cressie</a> (<a href="references.html#ref-wikle2019spatio" role="doc-biblioref">2019</a>)</span>. For in-depth discussion on spatial and spatiotemporal
+blocking for purpose of modeling building and cross-validation refer to
+<span class="citation"><a href="references.html#ref-roberts2017cross" role="doc-biblioref">Roberts et al.</a> (<a href="references.html#ref-roberts2017cross" role="doc-biblioref">2017</a>)</span>.</p>
+</div>
+<div id="modeling-seasonal-components" class="section level2" number="1.7">
+<h2>
+<span class="header-section-number">1.7</span> Modeling seasonal components<a class="anchor" aria-label="anchor" href="#modeling-seasonal-components"><i class="fas fa-link"></i></a>
+</h2>
+<p>Seasonality is the characteristic of the target variable to follow cyclical
+patterns such as in trigonometric functions. Such repeating patterns can happen
+at different <strong>time-scales</strong>:</p>
+<ul>
+<li>inter-annually,<br>
+</li>
+<li>monthly or based on a season (spring, summer, autumn, winter),<br>
+</li>
+<li>daily,<br>
+</li>
+<li>hourly i.e. day-time and night-time patterns,</li>
+</ul>
+<p>The monthly and daily seasonal component of variation is determined by Earth’s rotation
+and Sun’s angle. <span class="citation"><a href="references.html#ref-kilibarda2014spatio" role="doc-biblioref">Milan Kilibarda et al.</a> (<a href="references.html#ref-kilibarda2014spatio" role="doc-biblioref">2014</a>)</span> have shown that the seasonal
+component e.g. geometric Earth surface minimum and maximum daily temperature
+can be modeled, universally anywhere on globe, by using the following formula:</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">temp.from.geom</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">fi</span>, <span class="va">day</span>, <span class="va">a</span><span class="op">=</span><span class="fl">30.419375</span>, 
+                           <span class="va">b</span><span class="op">=</span><span class="op">-</span><span class="fl">15.539232</span>, <span class="va">elev</span><span class="op">=</span><span class="fl">0</span>, <span class="va">t.grad</span><span class="op">=</span><span class="fl">0.6</span><span class="op">)</span> <span class="op">{</span>
+  <span class="va">f</span> <span class="op">=</span> <span class="fu"><a href="https://Rdatatable.gitlab.io/data.table/reference/fifelse.html">ifelse</a></span><span class="op">(</span><span class="va">fi</span><span class="op">==</span><span class="fl">0</span>, <span class="fl">1e-10</span>, <span class="va">fi</span><span class="op">)</span>
+  <span class="va">costeta</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Trig.html">cos</a></span><span class="op">(</span> <span class="op">(</span><span class="va">day</span><span class="op">-</span><span class="fl">18</span> <span class="op">)</span><span class="op">*</span><span class="va">pi</span><span class="op">/</span><span class="fl">182.5</span> <span class="op">+</span> <span class="fl">2</span><span class="op">^</span><span class="op">(</span><span class="fl">1</span><span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/sign.html">sign</a></span><span class="op">(</span><span class="va">fi</span><span class="op">)</span> <span class="op">)</span> <span class="op">*</span><span class="va">pi</span><span class="op">)</span> 
+  <span class="va">cosfi</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Trig.html">cos</a></span><span class="op">(</span><span class="va">fi</span><span class="op">*</span><span class="va">pi</span><span class="op">/</span><span class="fl">180</span> <span class="op">)</span>
+  <span class="va">A</span> <span class="op">=</span> <span class="va">cosfi</span>
+  <span class="va">B</span> <span class="op">=</span> <span class="op">(</span><span class="fl">1</span><span class="op">-</span><span class="va">costeta</span> <span class="op">)</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html">abs</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Trig.html">sin</a></span><span class="op">(</span><span class="va">fi</span><span class="op">*</span><span class="va">pi</span><span class="op">/</span><span class="fl">180</span> <span class="op">)</span> <span class="op">)</span>
+  <span class="va">x</span> <span class="op">=</span> <span class="va">a</span><span class="op">*</span><span class="va">A</span> <span class="op">+</span> <span class="va">b</span><span class="op">*</span><span class="va">B</span> <span class="op">-</span> <span class="va">t.grad</span> <span class="op">*</span> <span class="va">elev</span> <span class="op">/</span> <span class="fl">100</span>
+  <span class="kw"><a href="https://rdrr.io/r/base/function.html">return</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span>
+<span class="op">}</span></code></pre></div>
+<p>where <code>day</code> is the day of year, <code>fi</code> is the latitude, the number 18 represents
+the coldest day in the northern and warmest day in the southern hemisphere,
+<code>elev</code> is the elevation in meter, 0.6 is the vertical temperature gradient per
+100-m, and <code>sign</code> denotes the <em>signum</em> function that extracts the sign of a real number.</p>
+<p>This formula accounts for different seasons at southern and northern
+hemisphere and can be basically applied on gridded surfaces to compute expected
+temperature at a given day. A simple example of min daily temperature is:</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu">temp.from.geom</span><span class="op">(</span>fi<span class="op">=</span><span class="fl">52</span>, day<span class="op">=</span><span class="fl">120</span><span class="op">)</span>
+<span class="co">#&gt; [1] 8.73603</span></code></pre></div>
+<p>If we plot this function for five consecutive years, we get something similar to the
+spline-fitted functions in the previous plot:</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">days</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="op">(</span><span class="fl">5</span><span class="op">*</span><span class="fl">365</span><span class="op">)</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/pkg/raster/man/plot.html">plot</a></span><span class="op">(</span><span class="fu">temp.from.geom</span><span class="op">(</span>fi<span class="op">=</span><span class="fl">52</span>, day<span class="op">=</span><span class="va">days</span><span class="op">)</span><span class="op">)</span></code></pre></div>
+<div class="figure" style="text-align: center">
+<span id="fig:seasonal-plot"></span>
+<img src="spatial-data_files/figure-html/seasonal-plot-1.png" alt="Geometric temperature function plot." width="100%"><p class="caption">
+Figure 1.6: Geometric temperature function plot.
+</p>
+</div>
+</div>
+<div id="predictive-mapping-using-spatial-and-spatiotemporal-ml-in-r" class="section level2" number="1.8">
+<h2>
+<span class="header-section-number">1.8</span> Predictive mapping using spatial and spatiotemporal ML in R<a class="anchor" aria-label="anchor" href="#predictive-mapping-using-spatial-and-spatiotemporal-ml-in-r"><i class="fas fa-link"></i></a>
+</h2>
+<p>Standard spatiotemporal ML for predictive mapping typically includes the
+following steps <span class="citation">(<a href="references.html#ref-hengl2019predictive" role="doc-biblioref">T. Hengl &amp; MacMillan, 2019</a>; <a href="references.html#ref-hengl2018random" role="doc-biblioref">T. Hengl, Nussbaum, Wright, Heuvelink, &amp; Gräler, 2018</a>)</span>:</p>
+<ol style="list-style-type: decimal">
+<li>Prepare training (points) data and data cube with all covariates
+ideally as an analysis-ready datacube.</li>
+<li>Overlay points and create a regression-matrix.<br>
+</li>
+<li>Fine-tune initial model, reduce complexity
+and produce production-ready prediction model.<br>
+</li>
+<li>Run mapping accuracy assessment and determine prediction uncertainty
+including the per pixel uncertainty.<br>
+</li>
+<li>Generate predictions and save as maps.</li>
+<li>Visualize predictions using web-GIS solutions.</li>
+</ol>
+<div class="figure" style="text-align: center">
+<span id="fig:pem-scheme"></span>
+<img src="img/Fig_general_scheme_PEM.png" alt="General Machine Learning framework recommended for predictive mapping of vegetation / ecological / soil variables. Assuming full automation of modeling, [2nd-round samples](https://opengeohub.github.io/spatial-sampling-ml/) can be used to gradually improve mapping accuracy." width="100%"><p class="caption">
+Figure 1.7: General Machine Learning framework recommended for predictive mapping of vegetation / ecological / soil variables. Assuming full automation of modeling, <a href="https://opengeohub.github.io/spatial-sampling-ml/">2nd-round samples</a> can be used to gradually improve mapping accuracy.
+</p>
+</div>
+</div>
+<div id="extrapolation-and-over-fitting-problems-of-ml-methods" class="section level2" number="1.9">
+<h2>
+<span class="header-section-number">1.9</span> Extrapolation and over-fitting problems of ML methods<a class="anchor" aria-label="anchor" href="#extrapolation-and-over-fitting-problems-of-ml-methods"><i class="fas fa-link"></i></a>
+</h2>
+<p>Machine Learning has <em>defacto</em> become next-generation applied predictive modeling
+framework. ML techniques such as <strong>Random Forest</strong> (RF) have proven to
+over-perform vs more simple linear statistical methods, especially where
+the datasets are large, complex and target variable follows complex
+relationship with covariates <span class="citation">(<a href="references.html#ref-hengl2018random" role="doc-biblioref">T. Hengl, Nussbaum, Wright, Heuvelink, &amp; Gräler, 2018</a>)</span>. Random Forest comes at a cost
+however. There are four main practical disadvantages of RF:</p>
+<ul>
+<li>Depending on data and assumptions about data, it can over-fit values
+without an analyst even noticing it.<br>
+</li>
+<li>It predicts well only within the feature space with enough training
+data. <strong>Extrapolation</strong> i.e. prediction outside the training space can
+lead to poor performance <span class="citation">(<a href="references.html#ref-meyerPebesma2020" role="doc-biblioref">Meyer &amp; Pebesma, 2021</a>)</span>.<br>
+</li>
+<li>It can be computationally expensive with computational load increasing
+exponentially with the number of covariates.<br>
+</li>
+<li>It requires quality training data and is highly sensitive to blunders and
+typos in the data.</li>
+</ul>
+<p>Read more about extrapolation problems of Random Forest in <a href="https://medium.com/nerd-for-tech/extrapolation-is-tough-for-trees-tree-based-learners-combining-learners-of-different-type-makes-659187a6f58d">this post</a>.</p>
+<p>In the following section we will demonstrate that indeed RF can overfit
+data and can have serious problems with predicting in the extrapolation
+space. Consider for example the following small synthetic dataset assuming
+simple linear relationship (see <a href="https://twitter.com/DylanBeaudette/status/1410666900581851138">original post by Dylan Beaudette</a>):</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">200</span><span class="op">)</span>
+<span class="va">n</span> <span class="op">=</span> <span class="fl">100</span>
+<span class="va">x</span> <span class="op">&lt;-</span> <span class="fl">1</span><span class="op">:</span><span class="va">n</span>
+<span class="va">y</span> <span class="op">&lt;-</span> <span class="va">x</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span>n <span class="op">=</span> <span class="fl">50</span>, mean <span class="op">=</span> <span class="fl">15</span>, sd <span class="op">=</span> <span class="fl">15</span><span class="op">)</span></code></pre></div>
+<p>If we fit a simple <strong>Ordinary Least Square</strong> model to this data we get:</p>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">m0</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/lm.html">lm</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="va">x</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">m0</span><span class="op">)</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; Call:</span>
+<span class="co">#&gt; lm(formula = y ~ x)</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; Residuals:</span>
+<span class="co">#&gt;      Min       1Q   Median       3Q      Max </span>
+<span class="co">#&gt; -27.6093  -6.4396   0.6437   6.7742  26.7192 </span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; Coefficients:</span>
+<span class="co">#&gt;             Estimate Std. Error t value Pr(&gt;|t|)    </span>
+<span class="co">#&gt; (Intercept) 14.84655    2.37953   6.239 1.12e-08 ***</span>
+<span class="co">#&gt; x            0.97910    0.04091  23.934  &lt; 2e-16 ***</span>
+<span class="co">#&gt; ---</span>
+<span class="co">#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; Residual standard error: 11.81 on 98 degrees of freedom</span>
+<span class="co">#&gt; Multiple R-squared:  0.8539, Adjusted R-squared:  0.8524 </span>
+<span class="co">#&gt; F-statistic: 572.9 on 1 and 98 DF,  p-value: &lt; 2.2e-16</span></code></pre></div>
+<p>we see that the model explains about 85% of variation in the data and that the
+RMSE estimated by the model (residual standard error) matches very well the
+noise component we have inserted on purpose using the <code>rnorm</code> function.</p>
+<p>If we fit a Random Forest model to this data we get:</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://www.stat.berkeley.edu/~breiman/RandomForests/">randomForest</a></span><span class="op">)</span>
+<span class="co">#&gt; randomForest 4.6-14</span>
+<span class="co">#&gt; Type rfNews() to see new features/changes/bug fixes.</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; Attaching package: 'randomForest'</span>
+<span class="co">#&gt; The following object is masked from 'package:ranger':</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt;     importance</span>
+<span class="va">rf</span> <span class="op">=</span> <span class="fu">randomForest</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/randomForest/man/randomForest.html">randomForest</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span>x<span class="op">=</span><span class="va">x</span><span class="op">)</span>, <span class="va">y</span>, nodesize <span class="op">=</span> <span class="fl">5</span>, keep.inbag <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>
+<span class="va">rf</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; Call:</span>
+<span class="co">#&gt;  randomForest(x = data.frame(x = x), y = y, nodesize = 5, keep.inbag = TRUE) </span>
+<span class="co">#&gt;                Type of random forest: regression</span>
+<span class="co">#&gt;                      Number of trees: 500</span>
+<span class="co">#&gt; No. of variables tried at each split: 1</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt;           Mean of squared residuals: 202.6445</span>
+<span class="co">#&gt;                     % Var explained: 78.34</span></code></pre></div>
+<p>Next, we can estimate the prediction errors using the method of <span class="citation"><a href="references.html#ref-lu2021unified" role="doc-biblioref">Lu &amp; Hardin</a> (<a href="references.html#ref-lu2021unified" role="doc-biblioref">2021</a>)</span>,
+which is available via the <code>forestError</code> package:</p>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">forestError</span><span class="op">)</span>
+<span class="va">rmse</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">a</span>, <span class="va">b</span><span class="op">)</span> <span class="op">{</span>  <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html">sqrt</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="op">(</span><span class="va">a</span> <span class="op">-</span> <span class="va">b</span><span class="op">)</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span> <span class="op">}</span>
+<span class="va">dat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span><span class="va">x</span>,<span class="va">y</span><span class="op">)</span>
+<span class="va">newdata</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span>
+  x <span class="op">=</span> <span class="op">-</span><span class="fl">100</span><span class="op">:</span><span class="fl">200</span>
+<span class="op">)</span>
+<span class="va">newdata</span><span class="op">$</span><span class="va">y.lm</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html">predict</a></span><span class="op">(</span><span class="va">m0</span>, newdata <span class="op">=</span> <span class="va">newdata</span><span class="op">)</span>
+<span class="co">## prediction error from forestError:</span>
+<span class="va">quantiles</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/terra/man/c.html">c</a></span><span class="op">(</span><span class="op">(</span><span class="fl">1</span><span class="op">-</span><span class="fl">.682</span><span class="op">)</span><span class="op">/</span><span class="fl">2</span>, <span class="fl">1</span><span class="op">-</span><span class="op">(</span><span class="fl">1</span><span class="op">-</span><span class="fl">.682</span><span class="op">)</span><span class="op">/</span><span class="fl">2</span><span class="op">)</span>
+<span class="va">pr.rf</span> <span class="op">=</span> <span class="fu">forestError</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/forestError/man/quantForestError.html">quantForestError</a></span><span class="op">(</span><span class="va">rf</span>, X.train<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span>x<span class="op">=</span><span class="va">x</span><span class="op">)</span>, 
+                                      X.test<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span>x <span class="op">=</span> <span class="op">-</span><span class="fl">100</span><span class="op">:</span><span class="fl">200</span><span class="op">)</span>, 
+                                      Y.train<span class="op">=</span><span class="va">y</span>, alpha <span class="op">=</span> <span class="op">(</span><span class="fl">1</span><span class="op">-</span><span class="op">(</span><span class="va">quantiles</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">-</span><span class="va">quantiles</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
+<span class="va">newdata</span><span class="op">$</span><span class="va">y.rf</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html">predict</a></span><span class="op">(</span><span class="va">rf</span>, newdata <span class="op">=</span> <span class="va">newdata</span><span class="op">)</span>
+<span class="va">rmse.lm</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="fu"><a href="https://mlr.mlr-org.com/reference/measures.html">rmse</a></span><span class="op">(</span><span class="va">y</span>, <span class="fu"><a href="https://rdrr.io/r/stats/predict.html">predict</a></span><span class="op">(</span><span class="va">m0</span><span class="op">)</span><span class="op">)</span>, <span class="fl">1</span><span class="op">)</span>
+<span class="va">rmse.rf</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="fu"><a href="https://mlr.mlr-org.com/reference/measures.html">rmse</a></span><span class="op">(</span><span class="va">y</span>, <span class="fu"><a href="https://rdrr.io/r/stats/predict.html">predict</a></span><span class="op">(</span><span class="va">rf</span><span class="op">)</span><span class="op">)</span>, <span class="fl">1</span><span class="op">)</span>
+<span class="va">rmse.lm</span>; <span class="va">rmse.rf</span>
+<span class="co">#&gt; [1] 11.7</span>
+<span class="co">#&gt; [1] 14.2</span></code></pre></div>
+<p>This shows that RF estimates higher RMSE than linear model. However, if
+we visualize the two models against each other we see that indeed RF
+algorithm seems to over-fit this specific data:</p>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">leg.txt</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sprintf.html">sprintf</a></span><span class="op">(</span><span class="st">"%s (%s)"</span>, <span class="fu"><a href="https://rdrr.io/pkg/terra/man/c.html">c</a></span><span class="op">(</span><span class="st">'lm'</span>, <span class="st">'RF'</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/pkg/terra/man/c.html">c</a></span><span class="op">(</span><span class="va">rmse.lm</span>, <span class="va">rmse.rf</span><span class="op">)</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/graphics/par.html">par</a></span><span class="op">(</span>mar <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/terra/man/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">0</span><span class="op">)</span>, fg <span class="op">=</span> <span class="st">'black'</span>, bg <span class="op">=</span> <span class="st">'white'</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/pkg/raster/man/plot.html">plot</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="va">x</span>, xlim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/terra/man/c.html">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">25</span>, <span class="fl">125</span><span class="op">)</span>, ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/terra/man/c.html">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">50</span>, <span class="fl">150</span><span class="op">)</span>, type <span class="op">=</span> <span class="st">'n'</span>, axes <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/graphics/grid.html">grid</a></span><span class="op">(</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/graphics/points.html">points</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="va">x</span>, cex <span class="op">=</span> <span class="fl">1</span>, pch <span class="op">=</span> <span class="fl">16</span>, las <span class="op">=</span> <span class="fl">1</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/graphics/lines.html">lines</a></span><span class="op">(</span><span class="va">y.lm</span> <span class="op">~</span> <span class="va">x</span>, data <span class="op">=</span> <span class="va">newdata</span>, col <span class="op">=</span> <span class="fl">2</span>, lwd <span class="op">=</span> <span class="fl">2</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/graphics/lines.html">lines</a></span><span class="op">(</span><span class="va">y.rf</span> <span class="op">~</span> <span class="va">x</span>, data <span class="op">=</span> <span class="va">newdata</span>, col <span class="op">=</span> <span class="fl">4</span>, lwd <span class="op">=</span> <span class="fl">2</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/graphics/lines.html">lines</a></span><span class="op">(</span><span class="va">newdata</span><span class="op">$</span><span class="va">x</span>, <span class="va">pr.rf</span><span class="op">$</span><span class="va">estimates</span><span class="op">$</span><span class="va">lower_0.318</span>, lty<span class="op">=</span><span class="fl">2</span>,col<span class="op">=</span><span class="fl">4</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/graphics/lines.html">lines</a></span><span class="op">(</span><span class="va">newdata</span><span class="op">$</span><span class="va">x</span>, <span class="va">pr.rf</span><span class="op">$</span><span class="va">estimates</span><span class="op">$</span><span class="va">upper_0.318</span>, lty<span class="op">=</span><span class="fl">2</span>,col<span class="op">=</span><span class="fl">4</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/graphics/legend.html">legend</a></span><span class="op">(</span><span class="st">'bottom'</span>, legend <span class="op">=</span> <span class="va">leg.txt</span>, lwd <span class="op">=</span> <span class="fl">2</span>, lty <span class="op">=</span> <span class="fl">1</span>, col <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/terra/man/c.html">c</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">4</span>, <span class="fl">3</span><span class="op">)</span>, horiz <span class="op">=</span> <span class="cn">TRUE</span>, title <span class="op">=</span> <span class="st">'RMSE'</span><span class="op">)</span></code></pre></div>
+<div class="figure" style="text-align: center">
+<span id="fig:synthetic-lm"></span>
+<img src="spatial-data_files/figure-html/synthetic-lm-1.png" alt="Difference in model fits for sythetic data: lm vs RF. In this case we know that RF is overfitting and under-estimating the prediction error in the extrapolation space." width="100%"><p class="caption">
+Figure 1.8: Difference in model fits for sythetic data: lm vs RF. In this case we know that RF is overfitting and under-estimating the prediction error in the extrapolation space.
+</p>
+</div>
+<p>RF basically tries to fit relationship even to the <strong>pure noise</strong> component of variation
+(we know it is pure noise because we have generated it using the <code>rnorm</code> function).
+This is obvious over-fitting as we do not want to model something which is purely random.</p>
+<p>Extrapolation would not maybe be so much of a problem in the example above if
+the prediction intervals from the <code>forestError</code> package expressed more
+realistically that the predictions deviate from the <em>linear structure</em> in the
+data. Assuming that, after the prediction, one would eventually collect
+ground-truth data for the RF model above, these would probably show that the
+prediction error / prediction intervals are completely off. Most traditional
+statisticians would consider these too-narrow and over-optimistic and the
+fitted line over-fit, and hence any further down the pipeline over-optimistic
+prediction uncertainty can result in decision makers being over-confident,
+leading to wrong decisions, and consequently making users losing any confidence in RF.
+For an in-depth discussion on extrapolation problems and <strong>Area of Applicability</strong>
+of Machine Learning models please refer to <span class="citation"><a href="references.html#ref-meyerPebesma2020" role="doc-biblioref">Meyer &amp; Pebesma</a> (<a href="references.html#ref-meyerPebesma2020" role="doc-biblioref">2021</a>)</span>.</p>
+<p>A possible solution to the problem above is to, instead of using only one
+learners, we use multiple learners and then apply robust cross-validation that
+prevents the target model from over-fitting. This can be implemented efficiently,
+for example, by using the <code>mlr</code> package <span class="citation">(<a href="references.html#ref-bischl2016mlr" role="doc-biblioref">Bischl et al., 2016</a>)</span>. We can run an Ensemble
+Model by applying the following four steps. First, we define the task of interest
+and a combination of learners i.e. so-called <strong>base learners</strong>:</p>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://mlr.mlr-org.com">mlr</a></span><span class="op">)</span>
+<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">kernlab</span><span class="op">)</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; Attaching package: 'kernlab'</span>
+<span class="co">#&gt; The following objects are masked from 'package:raster':</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt;     buffer, rotated</span>
+<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/boost-R/mboost">mboost</a></span><span class="op">)</span>
+<span class="co">#&gt; Loading required package: parallel</span>
+<span class="co">#&gt; Loading required package: stabs</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; Attaching package: 'stabs'</span>
+<span class="co">#&gt; The following object is masked from 'package:mlr':</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt;     subsample</span>
+<span class="co">#&gt; This is mboost 2.9-2. See 'package?mboost' and 'news(package  = "mboost")'</span>
+<span class="co">#&gt; for a complete list of changes.</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; Attaching package: 'mboost'</span>
+<span class="co">#&gt; The following object is masked from 'package:glmnet':</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt;     Cindex</span>
+<span class="co">#&gt; The following objects are masked from 'package:raster':</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt;     cv, extract</span>
+<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/envirometrix/landmap/">landmap</a></span><span class="op">)</span>
+<span class="va">SL.library</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/terra/man/c.html">c</a></span><span class="op">(</span><span class="st">"regr.ranger"</span>, <span class="st">"regr.glm"</span>, <span class="st">"regr.gamboost"</span>, <span class="st">"regr.ksvm"</span><span class="op">)</span>
+<span class="va">lrns</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">lapply</a></span><span class="op">(</span><span class="va">SL.library</span>, <span class="fu">mlr</span><span class="fu">::</span><span class="va"><a href="https://mlr.mlr-org.com/reference/makeLearner.html">makeLearner</a></span><span class="op">)</span>
+<span class="va">tsk</span> <span class="op">&lt;-</span> <span class="fu">mlr</span><span class="fu">::</span><span class="fu"><a href="https://mlr.mlr-org.com/reference/RegrTask.html">makeRegrTask</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">dat</span>, target <span class="op">=</span> <span class="st">"y"</span><span class="op">)</span></code></pre></div>
+<p>In this case we use basically four very different models: RF (<code>ranger</code>),
+linear model (<code>glm</code>), Gradient boosting (<code>gamboost</code>) and Support Vector
+Machine (<code>kvsm</code>). Second, we train the Ensemble model by using the stacking approach:</p>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">init.m</span> <span class="op">&lt;-</span> <span class="fu">mlr</span><span class="fu">::</span><span class="fu"><a href="https://mlr.mlr-org.com/reference/makeStackedLearner.html">makeStackedLearner</a></span><span class="op">(</span><span class="va">lrns</span>, method <span class="op">=</span> <span class="st">"stack.cv"</span>, super.learner <span class="op">=</span> <span class="st">"regr.lm"</span>, resampling<span class="op">=</span><span class="fu">mlr</span><span class="fu">::</span><span class="fu"><a href="https://mlr.mlr-org.com/reference/makeResampleDesc.html">makeResampleDesc</a></span><span class="op">(</span>method <span class="op">=</span> <span class="st">"CV"</span><span class="op">)</span><span class="op">)</span>
+<span class="va">eml</span> <span class="op">=</span> <span class="fu"><a href="https://mlr.mlr-org.com/reference/train.html">train</a></span><span class="op">(</span><span class="va">init.m</span>, <span class="va">tsk</span><span class="op">)</span>
+<span class="co">#&gt; Warning in bsplines(mf[[i]], knots = args$knots[[i]]$knots, boundary.knots =</span>
+<span class="co">#&gt; args$knots[[i]]$boundary.knots, : Some 'x' values are beyond 'boundary.knots';</span>
+<span class="co">#&gt; Linear extrapolation used.</span>
+
+<span class="co">#&gt; Warning in bsplines(mf[[i]], knots = args$knots[[i]]$knots, boundary.knots =</span>
+<span class="co">#&gt; args$knots[[i]]$boundary.knots, : Some 'x' values are beyond 'boundary.knots';</span>
+<span class="co">#&gt; Linear extrapolation used.</span>
+<span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">eml</span><span class="op">$</span><span class="va">learner.model</span><span class="op">$</span><span class="va">super.model</span><span class="op">$</span><span class="va">learner.model</span><span class="op">)</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; Call:</span>
+<span class="co">#&gt; stats::lm(formula = f, data = d)</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; Residuals:</span>
+<span class="co">#&gt;      Min       1Q   Median       3Q      Max </span>
+<span class="co">#&gt; -28.0474  -7.0473  -0.4075   7.2528  28.6083 </span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; Coefficients:</span>
+<span class="co">#&gt;               Estimate Std. Error t value Pr(&gt;|t|)    </span>
+<span class="co">#&gt; (Intercept)   -0.86179    3.01456  -0.286  0.77560    </span>
+<span class="co">#&gt; regr.ranger   -0.27294    0.24292  -1.124  0.26402    </span>
+<span class="co">#&gt; regr.glm       4.75714    1.09051   4.362 3.27e-05 ***</span>
+<span class="co">#&gt; regr.gamboost -3.55134    1.14764  -3.094  0.00259 ** </span>
+<span class="co">#&gt; regr.ksvm      0.08578    0.28482   0.301  0.76394    </span>
+<span class="co">#&gt; ---</span>
+<span class="co">#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; Residual standard error: 11.25 on 95 degrees of freedom</span>
+<span class="co">#&gt; Multiple R-squared:  0.8714, Adjusted R-squared:  0.8659 </span>
+<span class="co">#&gt; F-statistic: 160.9 on 4 and 95 DF,  p-value: &lt; 2.2e-16</span></code></pre></div>
+<p>The results show that <code>ranger</code> and <code>ksvm</code> basically under-perform and are in
+fact not significant for this specific data i.e. could be probably omitted from
+modeling.</p>
+<p>Note that, for <strong>stacking</strong> of multiple learners we use a separate model
+(a meta-learner) which is in this case a simple linear model. We use a
+simple model because we assume that the non-linear relationships have
+already been modeled via complex models such as <code>ranger</code>, <code>gamboost</code>
+and/or <code>ksvm</code>.</p>
+<p>Next, we need to estimate mapping accuracy and <strong>prediction errors</strong> for
+Ensemble predictions. This is not trivial as there are no simple derived formulas.
+We need to use a non-parametric approach basically and this can be very computational.
+A computationally interesting approach is to first estimate the (global) mapping
+accuracy, then adjust the prediction variance from multiple base learners:</p>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">newdata</span><span class="op">$</span><span class="va">y.eml</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html">predict</a></span><span class="op">(</span><span class="va">eml</span>, newdata <span class="op">=</span> <span class="va">newdata</span><span class="op">)</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">response</span>
+<span class="co">#&gt; Warning in bsplines(mf[[i]], knots = args$knots[[i]]$knots, boundary.knots =</span>
+<span class="co">#&gt; args$knots[[i]]$boundary.knots, : Some 'x' values are beyond 'boundary.knots';</span>
+<span class="co">#&gt; Linear extrapolation used.</span>
+<span class="va">m.train</span> <span class="op">=</span> <span class="va">eml</span><span class="op">$</span><span class="va">learner.model</span><span class="op">$</span><span class="va">super.model</span><span class="op">$</span><span class="va">learner.model</span><span class="op">$</span><span class="va">model</span>
+<span class="va">m.terms</span> <span class="op">=</span> <span class="va">eml</span><span class="op">$</span><span class="va">learner.model</span><span class="op">$</span><span class="va">super.model</span><span class="op">$</span><span class="va">learner.model</span><span class="op">$</span><span class="va">terms</span>
+<span class="va">eml.MSE0</span> <span class="op">=</span> <span class="fu">matrixStats</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/matrixStats/man/rowSds.html">rowSds</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/raster/man/as.matrix.html">as.matrix</a></span><span class="op">(</span><span class="va">m.train</span><span class="op">[</span>,<span class="fu"><a href="https://rdrr.io/r/base/allnames.html">all.vars</a></span><span class="op">(</span><span class="va">m.terms</span><span class="op">)</span><span class="op">[</span><span class="op">-</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">)</span>, na.rm<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span><span class="op">^</span><span class="fl">2</span>
+<span class="va">eml.MSE</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/deviance.html">deviance</a></span><span class="op">(</span><span class="va">eml</span><span class="op">$</span><span class="va">learner.model</span><span class="op">$</span><span class="va">super.model</span><span class="op">$</span><span class="va">learner.model</span><span class="op">)</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/r/stats/df.residual.html">df.residual</a></span><span class="op">(</span><span class="va">eml</span><span class="op">$</span><span class="va">learner.model</span><span class="op">$</span><span class="va">super.model</span><span class="op">$</span><span class="va">learner.model</span><span class="op">)</span>
+<span class="co">## correction factor / mass-preservation of MSE</span>
+<span class="va">eml.cf</span> <span class="op">=</span> <span class="va">eml.MSE</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">eml.MSE0</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>
+<span class="va">eml.cf</span>
+<span class="co">#&gt; [1] 9.328646</span></code></pre></div>
+<p>This shows that variance of the learners is about 10 times smaller than
+the actual CV variance. Again, this proves that many learners try to fit
+data very closely so that variance of different base learners is often
+smoothed out.</p>
+<p>Next, we can predict values and prediction errors at all new locations:</p>
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">pred</span> <span class="op">=</span> <span class="fu">mlr</span><span class="fu">::</span><span class="fu"><a href="https://mlr.mlr-org.com/reference/getStackedBaseLearnerPredictions.html">getStackedBaseLearnerPredictions</a></span><span class="op">(</span><span class="va">eml</span>, newdata<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span>x <span class="op">=</span> <span class="op">-</span><span class="fl">100</span><span class="op">:</span><span class="fl">200</span><span class="op">)</span><span class="op">)</span>
+<span class="co">#&gt; Warning in bsplines(mf[[i]], knots = args$knots[[i]]$knots, boundary.knots =</span>
+<span class="co">#&gt; args$knots[[i]]$boundary.knots, : Some 'x' values are beyond 'boundary.knots';</span>
+<span class="co">#&gt; Linear extrapolation used.</span>
+<span class="va">rf.sd</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html">sqrt</a></span><span class="op">(</span><span class="fu">matrixStats</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/matrixStats/man/rowSds.html">rowSds</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/raster/man/as.matrix.html">as.matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/raster/man/as.data.frame.html">as.data.frame</a></span><span class="op">(</span><span class="va">pred</span><span class="op">)</span><span class="op">)</span>, na.rm<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span><span class="op">^</span><span class="fl">2</span> <span class="op">*</span> <span class="va">eml.cf</span><span class="op">)</span>
+<span class="va">rmse.eml</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html">sqrt</a></span><span class="op">(</span><span class="va">eml.MSE</span><span class="op">)</span>, <span class="fl">1</span><span class="op">)</span></code></pre></div>
+<p>and the plot the results of fitting linear model vs EML:</p>
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">leg.txt</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sprintf.html">sprintf</a></span><span class="op">(</span><span class="st">"%s (%s)"</span>, <span class="fu"><a href="https://rdrr.io/pkg/terra/man/c.html">c</a></span><span class="op">(</span><span class="st">'lm'</span>, <span class="st">'EML'</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/pkg/terra/man/c.html">c</a></span><span class="op">(</span><span class="va">rmse.lm</span>, <span class="va">rmse.eml</span><span class="op">)</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/graphics/par.html">par</a></span><span class="op">(</span>mar <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/terra/man/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">0</span><span class="op">)</span>, fg <span class="op">=</span> <span class="st">'black'</span>, bg <span class="op">=</span> <span class="st">'white'</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/pkg/mboost/man/plot.html">plot</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="va">x</span>, xlim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/terra/man/c.html">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">25</span>, <span class="fl">125</span><span class="op">)</span>, ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/terra/man/c.html">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">50</span>, <span class="fl">150</span><span class="op">)</span>, type <span class="op">=</span> <span class="st">'n'</span>, axes <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/graphics/grid.html">grid</a></span><span class="op">(</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/graphics/points.html">points</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="va">x</span>, cex <span class="op">=</span> <span class="fl">1</span>, pch <span class="op">=</span> <span class="fl">16</span>, las <span class="op">=</span> <span class="fl">1</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/graphics/lines.html">lines</a></span><span class="op">(</span><span class="va">y.lm</span> <span class="op">~</span> <span class="va">x</span>, data <span class="op">=</span> <span class="va">newdata</span>, col <span class="op">=</span> <span class="fl">2</span>, lwd <span class="op">=</span> <span class="fl">2</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/graphics/lines.html">lines</a></span><span class="op">(</span><span class="va">y.eml</span> <span class="op">~</span> <span class="va">x</span>, data <span class="op">=</span> <span class="va">newdata</span>, col <span class="op">=</span> <span class="fl">4</span>, lwd <span class="op">=</span> <span class="fl">2</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/graphics/lines.html">lines</a></span><span class="op">(</span><span class="va">newdata</span><span class="op">$</span><span class="va">x</span>, <span class="va">newdata</span><span class="op">$</span><span class="va">y.eml</span><span class="op">+</span><span class="va">rmse.eml</span><span class="op">+</span><span class="va">rf.sd</span>, lty<span class="op">=</span><span class="fl">2</span>, col<span class="op">=</span><span class="fl">4</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/graphics/lines.html">lines</a></span><span class="op">(</span><span class="va">newdata</span><span class="op">$</span><span class="va">x</span>, <span class="va">newdata</span><span class="op">$</span><span class="va">y.eml</span><span class="op">-</span><span class="op">(</span><span class="va">rmse.eml</span><span class="op">+</span><span class="va">rf.sd</span><span class="op">)</span>, lty<span class="op">=</span><span class="fl">2</span>, col<span class="op">=</span><span class="fl">4</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/graphics/legend.html">legend</a></span><span class="op">(</span><span class="st">'bottom'</span>, legend <span class="op">=</span> <span class="va">leg.txt</span>, lwd <span class="op">=</span> <span class="fl">2</span>, lty <span class="op">=</span> <span class="fl">1</span>, col <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/terra/man/c.html">c</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">4</span>, <span class="fl">3</span><span class="op">)</span>, horiz <span class="op">=</span> <span class="cn">TRUE</span>, title <span class="op">=</span> <span class="st">'RMSE'</span><span class="op">)</span></code></pre></div>
+<div class="figure" style="text-align: center">
+<span id="fig:synthetic-eml"></span>
+<img src="spatial-data_files/figure-html/synthetic-eml-1.png" alt="Difference in model fits for sythetic data: lm vs Ensemble ML." width="100%"><p class="caption">
+Figure 1.9: Difference in model fits for sythetic data: lm vs Ensemble ML.
+</p>
+</div>
+<p>From the plot above, we see that the prediction error intervals in the
+extrapolation space are now quite wide (compare with Fig. <a href="alt-text-introduction-to-spatial-and-spatiotemporal-data.html#fig:synthetic-lm">1.8</a>), and this reflects much better
+what we would expect than if we have only used the <code>forestError</code> package.</p>
+<p>In summary: it appears that combining linear and non-linear tree-based
+models in an Ensemble ML framework helps both: decrease over-fitting and produce
+more realistic predictions of uncertainty / prediction intervals. The Ensemble ML
+framework correctly identifies linear models as being more important than
+random forest or similar. This makes Ensemble ML especially interesting for use
+as a generic solution for spatial and spatiotemporal interpolation and extrapolation.</p>
+
+</div>
+</div>
+  <div class="chapter-nav">
+<div class="prev"><a href="index.html">Introduction</a></div>
+<div class="next"><a href="alt-text-spatial-interpolation-using-ensemble-ml.html"><span class="header-section-number">2</span>  Spatial interpolation using Ensemble ML</a></div>
+</div></main><div class="col-md-3 col-lg-2 d-none d-md-block sidebar sidebar-chapter">
+    <nav id="toc" data-toggle="toc" aria-label="On this page"><h2>On this page</h2>
+      <ul class="nav navbar-nav">
+<li><a class="nav-link" href="#alt-text-introduction-to-spatial-and-spatiotemporal-data"><span class="header-section-number">1</span>  Introduction to spatial and spatiotemporal data</a></li>
+<li><a class="nav-link" href="#spatial-data-and-spatial-interpolation"><span class="header-section-number">1.1</span> Spatial data and spatial interpolation</a></li>
+<li><a class="nav-link" href="#spatial-interpolation-using-ensemble-machine-learning"><span class="header-section-number">1.2</span> Spatial interpolation using Ensemble Machine Learning</a></li>
+<li><a class="nav-link" href="#spatiotemporal-data"><span class="header-section-number">1.3</span> Spatiotemporal data</a></li>
+<li><a class="nav-link" href="#time-series-analysis"><span class="header-section-number">1.4</span> Time-series analysis</a></li>
+<li><a class="nav-link" href="#visualizing-spatiotemporal-data"><span class="header-section-number">1.5</span> Visualizing spatiotemporal data</a></li>
+<li><a class="nav-link" href="#spatiotemporal-interpolation"><span class="header-section-number">1.6</span> Spatiotemporal interpolation</a></li>
+<li><a class="nav-link" href="#modeling-seasonal-components"><span class="header-section-number">1.7</span> Modeling seasonal components</a></li>
+<li><a class="nav-link" href="#predictive-mapping-using-spatial-and-spatiotemporal-ml-in-r"><span class="header-section-number">1.8</span> Predictive mapping using spatial and spatiotemporal ML in R</a></li>
+<li><a class="nav-link" href="#extrapolation-and-over-fitting-problems-of-ml-methods"><span class="header-section-number">1.9</span> Extrapolation and over-fitting problems of ML methods</a></li>
+</ul>
+
+      <div class="book-extra">
+        <ul class="list-unstyled">
+<li><a id="book-source" href="https://github.com/OpenGeoHub/spatial-sampling-ml/blob/master/spatial-data.Rmd">View source <i class="fab fa-github"></i></a></li>
+          <li><a id="book-edit" href="https://github.com/OpenGeoHub/spatial-sampling-ml/edit/master/spatial-data.Rmd">Edit this page <i class="fab fa-github"></i></a></li>
+        </ul>
+</div>
+    </nav>
+</div>
+
+</div>
+</div> <!-- .container -->
+
+<footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
+
+  <div class="col-12 col-md-6 mt-3">
+    <p>"<strong>Spatial and spatiotemporal interpolation using Ensemble Machine Learning</strong>" was written by Tom Hengl, Leandro Parente and Carmelo Bonannella. </p>
+  </div>
+
+  <div class="col-12 col-md-6 mt-3">
+    <p>This book was built by the <a class="text-light" href="https://bookdown.org">bookdown</a> R package.</p>
+  </div>
+
+</div></div>
+</footer><!-- dynamically load mathjax for compatibility with self-contained --><script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    var src = "true";
+    if (src === "" || src === "true") src = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML";
+    if (location.protocol !== "file:")
+      if (/^https?:/.test(src))
+        src = src.replace(/^https?:/, '');
+    script.src = src;
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+</body>
+</html>

@@ -1,0 +1,519 @@
+# Spatial interpolation using Ensemble ML
+
+```{r, results = "asis", echo = FALSE}
+status("drafting")
+```
+
+```{r, include=FALSE, message=FALSE, results='hide'}
+ls <- c("rgdal", "raster", "plotKML", "ranger", "mlr", "forestError", 
+        "xgboost", "glmnet", "matrixStats", "landmap", "yardstick", "Cubist", 
+        "hexbin", "parallelMap", "Metrics", "fastSave", "devtools")
+new.packages <- ls[!(ls %in% installed.packages()[,"Package"])]
+if(length(new.packages)) install.packages(new.packages)
+lapply(ls, require, character.only = TRUE)
+#load.pigz("eml_data.RData")
+source("PSM_functions.R")
+```
+
+## Spatial interpolation using ML and buffer distances to points
+
+A relatively simple approach to interpolate values from point data using e.g. 
+Random Forest is to use **buffer distances** to all points as covariates. We can 
+here use the meuse dataset for testing [@hengl2018random]:
+
+```{r}
+library(rgdal)
+library(ranger)
+library(raster)
+library(plotKML)
+demo(meuse, echo=FALSE)
+grid.dist0 <- landmap::buffer.dist(meuse["zinc"], meuse.grid[1], 
+                                   classes=as.factor(1:nrow(meuse)))
+```
+
+This creates 155 gridded maps i.e. one map per training point. These maps of 
+distances can now be used to predict some target variable by running:
+
+```{r}
+dn0 <- paste(names(grid.dist0), collapse="+")
+fm0 <- as.formula(paste("zinc ~ ", dn0))
+ov.zinc <- over(meuse["zinc"], grid.dist0)
+rm.zinc <- cbind(meuse@data["zinc"], ov.zinc)
+m.zinc <- ranger(fm0, rm.zinc, num.trees=150, seed=1)
+m.zinc
+```
+
+Using this model we can generate and plot predictions using:
+
+```{r map-buff, echo=TRUE, fig.width=6, out.width="100%", fig.cap="Values of Zinc predicted using only RF on buffer distances."}
+op <- par(oma=c(0,0,0,1), mar=c(0,0,4,3))
+zinc.rfd <- predict(m.zinc, grid.dist0@data)$predictions
+meuse.grid$zinc.rfd = zinc.rfd
+plot(raster(meuse.grid["zinc.rfd"]), col=R_pal[["rainbow_75"]][4:20],
+         main="Predictions RF on buffer distances", axes=FALSE, box=FALSE)
+points(meuse, pch="+", cex=.8)
+par(op)
+```
+
+The resulting predictions produce patterns very much similar to what we would 
+produce if we have used ordinary kriging or similar. Note however that for RFsp 
+model: (1) we did not have to fit any variogram, (2) the model is in essence _over-
+parameterized_ with basically more covariates than training points.
+
+## Spatial interpolation using ML and geographical distances to neighbors
+
+Deriving buffer distances for all points is obviously not suitable for very 
+large point datasets. @sekulic2020random describe an alternative, a more scalable 
+method that uses closest neighbors (and their values) as covariates to predict
+target variable. This can be implemented using the `meteo` package:
+
+```{r}
+library(meteo)
+nearest_obs <- meteo::near.obs(locations = meuse.grid, 
+                               locations.x.y = c("x","y"), 
+                               observations = meuse, observations.x.y=c("x","y"), 
+                               zcol = "zinc", n.obs = 10, rm.dupl = TRUE)
+str(nearest_obs)
+```
+
+which produces 20 grids showing assigned values from 1st to 10th 
+neighbor and distances. We can plot values based on the first neighbor, 
+which corresponds to using e.g. [Voronoi polygons](https://r-spatial.github.io/sf/reference/geos_unary.html):
+
+```{r map-ob1, echo=TRUE, fig.width=6, out.width="100%", fig.cap="Values of first neighbor for meuse dataset."}
+meuse.gridF = meuse.grid
+meuse.gridF@data = nearest_obs
+spplot(meuse.gridF[11])
+```
+
+Next, we can estimate the same values for training points, but this time
+we remove any duplicates using `rm.dupl = TRUE`:
+
+```{r}
+## training points
+nearest_obs.dev <- meteo::near.obs(locations = meuse, 
+                                   locations.x.y = c("x","y"), 
+                                   observations = meuse, 
+                                   observations.x.y=c("x","y"), 
+                                   zcol = "zinc", n.obs = 10, rm.dupl = TRUE)
+meuse@data <- cbind(meuse@data, nearest_obs.dev)
+```
+
+Finally, we can fit a model to predict values purely based on spatial
+autocorrelation between values (1st to 10th nearest neighbour):
+
+```{r}
+fm.RFSI <- as.formula(paste("zinc ~ ", paste(paste0("dist", 1:10), collapse="+"), "+", paste(paste0("obs", 1:10), collapse="+")))
+fm.RFSI
+rf_RFSI <- ranger(fm.RFSI, data=meuse@data, importance = "impurity", num.trees = 85, keep.inbag = TRUE)
+rf_RFSI
+```
+
+To produce predictions we can run:
+
+```{r map-r, echo=TRUE, fig.width=6, out.width="100%", fig.cap="Values of first neighbor for meuse dataset."}
+out = predict(rf_RFSI, meuse.gridF@data)
+meuse.grid$zinc.rfsi = out$predictions
+op <- par(oma=c(0,0,0,1), mar=c(0,0,4,3))
+plot(raster(meuse.grid["zinc.rfsi"]), col=R_pal[["rainbow_75"]][4:20],
+     main="Predictions RFSI", axes=FALSE, box=FALSE)
+points(meuse, pch="+", cex=.8)
+par(op)
+#dev.off()
+```
+
+In summary, based on the Figs. \@ref(fig:map-buff) and \@ref(fig:map-r), 
+we can conclude that predictions produced using nearest neighbors (Fig. \@ref(fig:map-r)) show quite different pattern than 
+predictions based on buffer distances (Fig. \@ref(fig:map-buff)). The method by @sekulic2020random 
+(Random Forest Spatial Interpolation RFSI) is probably more interesting for general applications as it could be 
+also added to spatiotemporal data problems. It also reflects closely idea of using 
+spatial autocorrelation of values as used in kriging since both values of neighbors and 
+distances to neighbors are used as covariates. On the other hand, RFSI seem to 
+produce predictions that contain also short range variability (more noisy) and as 
+such look more like geostatistical simulations.
+
+## Interpolation of numeric values using spatial regression
+
+We load the packages that will be used in this tutorial:
+
+```{r}
+library(landmap)
+library(rgdal)
+library(geoR)
+library(plotKML)
+library(raster)
+library(glmnet)
+library(xgboost)
+library(kernlab)
+library(deepnet)
+library(forestError)
+library(mlr)
+```
+
+For testing we use meuse data set. We can fit a 2D model to interpolate zinc 
+concentration based on sampling points, distance to the river and flooding frequency 
+maps by using:
+
+```{r, message=FALSE, warning=FALSE}
+demo(meuse, echo=FALSE)
+m <- train.spLearner(meuse["zinc"], covariates=meuse.grid[,c("dist","ffreq")], 
+                     lambda = 1, parallel=FALSE)
+```
+
+This runs number of steps including derivation of geographical distances [@moller2020oblique], 
+derivation of principal components (to make sure all features are numeric and complete), 
+fitting of variogram using the **geoR** package [@diggle1998model], spatial overlay, 
+training of individual learners and training of the super learner. In principle, the only 
+parameter we need to set manually in the `train.spLearner` is the `lambda = 1` 
+which is required to estimate variogram: in this case the target variable is 
+log-normally distributed, and hence the geoR package needs the transformation 
+parameter set at `lambda = 1`.  
+
+Note that the default meta-learner in `train.spLearner` is a linear model from 
+five independently fitted learners `c("regr.ranger", "regr.xgboost", "regr.ksvm", "regr.nnet", "regr.cvglmnet")`. We can check the success of training based on the 5-fold 
+spatial Cross-Validation using:
+
+```{r}
+summary(m@spModel$learner.model$super.model$learner.model)
+```
+
+Which shows that the model explains about 65% of variability in target variable 
+and that `regr.ranger` learner [@wright2017ranger] is the strongest learner. Average 
+mapping error RMSE = 213, hence the models is somewhat more accurate than if we 
+only used buffer distances.
+
+To predict values at all grids we use:
+
+```{r}
+meuse.y <- predict(m)
+```
+
+Note that, by default, we will predict two outputs:
+  
+- Mean prediction: i.e. the best unbiased prediction of response;  
+- Prediction errors: usually predicted as lower and upper 67% quantiles (1 std.) based on the [forestError](https://cran.r-project.org/package=forestError) [@lu2021unified];   
+
+If not otherwise specified, derivation of the prediction error (**Root Mean Square 
+Prediction Error**), bias and lower and upper prediction intervals is implemented 
+by default via the [forestError](https://cran.r-project.org/package=forestError) 
+algorithm. The method is explained in detail in @lu2021unified.
+
+We could also produce the prediction intervals by using the **quantreg** Random Forest 
+algorithm [@meinshausen2006quantile] as implemented in the ranger package, or as 
+a standard deviation of the bootstraped models, although using the method by @lu2021unified is recommended. 
+
+To determine the prediction errors without drastically increasing computing time, 
+we basically fit an independent random forest model using the five base-learners 
+with setting `quantreg = TRUE`:
+
+```
+zinc ~ regr.ranger + regr.xgboost + regr.nnet + regr.ksvm + regr.cvglmnet
+```
+
+The prediction error methods are non-parameteric and users can choose any 
+probability in the output via the `quantiles` argument. For example, the default 
+`quantiles` are set to produce prediction intervals for the .682 range, which 
+is the 1-standard-deviation range in the case of a Gaussian distribution. 
+Deriving prediction errors, however, can be come computational for large number 
+of features and trees in the random forest, so have in mind that EML comes with 
+exponentially increased computing time.
+
+We can plot the predictions and prediction errors next to each other by using:
+  
+```{r map-zinc, echo=TRUE, fig.width=7, out.width="100%", fig.cap="Predicted zinc content based on meuse data set."}
+par(mfrow=c(1,2), oma=c(0,0,0,1), mar=c(0,0,4,3))
+plot(raster(meuse.y$pred["response"]), col=R_pal[["rainbow_75"]][4:20],
+     main="Predictions spLearner", axes=FALSE, box=FALSE)
+points(meuse, pch="+", cex=.8)
+plot(raster(meuse.y$pred["model.error"]), col=rev(bpy.colors()),
+     main="Prediction errors", axes=FALSE, box=FALSE)
+points(meuse, pch="+", cex=.8)
+```
+
+This shows that the prediction errors (right plot) are the highest:
+  
+- where the model is getting further away from the training points (spatial extrapolation),  
+- where individual points with high values can not be explained by covariates,  
+- where measured values of the response variable are in general high,  
+
+We can also plot the lower and upper prediction intervals for the .682 
+probability range using:
+
+```{r, map-zinc-interval, echo=TRUE, fig.width=7, out.width="100%", fig.cap="Lower (q.lwr) and upper (q.upr) prediction intervals for zinc content based on meuse data set."}
+pts = list("sp.points", meuse, pch = "+", col="black")
+spplot(meuse.y$pred[,c("q.lwr","q.upr")], col.regions=R_pal[["rainbow_75"]][4:20],
+       sp.layout = list(pts),
+       main="Prediction intervals (alpha = 0.318)")
+```
+
+## Model fine-tuning and feature selection
+
+The function `tune.spLearner` can be used to further optimize spLearner object by: 
+
+- fine-tuning model parameters, especially the ranger `mtry` and XGBoost parameters,  
+- reduce number of features by running feature selection via the `mlr::makeFeatSelWrapper` function,  
+
+The package landmap currently requires that two base learners used include `regr.ranger` and
+`regr.xgboost`, and that there are at least 3 base learners in total. The model from above can be optimized using:
+
+```{r, eval=FALSE}
+m0 <- tune.spLearner(m, xg.skip=TRUE, parallel=FALSE)
+```
+
+which reports RMSE for different `mtry` and reports which features have been left and which removed. Note that we turn off the fine-tuning of XGboost using `xg.skip = TRUE` as it takes at the order of magnitude more time. In summary, in this specific case, the fine-tuned model is not much more accurate, but it comes with the less features:
+
+```{r, eval=FALSE}
+str(m0@spModel$features)
+```
+
+```
+chr [1:11] "PC2" "PC3" "PC4" "rX_0" "rY_0" "rY_0.2" "rX_0.5" "rY_1" "rY_1.4" "rY_2.9" "rY_3.1"
+```
+
+```{r, eval=FALSE}
+summary(m0@spModel$learner.model$super.model$learner.model)
+```
+```
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-404.09 -139.03  -42.05   64.69 1336.47 
+
+Coefficients:
+                Estimate Std. Error t value Pr(>|t|)   
+(Intercept)   2091.87119  661.70995   3.161  0.00190 **
+regr.ranger      0.14278    0.24177   0.591  0.55570   
+regr.xgboost     0.92283    0.53131   1.737  0.08448 . 
+regr.nnet       -4.34961    1.38703  -3.136  0.00206 **
+regr.ksvm        0.66590    0.25027   2.661  0.00865 **
+regr.cvglmnet   -0.08703    0.13808  -0.630  0.52944   
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 245.2 on 149 degrees of freedom
+Multiple R-squared:  0.5683,	Adjusted R-squared:  0.5538 
+F-statistic: 39.23 on 5 and 149 DF,  p-value: < 2.2e-16
+```
+
+Note that fine-tuning and feature selection can be quite computational and it is 
+highly recommended to start with smaller subsets of data and then measure processing 
+time. Note that the function `mlr::makeFeatSelWrapper` can result in errors if 
+the covariates have a low variance or follow a zero-inflated distribution.
+Reducing the number of features via feature selection and fine-tuning of the Random 
+Forest `mtry` and XGboost parameters, however, can result in significantly higher 
+prediction speed and can also help improve accuracy.
+
+## Estimation of prediction intervals
+
+We can also print the lower and upper [prediction interval](http://www.sthda.com/english/articles/40-regression-analysis/166-predict-in-r-model-predictions-and-confidence-intervals/) for every location using e.g.:
+
+```{r}
+sp::over(meuse[1,], meuse.y$pred)
+```
+
+where `q.lwr` is the lower and `q.upr` is the 68% probability upper quantile value. This shows that the 68% probability interval for the location `x=181072, y=333611` is about 734--1241 which means that the prediction error (±1 s.d.), at that location, is about 250. Compare with the actual value sampled at that location:
+
+```{r}
+meuse@data[1,"zinc"]
+```
+
+The average prediction error for the whole area is:
+
+```{r}
+summary(meuse.y$pred$model.error)
+```
+
+which is somewhat lower than the RMSE derived by cross-validation, but this is 
+also because most of the predicted values are in fact low (skewed distribution), 
+and EML seems not have many problems predicting low values. 
+
+Note also, from the example above, if we refit a model using exactly the same 
+settings we might get somewhat different maps and different values. This is to 
+be expected as the number of training points and covariates is low, the stacking 
+is done by using (random) 5-fold Cross-validation, and hence results will always 
+be slightly different. The resulting models and maps, however, should not be 
+significantly different as this would indicate that the Ensemble ML is _unstable_. 
+In the case of larger datasets (≫1000 points), differences between predictions 
+should become less and less visible. 
+
+## Predictions using log-transformed target variable
+
+If the purpose of spatial prediction to make a more accurate predictions of low(er) 
+values of the response, then we can train a model with the transformed variable:
+
+```{r, message=FALSE, warning=FALSE}
+meuse$log.zinc = log1p(meuse$zinc)
+m2 <- train.spLearner(meuse["log.zinc"], covariates=meuse.grid[,c("dist","ffreq")], parallel=FALSE)
+```
+
+The summary model will usually have a somewhat higher R-square, but the best learners should stay about the same:
+
+```{r}
+summary(m2@spModel$learner.model$super.model$learner.model)
+```
+
+We can next predict and then back-transform the values:
+
+```{r}
+meuse.y2 <- predict(m2)
+## back-transform:
+meuse.y2$pred$response.t = expm1(meuse.y2$pred$response)
+```
+
+
+```{r map-zinc2, echo=FALSE, fig.width=7, out.width="100%", fig.cap="Predicted zinc content based on meuse data set after log-transformation."}
+par(mfrow=c(1,2), oma=c(0,0,0,1), mar=c(0,0,4,3))
+plot(raster(meuse.y2$pred["response.t"]), col=R_pal[["rainbow_75"]][4:20],
+     main="Predictions spLearner", axes=FALSE, box=FALSE)
+points(meuse, pch="+", cex=.8)
+plot(raster(meuse.y2$pred["model.error"]), col=rev(bpy.colors()),
+     main="Log prediction errors", axes=FALSE, box=FALSE)
+points(meuse, pch="+", cex=.8)
+```
+
+The predictions (Figs. \@ref(fig:map-zinc) and \@ref(fig:map-zinc2)) show similar 
+patterns but the prediction error maps are quite different in this case. Nevertheless, 
+the problem areas seem to match in both maps (see Figs. \@ref(fig:map-zinc) and \@ref(fig:map-zinc2) right part).
+If we compare distributions of two predictions we can also see that the predictions do not differ much:
+  
+```{r hist-zinc2, echo=TRUE, fig.width=8, out.width="90%", fig.cap="Difference in distributions observed and predicted."}
+library(ggridges)
+library(viridis)
+library(ggplot2)
+zinc.df = data.frame(zinc=c(sp::over(meuse, meuse.y$pred["response"])[,1], 
+                            sp::over(meuse, meuse.y2$pred["response.t"])[,1],
+                            meuse$zinc
+))
+zinc.df$type = as.vector(sapply(c("predicted", "log.predicted", "observed"), function(i){rep(i, nrow(meuse))}))
+ggplot(zinc.df, aes(x = zinc, y = type, fill = ..x..)) +
+  geom_density_ridges_gradient(scale = 0.95, rel_min_height = 0.01, gradient_lwd = 1.) +
+  scale_x_continuous(expand = c(0.01, 0)) +
+  ## scale_x_continuous(trans='log2') +
+  scale_y_discrete(expand = c(0.01, 0.01)) +
+  scale_fill_viridis(name = "Zinc", option = "C") +
+  labs(title = "Distributions comparison") +
+  theme_ridges(font_size = 13, grid = TRUE) + theme(axis.title.y = element_blank())
+
+```
+
+The observed very high values are somewhat smoothed out but the median value is 
+about the same, hence we can conclude that the two EML models predict the target 
+variable without a bias. To estimate the prediction intervals using the log-transformed 
+variable we can use:
+
+```{r}
+x = sp::over(meuse[1,], meuse.y2$pred)
+expm1(x$q.lwr); expm1(x$q.upr)
+```
+
+Note that the log-transformation is not needed for a non-linear learner such 
+ranger and/or Xgboost, but it is often a good idea if the focus of prediction is 
+to get a better accuracy for lower values [@hengl2021african]. For example, if the objective of spatial 
+interpolation is to map soil nutrient deficiencies, then log-transformation is a 
+good idea as it will produce slightly better accuracy for lower values. 
+
+Another advantage of using log-transformation for log-normal variables is that 
+the prediction intervals would most likely be symmetric, so that derivation of 
+prediction error (±1 s.d.) can be derived by:
+
+```
+pe = (q.upr - q.lwr)/2
+```
+
+## Spatial prediction of soil types (factor-variable)
+
+Ensemble Machine Learning can also be used to interpolate factor type variables 
+e.g. soil types. This is an example with the Ebergotzen dataset available from 
+the package plotKML [@hengl2015plotkml]:
+
+```{r}
+library(plotKML)
+data(eberg_grid)
+gridded(eberg_grid) <- ~x+y
+proj4string(eberg_grid) <- CRS("+init=epsg:31467")
+data(eberg)
+coordinates(eberg) <- ~X+Y
+proj4string(eberg) <- CRS("+init=epsg:31467")
+summary(eberg$TAXGRSC)
+```
+
+In this case the target variable is `TAXGRSC` soil types based on the German soil 
+classification system. This changes the modeling problem from regression to 
+classification. We recommend using the following learners here:
+
+```{r}
+sl.c <- c("classif.ranger", "classif.xgboost", "classif.nnTrain")
+```
+
+The model training and prediction however looks the same as for the regression:
+  
+```{r, cache=TRUE}
+X <- eberg_grid[c("PRMGEO6","DEMSRT6","TWISRT6","TIRAST6")]
+if(!exists("mF")){
+  mF <- train.spLearner(eberg["TAXGRSC"], covariates=X, parallel=FALSE)
+}
+```
+
+To generate predictions we use:
+  
+```{r, cache=TRUE}
+if(!exists("TAXGRSC")){
+  TAXGRSC <- predict(mF)
+}
+```
+
+## Classification accuracy
+
+By default landmap package will predict both hard classes and probabilities per class. We can check the average accuracy of classification by using:
+
+```{r, cache=TRUE}
+newdata = mF@vgmModel$observations@data
+sel.e = complete.cases(newdata[,mF@spModel$features])
+newdata = newdata[sel.e, mF@spModel$features]
+pred = predict(mF@spModel, newdata=newdata)
+pred$data$truth = mF@vgmModel$observations@data[sel.e, "TAXGRSC"]
+print(calculateConfusionMatrix(pred))
+```
+
+which shows that about 25% of classes are miss-classified and the classification 
+confusion is especially high for the `Braunerde` class. Note the result above is 
+based only on the internal training. Normally one should repeat the process 
+several times using 5-fold or similar (i.e. fit EML, predict errors using resampled 
+values only, then repeat).
+
+Predicted probabilities, however, are more interesting because they also show 
+where EML possibly has problems and which are the transition zones between multiple classes:
+
+```{r map-tax, echo=TRUE, fig.width=10, out.width="100%", fig.cap="Predicted soil types based on EML."}
+plot(stack(TAXGRSC$pred[grep("prob.", names(TAXGRSC$pred))]),
+     col=SAGA_pal[["SG_COLORS_YELLOW_RED"]], zlim=c(0,1))
+```
+
+The maps show that also in this case geographical distances play a role, but 
+overall, the features (DTM derivatives and parnt material) seem to be most important.
+
+In addition to map of probabilities per class, we have also derived errors per 
+probability, which in this case can be computed as the standard deviation between 
+probabilities produced by individual learners (note: for classification problems 
+techniques such as quantreg random forest currently do not exist):
+
+```{r map-tax-error, echo=TRUE, fig.width=10, out.width="100%", fig.cap="Predicted errors per soil types based on s.d. between individual learners."}
+plot(stack(TAXGRSC$pred[grep("error.", names(TAXGRSC$pred))]),
+     col=SAGA_pal[["SG_COLORS_YELLOW_BLUE"]], zlim=c(0,0.45))
+```
+
+In probability space, instead of using RMSE or similar measures, it is often 
+recommended to use the measures such as the [log-loss](https://www.rdocumentation.org/packages/MLmetrics/versions/1.1.1/topics/LogLoss) which 
+correctly quantifies the difference between the observed and predicted probability. 
+As a rule of thumb, log-loss values above 0.35 indicate poor accuracy of predictions, 
+but the threshold number for critically low log-loss also depends on the number 
+of classes. In the plot above we can note that, in general, the average error in 
+maps is relatively low e.g. about 0.07:
+
+```{r}
+summary(TAXGRSC$pred$error.Parabraunerde)
+```
+
+but there are still many pixels where confusion between classes and prediction 
+errors are high. Recommended strategy to improve this map is to generate [a sampling 
+plan using the average prediction error](https://opengeohub.github.io/spatial-sampling-ml/) and/or Confusion Index map, then collect 
+new observations & measurements and refit the prediction models.
