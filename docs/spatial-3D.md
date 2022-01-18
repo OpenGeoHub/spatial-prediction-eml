@@ -71,7 +71,7 @@ To fit a RF model for this data we can use:
 
 ```r
 ds801$log.pb = log1p(ds801$pb_ppm)
-pr.vars = readRDS("./input/pb.pr.vars.rds")
+pr.vars = c(readRDS("./input/pb.pr.vars.rds"), "hzn_depth")
 sel.pb = complete.cases(ds801[,c("log.pb", pr.vars)])
 mrf = ranger::ranger(y=ds801$log.pb[sel.pb], x=ds801[sel.pb, pr.vars], 
             num.trees = 85, importance = 'impurity')
@@ -84,16 +84,16 @@ mrf
 #> Type:                             Regression 
 #> Number of trees:                  85 
 #> Sample size:                      14264 
-#> Number of independent variables:  187 
+#> Number of independent variables:  188 
 #> Mtry:                             13 
 #> Target node size:                 5 
 #> Variable importance mode:         impurity 
 #> Splitrule:                        variance 
-#> OOB prediction error (MSE):       0.1290968 
-#> R squared (OOB):                  0.5588409
+#> OOB prediction error (MSE):       0.09636483 
+#> R squared (OOB):                  0.670695
 ```
 
-which results in R-square of about 0.56. Because many training points have exactly 
+which results in R-square of about 0.67. Because many training points have exactly 
 the same coordinates (same site, three depths), we assume that this model is over-fitting and the out-of-bag 
 accuracy is probably over-optimistic. Instead we can fit an Ensemble model where 
 we block points within 30 by 30-km blocks:
@@ -162,7 +162,7 @@ plot_hexbin(varn="log.pb", breaks=c(t.pb[1], seq(t.pb[2], t.pb[3], length=25)),
 Variables most important for explaining distribution of the target variable (based on the variable importance)
 seem to be soil depth, annual day time temperature and travel time to cities. 
 If we plot the travel time to cities vs Pb concentrations, we can clearly see that 
-Pb is negatively correlated with travel time to cities:
+Pb is negatively correlated with travel time to cities (a log-log linear relationship):
 
 
 ```r

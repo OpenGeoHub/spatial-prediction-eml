@@ -199,7 +199,7 @@ par(op)
 </div>
 
 In summary, based on the Figs. \@ref(fig:map-buff) and \@ref(fig:map-r), 
-we can conclude that predictions produced using nearest neighbors (Fig. \@ref(fig:map-r)) show quite different pattern than 
+we can conclude that predictions produced using nearest neighbors (Fig. \@ref(fig:map-r)) show quite different patterns than 
 predictions based on buffer distances (Fig. \@ref(fig:map-buff)). The method by @sekulic2020random 
 (Random Forest Spatial Interpolation RFSI) is probably more interesting for general applications as it could be 
 also added to spatiotemporal data problems. It also reflects closely idea of using 

@@ -121,7 +121,7 @@ depths in soil, we can also use depth of the soil sample as one of the covariate
 To fit a RF model for this data we can use:</p>
 <div class="sourceCode" id="cb57"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">ds801</span><span class="op">$</span><span class="va">log.pb</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html">log1p</a></span><span class="op">(</span><span class="va">ds801</span><span class="op">$</span><span class="va">pb_ppm</span><span class="op">)</span>
-<span class="va">pr.vars</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html">readRDS</a></span><span class="op">(</span><span class="st">"./input/pb.pr.vars.rds"</span><span class="op">)</span>
+<span class="va">pr.vars</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/terra/man/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/readRDS.html">readRDS</a></span><span class="op">(</span><span class="st">"./input/pb.pr.vars.rds"</span><span class="op">)</span>, <span class="st">"hzn_depth"</span><span class="op">)</span>
 <span class="va">sel.pb</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/complete.cases.html">complete.cases</a></span><span class="op">(</span><span class="va">ds801</span><span class="op">[</span>,<span class="fu"><a href="https://rdrr.io/pkg/terra/man/c.html">c</a></span><span class="op">(</span><span class="st">"log.pb"</span>, <span class="va">pr.vars</span><span class="op">)</span><span class="op">]</span><span class="op">)</span>
 <span class="va">mrf</span> <span class="op">=</span> <span class="fu">ranger</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/ranger/man/ranger.html">ranger</a></span><span class="op">(</span>y<span class="op">=</span><span class="va">ds801</span><span class="op">$</span><span class="va">log.pb</span><span class="op">[</span><span class="va">sel.pb</span><span class="op">]</span>, x<span class="op">=</span><span class="va">ds801</span><span class="op">[</span><span class="va">sel.pb</span>, <span class="va">pr.vars</span><span class="op">]</span>, 
             num.trees <span class="op">=</span> <span class="fl">85</span>, importance <span class="op">=</span> <span class="st">'impurity'</span><span class="op">)</span>
@@ -134,14 +134,14 @@ To fit a RF model for this data we can use:</p>
 <span class="co">#&gt; Type:                             Regression </span>
 <span class="co">#&gt; Number of trees:                  85 </span>
 <span class="co">#&gt; Sample size:                      14264 </span>
-<span class="co">#&gt; Number of independent variables:  187 </span>
+<span class="co">#&gt; Number of independent variables:  188 </span>
 <span class="co">#&gt; Mtry:                             13 </span>
 <span class="co">#&gt; Target node size:                 5 </span>
 <span class="co">#&gt; Variable importance mode:         impurity </span>
 <span class="co">#&gt; Splitrule:                        variance </span>
-<span class="co">#&gt; OOB prediction error (MSE):       0.1290968 </span>
-<span class="co">#&gt; R squared (OOB):                  0.5588409</span></code></pre></div>
-<p>which results in R-square of about 0.56. Because many training points have exactly
+<span class="co">#&gt; OOB prediction error (MSE):       0.09636483 </span>
+<span class="co">#&gt; R squared (OOB):                  0.670695</span></code></pre></div>
+<p>which results in R-square of about 0.67. Because many training points have exactly
 the same coordinates (same site, three depths), we assume that this model is over-fitting and the out-of-bag
 accuracy is probably over-optimistic. Instead we can fit an Ensemble model where
 we block points within 30 by 30-km blocks:</p>
@@ -200,7 +200,7 @@ Figure 3.3: Accuracy plot for Pb concentration in soil fitted using Ensemble ML.
 <p>Variables most important for explaining distribution of the target variable (based on the variable importance)
 seem to be soil depth, annual day time temperature and travel time to cities.
 If we plot the travel time to cities vs Pb concentrations, we can clearly see that
-Pb is negatively correlated with travel time to cities:</p>
+Pb is negatively correlated with travel time to cities (a log-log linear relationship):</p>
 <div class="sourceCode" id="cb61"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu">openair</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/openair/man/scatterPlot.html">scatterPlot</a></span><span class="op">(</span><span class="va">ds801</span><span class="op">[</span><span class="va">ds801</span><span class="op">$</span><span class="va">pb_ppm</span><span class="op">&lt;</span><span class="fl">140</span>,<span class="op">]</span>, x <span class="op">=</span> <span class="st">"travel_time_to_cities_1_usa48"</span>, y <span class="op">=</span> <span class="st">"pb_ppm"</span>, method <span class="op">=</span> <span class="st">"hexbin"</span>, col <span class="op">=</span> <span class="st">"increment"</span>, log.x<span class="op">=</span><span class="cn">TRUE</span>, log.y<span class="op">=</span><span class="cn">TRUE</span>, xlab<span class="op">=</span><span class="st">"Travel time to cities 1"</span>, ylab<span class="op">=</span><span class="st">"Pb [ppm]"</span>, type<span class="op">=</span><span class="st">"hzn_depth"</span><span class="op">)</span>
 <span class="co">#&gt; Warning: removing 11 missing rows due to hzn_depth</span></code></pre></div>

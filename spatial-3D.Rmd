@@ -67,14 +67,14 @@ To fit a RF model for this data we can use:
 
 ```{r}
 ds801$log.pb = log1p(ds801$pb_ppm)
-pr.vars = readRDS("./input/pb.pr.vars.rds")
+pr.vars = c(readRDS("./input/pb.pr.vars.rds"), "hzn_depth")
 sel.pb = complete.cases(ds801[,c("log.pb", pr.vars)])
 mrf = ranger::ranger(y=ds801$log.pb[sel.pb], x=ds801[sel.pb, pr.vars], 
             num.trees = 85, importance = 'impurity')
 mrf
 ```
 
-which results in R-square of about 0.56. Because many training points have exactly 
+which results in R-square of about 0.67. Because many training points have exactly 
 the same coordinates (same site, three depths), we assume that this model is over-fitting and the out-of-bag 
 accuracy is probably over-optimistic. Instead we can fit an Ensemble model where 
 we block points within 30 by 30-km blocks:
@@ -118,7 +118,7 @@ knitr::include_graphics("./img/plot_CV_log.pb.png")
 Variables most important for explaining distribution of the target variable (based on the variable importance)
 seem to be soil depth, annual day time temperature and travel time to cities. 
 If we plot the travel time to cities vs Pb concentrations, we can clearly see that 
-Pb is negatively correlated with travel time to cities:
+Pb is negatively correlated with travel time to cities (a log-log linear relationship):
 
 ```{r cor-cities, echo=TRUE, fig.width=8, out.width="100%", fig.cap="Distribution of Pb as a function of travel time to cities for different depths."}
 openair::scatterPlot(ds801[ds801$pb_ppm<140,], x = "travel_time_to_cities_1_usa48", y = "pb_ppm", method = "hexbin", col = "increment", log.x=TRUE, log.y=TRUE, xlab="Travel time to cities 1", ylab="Pb [ppm]", type="hzn_depth")
