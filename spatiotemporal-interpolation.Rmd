@@ -188,7 +188,7 @@ parallelMap::parallelStop()
 This shows that daily temperatures can be predicted with relatively high R-square, 
 although the residual values are still significant (ranging from -1.8 to 1.8 degrees):
   
-```{r, cache=TRUE}
+```{r}
 summary(eml.TMP$learner.model$super.model$learner.model)
 ```
 
@@ -324,7 +324,7 @@ occ.pnts = spTransform(occ.pnts, CRS("+init=epsg:4326"))
 ```
 
 This is a subset of a [larger
-dataset](https://gitlab.com/openlandmap/eu-forest-tree-point-data) that
+dataset](https://doi.org/10.5281/zenodo.5818021) that
 has been used to produce predictions of distribution of key forest tree
 species for Europe (you can browse the data via <https://maps.opendatascience.eu>). 
 The first columns of this dataset show:

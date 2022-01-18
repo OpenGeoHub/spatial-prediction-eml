@@ -16,6 +16,11 @@ fig:map-zinc2
 fig:hist-zinc2
 fig:map-tax
 fig:map-tax-error
+fig:ds801-example
+fig:cor-depth
+fig:ac-pb1
+fig:cor-cities
+fig:pred-pb1
 fig:croatia-meteo
 fig:var-imptemp
 fig:st-plottemp
@@ -46,6 +51,10 @@ estimation-of-prediction-intervals
 predictions-using-log-transformed-target-variable
 spatial-prediction-of-soil-types-factor-variable
 classification-accuracy
+spatial-interpolation-in-3d-using-ensemble-ml
+mapping-concentrations-of-geochemical-elements
+predictions-in-3d
+advantages-and-limitations-of-running-3d-predictive-mapping
 spatiotemporal-interpolation-using-ensemble-ml
 spatiotemporal-interpolation-of-daily-temperatures
 spatiotemporal-distribution-of-fagus-sylvatica

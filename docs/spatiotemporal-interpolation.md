@@ -442,7 +442,7 @@ occ.pnts = spTransform(occ.pnts, CRS("+init=epsg:4326"))
 ```
 
 This is a subset of a [larger
-dataset](https://gitlab.com/openlandmap/eu-forest-tree-point-data) that
+dataset](https://doi.org/10.5281/zenodo.5818021) that
 has been used to produce predictions of distribution of key forest tree
 species for Europe (you can browse the data via <https://maps.opendatascience.eu>). 
 The first columns of this dataset show:
