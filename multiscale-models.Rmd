@@ -269,5 +269,5 @@ So in summary, merging multi-scale predictions is a straight forward process,
 but it assumes that the reliable prediction errors are available for both coarse and fine scale predictions. 
 The pooled variance might show higher errors where predictions between independent 
 models differ significantly and this is correct. The 2-scale Ensemble Machine 
-Learning method of Predictive Soil Mapping was used for example to produce 
-predictions of [soil properties and nutrients of Africa](https://www.isda-africa.com/isdasoil/) [@hengl2021african].
+Learning method of Predictive Soil Mapping was used, for example, to produce 
+predictions of [soil properties and nutrients of Africa at 30-m spatial resolution](https://www.isda-africa.com/isdasoil/) [@hengl2021african].

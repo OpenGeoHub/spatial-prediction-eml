@@ -125,12 +125,12 @@ par(op)
 In summary, based on the Figs. \@ref(fig:map-buff) and \@ref(fig:map-r), 
 we can conclude that predictions produced using nearest neighbors (Fig. \@ref(fig:map-r)) show quite different patterns than 
 predictions based on buffer distances (Fig. \@ref(fig:map-buff)). The method by @sekulic2020random 
-(Random Forest Spatial Interpolation RFSI) is probably more interesting for general applications as it could be 
+(**Random Forest Spatial Interpolation**) RFSI is probably more interesting for general applications as it could be 
 also added to spatiotemporal data problems. It also reflects closely idea of using 
 spatial autocorrelation of values as used in kriging since both values of neighbors and 
 distances to neighbors are used as covariates. On the other hand, RFSI seem to 
 produce predictions that contain also short range variability (more noisy) and as 
-such look more like geostatistical simulations.
+such predictions might appear to look more like geostatistical simulations.
 
 ## Interpolation of numeric values using spatial regression
 
@@ -162,7 +162,7 @@ m <- train.spLearner(meuse["zinc"], covariates=meuse.grid[,c("dist","ffreq")],
 
 This runs number of steps including derivation of geographical distances [@moller2020oblique], 
 derivation of principal components (to make sure all features are numeric and complete), 
-fitting of variogram using the **geoR** package [@diggle1998model], spatial overlay, 
+fitting of variogram using the **geoR** package [@Diggle2007Springer], spatial overlay, 
 training of individual learners and training of the super learner. In principle, the only 
 parameter we need to set manually in the `train.spLearner` is the `lambda = 1` 
 which is required to estimate variogram: in this case the target variable is 

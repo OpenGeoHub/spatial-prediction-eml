@@ -19,6 +19,7 @@ fig:map-tax-error
 fig:ds801-example
 fig:cor-depth
 fig:ac-pb1
+fig:varimp-pb
 fig:cor-cities
 fig:pred-pb1
 fig:croatia-meteo

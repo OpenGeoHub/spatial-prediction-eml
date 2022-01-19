@@ -24,7 +24,7 @@ options(
 status <- function(type) {
   status <- switch(type,
     restructuring = "undergoing heavy restructuring and may be confusing or incomplete",
-    drafting = "currently draft version, a peer-review publication is pending",
+    drafting = "draft version, a peer-review publication is pending",
     stop("Invalid `type`", call. = FALSE)
   )
 

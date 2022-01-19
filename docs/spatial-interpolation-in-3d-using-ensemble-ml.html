@@ -57,7 +57,7 @@
 <span class="header-section-number">3</span> Spatial interpolation in 3D using Ensemble ML<a class="anchor" aria-label="anchor" href="#spatial-interpolation-in-3d-using-ensemble-ml"><i class="fas fa-link"></i></a>
 </h1>
 <div class="rmdnote">
-<p>You are reading the work-in-progress Spatial and spatiotemporal interpolation using Ensemble Machine Learning. This chapter is currently currently draft version, a peer-review publication is pending. You can find the polished first edition at <a href="https://opengeohub.github.io/spatial-prediction-eml/" class="uri">https://opengeohub.github.io/spatial-prediction-eml/</a>.</p>
+<p>You are reading the work-in-progress Spatial and spatiotemporal interpolation using Ensemble Machine Learning. This chapter is currently draft version, a peer-review publication is pending. You can find the polished first edition at <a href="https://opengeohub.github.io/spatial-prediction-eml/" class="uri">https://opengeohub.github.io/spatial-prediction-eml/</a>.</p>
 </div>
 <div id="mapping-concentrations-of-geochemical-elements" class="section level2" number="3.1">
 <h2>
@@ -65,16 +65,37 @@
 </h2>
 <p>Ensemble ML can also be used for mapping soil variables in 3D. Consider for example
 the Geochemical and minerological data set for USA48 <span class="citation">(<a href="references.html#ref-smith2014geochemical" role="doc-biblioref">Smith, Woodruff, Solano, Ellefsen, &amp; Karl, 2014</a>)</span>. This is a public data set
-produced and maintained by the USA Geological Survey and contains laboratory measurements
+produced and maintained by the <a href="https://mrdata.usgs.gov/ngdb/soil/">USA Geological Survey</a> and contains laboratory measurements
 of chemical elements and minerals in soil at 4,857 sites (for three depths 0 to 5 cm,
 A horizon and C horizon; Fig. <a href="spatial-interpolation-in-3d-using-ensemble-ml.html#fig:ds801-example">3.1</a>).</p>
-<p>We can load the regression matrix which contains all target variables and covariates:</p>
+<p>We have previously imported and overlaid the sampling points vs large stack of
+covariate layers using e.g.:</p>
 <div class="sourceCode" id="cb54"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="co">## Training data ----</span>
+<span class="va">ngs.m</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/utils/read.table.html">read.csv</a></span><span class="op">(</span><span class="st">"./training_data/ds_801_all.csv"</span><span class="op">)</span>
+<span class="va">ngs.m</span><span class="op">$</span><span class="va">olc_id</span> <span class="op">=</span> <span class="fu">olctools</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/olctools/man/encode_olc.html">encode_olc</a></span><span class="op">(</span><span class="va">ngs.m</span><span class="op">$</span><span class="va">latitude</span>, <span class="va">ngs.m</span><span class="op">$</span><span class="va">longitude</span>, <span class="fl">11</span><span class="op">)</span>
+<span class="co">## Spatial overlay ----</span>
+<span class="va">sel.pnts</span> <span class="op">=</span> <span class="op">!</span><span class="fu"><a href="https://Rdatatable.gitlab.io/data.table/reference/duplicated.html">duplicated</a></span><span class="op">(</span><span class="va">ngs.m</span><span class="op">$</span><span class="va">olc_id</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">sel.pnts</span><span class="op">)</span>
+<span class="va">ngs.m.pnts</span> <span class="op">=</span> <span class="va">ngs.m</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/which.html">which</a></span><span class="op">(</span><span class="va">sel.pnts</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/pkg/terra/man/c.html">c</a></span><span class="op">(</span><span class="st">"olc_id"</span>, <span class="st">"longitude"</span>, <span class="st">"latitude"</span><span class="op">)</span><span class="op">]</span>
+<span class="fu"><a href="https://rdrr.io/pkg/raster/man/xyFromCell.html">coordinates</a></span><span class="op">(</span><span class="va">ngs.m.pnts</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="op">~</span> <span class="va">longitude</span> <span class="op">+</span> <span class="va">latitude</span>
+<span class="fu"><a href="https://rdrr.io/pkg/raster/man/projection.html">proj4string</a></span><span class="op">(</span><span class="va">ngs.m.pnts</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="st">"+init=epsg:4326"</span>
+<span class="va">ngs.xy</span> <span class="op">=</span> <span class="fu"><a href="http://rgdal.r-forge.r-project.org/reference/spTransform-methods.html">spTransform</a></span><span class="op">(</span><span class="va">ngs.m.pnts</span>, <span class="fu"><a href="https://rdrr.io/pkg/raster/man/projection.html">crs</a></span><span class="op">(</span><span class="va">mask</span><span class="op">)</span><span class="op">)</span>
+<span class="va">tif.lst</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.files.html">list.files</a></span><span class="op">(</span><span class="st">"./1km"</span>, <span class="fu"><a href="https://rdrr.io/r/utils/glob2rx.html">glob2rx</a></span><span class="op">(</span><span class="st">"*.tif$"</span><span class="op">)</span>, full.names <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>
+<span class="co">## 262 layers</span>
+<span class="va">ov.tmp</span> <span class="op">=</span> <span class="fu">parallel</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/parallel/mclapply.html">mclapply</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/pkg/terra/man/dimensions.html">length</a></span><span class="op">(</span><span class="va">tif.lst</span><span class="op">)</span>, <span class="kw">function</span><span class="op">(</span><span class="va">j</span><span class="op">)</span><span class="op">{</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/terra/man/extract.html">extract</a></span><span class="op">(</span><span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/terra/man/rast.html">rast</a></span><span class="op">(</span><span class="va">tif.lst</span><span class="op">[</span><span class="va">j</span><span class="op">]</span><span class="op">)</span>, <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/terra/man/vect.html">vect</a></span><span class="op">(</span><span class="va">ngs.xy</span><span class="op">)</span><span class="op">)</span> <span class="op">}</span>, mc.cores <span class="op">=</span> <span class="fl">80</span><span class="op">)</span>
+<span class="va">ov.tmp</span> <span class="op">=</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/bind.html">bind_cols</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/lapply.html">lapply</a></span><span class="op">(</span><span class="va">ov.tmp</span>, <span class="kw">function</span><span class="op">(</span><span class="va">i</span><span class="op">)</span><span class="op">{</span><span class="va">i</span><span class="op">[</span>,<span class="fl">2</span><span class="op">]</span><span class="op">}</span><span class="op">)</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/pkg/raster/man/names.html">names</a></span><span class="op">(</span><span class="va">ov.tmp</span><span class="op">)</span> <span class="op">=</span> <span class="fu">tools</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/tools/fileutils.html">file_path_sans_ext</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/basename.html">basename</a></span><span class="op">(</span><span class="va">tif.lst</span><span class="op">)</span><span class="op">)</span>
+<span class="va">ov.tmp</span><span class="op">$</span><span class="va">olc_id</span> <span class="op">=</span> <span class="va">ngs.xy</span><span class="op">$</span><span class="va">olc_id</span>
+<span class="va">reg.matrix</span> <span class="op">=</span> <span class="fu">plyr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/plyr/man/join.html">join</a></span><span class="op">(</span><span class="va">ngs.m</span>, <span class="va">ov.tmp</span><span class="op">)</span>
+<span class="fu">saveRDS.gz</span><span class="op">(</span><span class="va">reg.matrix</span>, <span class="st">"./input/ds801_geochem1km.rds"</span><span class="op">)</span></code></pre></div>
+<p>We can load the regression matrix which contains all target variables and covariates:</p>
+<div class="sourceCode" id="cb55"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">ds801</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html">readRDS</a></span><span class="op">(</span><span class="st">"./input/ds801_geochem1km.rds"</span><span class="op">)</span>
 <span class="fu"><a href="https://rdrr.io/pkg/raster/man/dimensions.html">dim</a></span><span class="op">(</span><span class="va">ds801</span><span class="op">)</span>
 <span class="co">#&gt; [1] 14275   407</span></code></pre></div>
-<p>with a total of unique locations:</p>
-<div class="sourceCode" id="cb55"><pre class="downlit sourceCode r">
+<p>which has a total of 4818 unique locations:</p>
+<div class="sourceCode" id="cb56"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/str.html">str</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/raster/man/factor.html">levels</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/raster/man/factor.html">as.factor</a></span><span class="op">(</span><span class="va">ds801</span><span class="op">$</span><span class="va">olc_id</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
 <span class="co">#&gt;  chr [1:4818] "75WXFVQG+WH6" "75WXJHVG+62X" "75WXJVM9+995" "75WXRG2G+5PV" ...</span></code></pre></div>
 <p>The individual records can be browsed directly via <a href="https://mrdata.usgs.gov/ngdb/soil/" class="uri">https://mrdata.usgs.gov/ngdb/soil/</a>,
@@ -105,9 +126,9 @@ Figure 3.1: Example of a geochemical sample with observations and measurements a
 </li>
 <li>Terrain / hydrological indices;</li>
 </ul>
-<p>We can focus on predict concentration of lead (Pb). This variable seems to change
-with depth but less for different land cover classes:</p>
-<div class="sourceCode" id="cb56"><pre class="downlit sourceCode r">
+<p>We can focus on predict concentration of lead (Pb). Pb seems to change
+with depth and this is seems to be consistent for different land cover classes:</p>
+<div class="sourceCode" id="cb57"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu">openair</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/openair/man/scatterPlot.html">scatterPlot</a></span><span class="op">(</span><span class="va">ds801</span><span class="op">[</span><span class="va">ds801</span><span class="op">$</span><span class="va">pb_ppm</span><span class="op">&lt;</span><span class="fl">140</span>,<span class="op">]</span>, x <span class="op">=</span> <span class="st">"hzn_depth"</span>, y <span class="op">=</span> <span class="st">"pb_ppm"</span>, method <span class="op">=</span> <span class="st">"hexbin"</span>, col <span class="op">=</span> <span class="st">"increment"</span>, log.x<span class="op">=</span><span class="cn">TRUE</span>, log.y<span class="op">=</span><span class="cn">TRUE</span>, xlab<span class="op">=</span><span class="st">"Depth"</span>, ylab<span class="op">=</span><span class="st">"Pb [ppm]"</span>, z.lim<span class="op">=</span><span class="fu"><a href="https://rdrr.io/pkg/terra/man/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">100</span><span class="op">)</span>, type<span class="op">=</span><span class="st">"landcover1"</span><span class="op">)</span>
 <span class="co">#&gt; Warning: removing 11 missing rows due to landcover1</span></code></pre></div>
 <div class="figure" style="text-align: center">
@@ -118,8 +139,9 @@ Figure 3.2: Distribution of Pb as a function of land cover classes.
 </div>
 <p>Because we are aiming at producing predictions of geochemical elements for different
 depths in soil, we can also use depth of the soil sample as one of the covariates.
-To fit a RF model for this data we can use:</p>
-<div class="sourceCode" id="cb57"><pre class="downlit sourceCode r">
+This makes the prediction system 3D and the model can thus be used to predict at
+any new 3D location (<span class="math inline">\(X, Y, d\)</span>). To fit a RF model for this data we can use:</p>
+<div class="sourceCode" id="cb58"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">ds801</span><span class="op">$</span><span class="va">log.pb</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html">log1p</a></span><span class="op">(</span><span class="va">ds801</span><span class="op">$</span><span class="va">pb_ppm</span><span class="op">)</span>
 <span class="va">pr.vars</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/terra/man/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/readRDS.html">readRDS</a></span><span class="op">(</span><span class="st">"./input/pb.pr.vars.rds"</span><span class="op">)</span>, <span class="st">"hzn_depth"</span><span class="op">)</span>
 <span class="va">sel.pb</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/complete.cases.html">complete.cases</a></span><span class="op">(</span><span class="va">ds801</span><span class="op">[</span>,<span class="fu"><a href="https://rdrr.io/pkg/terra/man/c.html">c</a></span><span class="op">(</span><span class="st">"log.pb"</span>, <span class="va">pr.vars</span><span class="op">)</span><span class="op">]</span><span class="op">)</span>
@@ -141,11 +163,11 @@ To fit a RF model for this data we can use:</p>
 <span class="co">#&gt; Splitrule:                        variance </span>
 <span class="co">#&gt; OOB prediction error (MSE):       0.09636483 </span>
 <span class="co">#&gt; R squared (OOB):                  0.670695</span></code></pre></div>
-<p>which results in R-square of about 0.67. Because many training points have exactly
-the same coordinates (same site, three depths), we assume that this model is over-fitting and the out-of-bag
-accuracy is probably over-optimistic. Instead we can fit an Ensemble model where
-we block points within 30 by 30-km blocks:</p>
-<div class="sourceCode" id="cb58"><pre class="downlit sourceCode r">
+<p>which results in R-square of about 0.67. Because many training samples have exactly
+the same coordinates (same site, three depths), we assume that this model is
+over-fitting i.e. that the out-of-bag accuracy is <a href="https://opengeohub.github.io/spatial-sampling-ml/">probably over-optimistic</a>.
+Instead we can fit an Ensemble model where we block points within 30 by 30-km blocks:</p>
+<div class="sourceCode" id="cb59"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="kw">if</span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/exists.html">exists</a></span><span class="op">(</span><span class="st">"eml.pb"</span><span class="op">)</span><span class="op">)</span><span class="op">{</span>
   <span class="va">lrn.rf</span> <span class="op">=</span> <span class="fu">mlr</span><span class="fu">::</span><span class="fu"><a href="https://mlr.mlr-org.com/reference/makeLearner.html">makeLearner</a></span><span class="op">(</span><span class="st">"regr.ranger"</span>, num.trees<span class="op">=</span><span class="fl">85</span>, importance<span class="op">=</span><span class="st">"impurity"</span>,
                             num.threads <span class="op">=</span> <span class="fu">parallel</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/parallel/detectCores.html">detectCores</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span>
@@ -158,8 +180,8 @@ we block points within 30 by 30-km blocks:</p>
   <span class="va">eml.pb</span> <span class="op">=</span> <span class="fu"><a href="https://mlr.mlr-org.com/reference/train.html">train</a></span><span class="op">(</span><span class="va">init.pb</span>, <span class="va">tsk0.pb</span><span class="op">)</span>
   <span class="fu">parallelMap</span><span class="fu">::</span><span class="fu"><a href="https://parallelmap.mlr-org.com/reference/parallelStop.html">parallelStop</a></span><span class="op">(</span><span class="op">)</span>
 <span class="op">}</span>
-<span class="co">#&gt; [17:39:27] WARNING: amalgamation/../src/objective/regression_obj.cu:170: reg:linear is now deprecated in favor of reg:squarederror.</span></code></pre></div>
-<div class="sourceCode" id="cb59"><pre class="downlit sourceCode r">
+<span class="co">#&gt; [10:57:29] WARNING: amalgamation/../src/objective/regression_obj.cu:170: reg:linear is now deprecated in favor of reg:squarederror.</span></code></pre></div>
+<div class="sourceCode" id="cb60"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">eml.pb</span><span class="op">$</span><span class="va">learner.model</span><span class="op">$</span><span class="va">super.model</span><span class="op">$</span><span class="va">learner.model</span><span class="op">)</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; Call:</span>
@@ -167,25 +189,25 @@ we block points within 30 by 30-km blocks:</p>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; Residuals:</span>
 <span class="co">#&gt;     Min      1Q  Median      3Q     Max </span>
-<span class="co">#&gt; -2.4863 -0.2066 -0.0073  0.1806  6.3493 </span>
+<span class="co">#&gt; -2.3979 -0.1990 -0.0117  0.1699  6.2948 </span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; Coefficients:</span>
 <span class="co">#&gt;               Estimate Std. Error t value Pr(&gt;|t|)    </span>
-<span class="co">#&gt; (Intercept)   -0.43563    0.04532  -9.612   &lt;2e-16 ***</span>
-<span class="co">#&gt; regr.ranger    0.88559    0.02362  37.496   &lt;2e-16 ***</span>
-<span class="co">#&gt; regr.xgboost   0.02779    0.05727   0.485    0.627    </span>
-<span class="co">#&gt; regr.cvglmnet  0.25242    0.02281  11.065   &lt;2e-16 ***</span>
+<span class="co">#&gt; (Intercept)   -0.64745    0.04296 -15.069  &lt; 2e-16 ***</span>
+<span class="co">#&gt; regr.ranger    0.85552    0.02152  39.755  &lt; 2e-16 ***</span>
+<span class="co">#&gt; regr.xgboost   0.26550    0.05337   4.974 6.62e-07 ***</span>
+<span class="co">#&gt; regr.cvglmnet  0.25631    0.02024  12.665  &lt; 2e-16 ***</span>
 <span class="co">#&gt; ---</span>
 <span class="co">#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span>
 <span class="co">#&gt; </span>
-<span class="co">#&gt; Residual standard error: 0.4241 on 14260 degrees of freedom</span>
-<span class="co">#&gt; Multiple R-squared:  0.3854, Adjusted R-squared:  0.3853 </span>
-<span class="co">#&gt; F-statistic:  2981 on 3 and 14260 DF,  p-value: &lt; 2.2e-16</span></code></pre></div>
+<span class="co">#&gt; Residual standard error: 0.4075 on 14260 degrees of freedom</span>
+<span class="co">#&gt; Multiple R-squared:  0.4328, Adjusted R-squared:  0.4327 </span>
+<span class="co">#&gt; F-statistic:  3627 on 3 and 14260 DF,  p-value: &lt; 2.2e-16</span></code></pre></div>
 <p>which shows somewhat lower R-square of 0.44, this time that whole sites have
-been taken out this seems to be also somewhat more realistic estimate of the
-mapping accuracy. The accuracy plot shows that the model has some problems with predicting
-higher values, but overall matches the observed values:</p>
-<div class="sourceCode" id="cb60"><pre class="downlit sourceCode r">
+been taken out and hence this seems to be somewhat more realistic estimate of the
+mapping accuracy <span class="citation">(<a href="references.html#ref-roberts2017cross" role="doc-biblioref">Roberts et al., 2017</a>)</span>. The accuracy plot shows that the model has
+some problems with predicting higher values, but overall matches the observed values:</p>
+<div class="sourceCode" id="cb61"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">t.pb</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/raster/man/quantile.html">quantile</a></span><span class="op">(</span><span class="va">ds801</span><span class="op">$</span><span class="va">log.pb</span>, <span class="fu"><a href="https://rdrr.io/pkg/terra/man/c.html">c</a></span><span class="op">(</span><span class="fl">0.001</span>, <span class="fl">0.01</span>, <span class="fl">0.999</span><span class="op">)</span>, na.rm<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span>
 <span class="fu">plot_hexbin</span><span class="op">(</span>varn<span class="op">=</span><span class="st">"log.pb"</span>, breaks<span class="op">=</span><span class="fu"><a href="https://rdrr.io/pkg/terra/man/c.html">c</a></span><span class="op">(</span><span class="va">t.pb</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="va">t.pb</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span>, <span class="va">t.pb</span><span class="op">[</span><span class="fl">3</span><span class="op">]</span>, length<span class="op">=</span><span class="fl">25</span><span class="op">)</span><span class="op">)</span>, 
       meas<span class="op">=</span><span class="va">eml.pb</span><span class="op">$</span><span class="va">learner.model</span><span class="op">$</span><span class="va">super.model</span><span class="op">$</span><span class="va">learner.model</span><span class="op">$</span><span class="va">model</span><span class="op">$</span><span class="va">log.pb</span>, 
@@ -198,16 +220,41 @@ Figure 3.3: Accuracy plot for Pb concentration in soil fitted using Ensemble ML.
 </p>
 </div>
 <p>Variables most important for explaining distribution of the target variable (based on the variable importance)
-seem to be soil depth, annual day time temperature and travel time to cities.
-If we plot the travel time to cities vs Pb concentrations, we can clearly see that
-Pb is negatively correlated with travel time to cities (a log-log linear relationship):</p>
-<div class="sourceCode" id="cb61"><pre class="downlit sourceCode r">
+seem to be soil depth (<code>hnz_depth</code>), soil type maps, annual day time temperature and travel time to cities:</p>
+<div class="sourceCode" id="cb62"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="http://ggplot2.tidyverse.org">ggplot2</a></span><span class="op">)</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; Attaching package: 'ggplot2'</span>
+<span class="co">#&gt; The following object is masked from 'package:latticeExtra':</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt;     layer</span>
+<span class="va">xl.pb</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/raster/man/as.data.frame.html">as.data.frame</a></span><span class="op">(</span><span class="fu">mlr</span><span class="fu">::</span><span class="fu"><a href="https://mlr.mlr-org.com/reference/getFeatureImportance.html">getFeatureImportance</a></span><span class="op">(</span><span class="va">eml.pb</span><span class="op">[[</span><span class="st">"learner.model"</span><span class="op">]</span><span class="op">]</span><span class="op">[[</span><span class="st">"base.models"</span><span class="op">]</span><span class="op">]</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">)</span><span class="op">$</span><span class="va">res</span><span class="op">)</span>
+<span class="va">xl.pb</span><span class="op">$</span><span class="va">relative_importance</span> <span class="op">=</span> <span class="fl">100</span><span class="op">*</span><span class="va">xl.pb</span><span class="op">$</span><span class="va">importance</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">xl.pb</span><span class="op">$</span><span class="va">importance</span><span class="op">)</span>
+<span class="va">xl.pb</span> <span class="op">=</span> <span class="va">xl.pb</span><span class="op">[</span><span class="fu"><a href="https://Rdatatable.gitlab.io/data.table/reference/setorder.html">order</a></span><span class="op">(</span><span class="va">xl.pb</span><span class="op">$</span><span class="va">relative_importance</span>, decreasing <span class="op">=</span> <span class="cn">T</span><span class="op">)</span>,<span class="op">]</span>
+<span class="va">xl.pb</span><span class="op">$</span><span class="va">variable</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/terra/man/c.html">c</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/pkg/raster/man/ncell.html">nrow</a></span><span class="op">(</span><span class="va">xl.pb</span><span class="op">)</span><span class="op">)</span>, <span class="st">". "</span>, <span class="va">xl.pb</span><span class="op">$</span><span class="va">variable</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/pkg/ggplot2/man/ggplot.html">ggplot</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">xl.pb</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">20</span>,<span class="op">]</span>, <span class="fu"><a href="https://rdrr.io/pkg/ggplot2/man/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/reorder.factor.html">reorder</a></span><span class="op">(</span><span class="va">variable</span>, <span class="va">relative_importance</span><span class="op">)</span>, y <span class="op">=</span> <span class="va">relative_importance</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/ggplot2/man/geom_bar.html">geom_bar</a></span><span class="op">(</span>fill <span class="op">=</span> <span class="st">"steelblue"</span>,
+           stat <span class="op">=</span> <span class="st">"identity"</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/ggplot2/man/coord_flip.html">coord_flip</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/ggplot2/man/labs.html">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Variable importance"</span>,
+       x <span class="op">=</span> <span class="cn">NULL</span>,
+       y <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/ggplot2/man/ggtheme.html">theme_bw</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/pkg/ggplot2/man/theme.html">theme</a></span><span class="op">(</span>text <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/ggplot2/man/element.html">element_text</a></span><span class="op">(</span>size<span class="op">=</span><span class="fl">15</span><span class="op">)</span><span class="op">)</span></code></pre></div>
+<div class="figure" style="text-align: center">
+<span id="fig:varimp-pb"></span>
+<img src="spatial-3D_files/figure-html/varimp-pb-1.png" alt="Variable importance for 3D prediction model for Pb concentrations." width="90%"><p class="caption">
+Figure 3.4: Variable importance for 3D prediction model for Pb concentrations.
+</p>
+</div>
+<p>If we plot the travel time to cities vs Pb concentrations, we can clearly see that
+Pb is negatively correlated with travel time to cities (following a log-log linear relationship):</p>
+<div class="sourceCode" id="cb63"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu">openair</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/openair/man/scatterPlot.html">scatterPlot</a></span><span class="op">(</span><span class="va">ds801</span><span class="op">[</span><span class="va">ds801</span><span class="op">$</span><span class="va">pb_ppm</span><span class="op">&lt;</span><span class="fl">140</span>,<span class="op">]</span>, x <span class="op">=</span> <span class="st">"travel_time_to_cities_1_usa48"</span>, y <span class="op">=</span> <span class="st">"pb_ppm"</span>, method <span class="op">=</span> <span class="st">"hexbin"</span>, col <span class="op">=</span> <span class="st">"increment"</span>, log.x<span class="op">=</span><span class="cn">TRUE</span>, log.y<span class="op">=</span><span class="cn">TRUE</span>, xlab<span class="op">=</span><span class="st">"Travel time to cities 1"</span>, ylab<span class="op">=</span><span class="st">"Pb [ppm]"</span>, type<span class="op">=</span><span class="st">"hzn_depth"</span><span class="op">)</span>
 <span class="co">#&gt; Warning: removing 11 missing rows due to hzn_depth</span></code></pre></div>
 <div class="figure" style="text-align: center">
 <span id="fig:cor-cities"></span>
 <img src="spatial-3D_files/figure-html/cor-cities-1.png" alt="Distribution of Pb as a function of travel time to cities for different depths." width="100%"><p class="caption">
-Figure 3.4: Distribution of Pb as a function of travel time to cities for different depths.
+Figure 3.5: Distribution of Pb as a function of travel time to cities for different depths.
 </p>
 </div>
 </div>
@@ -217,11 +264,11 @@ Figure 3.4: Distribution of Pb as a function of travel time to cities for differ
 </h2>
 <p>To produce predictions we can focus on area around Chicago conglomeration. We can
 load the covariate layers by using:</p>
-<div class="sourceCode" id="cb62"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb64"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">g1km</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html">readRDS</a></span><span class="op">(</span><span class="st">"./input/chicago_grid1km.rds"</span><span class="op">)</span></code></pre></div>
 <p>This contains all layers we used for training. We can generate predictions by
-specifying the depth at which we wish to predict:</p>
-<div class="sourceCode" id="cb63"><pre class="downlit sourceCode r">
+adding a depth column, then write predictions to GeoTIFFs:</p>
+<div class="sourceCode" id="cb65"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="kw">for</span><span class="op">(</span><span class="va">k</span> <span class="kw">in</span> <span class="fu"><a href="https://rdrr.io/pkg/terra/man/c.html">c</a></span><span class="op">(</span><span class="fl">5</span>, <span class="fl">30</span>, <span class="fl">60</span><span class="op">)</span><span class="op">)</span><span class="op">{</span>
   <span class="va">out.tif</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="st">"./output/pb_ppm_"</span>, <span class="va">k</span>, <span class="st">"cm_1km.tif"</span><span class="op">)</span>
   <span class="kw">if</span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/files.html">file.exists</a></span><span class="op">(</span><span class="va">out.tif</span><span class="op">)</span><span class="op">)</span><span class="op">{</span>
@@ -239,17 +286,17 @@ specifying the depth at which we wish to predict:</p>
 <p>This finally gives the following pattern:</p>
 <div class="figure" style="text-align: center">
 <span id="fig:pred-pb1"></span>
-<img src="img/Pb_predictions_d1.jpg" alt="Predictions of Pb concentration for different soil depths based on Ensemble ML. Red color indicates high values. Values of Pb clearly drop with soil depth." width="90%"><img src="img/Pb_predictions_d2.jpg" alt="Predictions of Pb concentration for different soil depths based on Ensemble ML. Red color indicates high values. Values of Pb clearly drop with soil depth." width="90%"><img src="img/Pb_predictions_d3.jpg" alt="Predictions of Pb concentration for different soil depths based on Ensemble ML. Red color indicates high values. Values of Pb clearly drop with soil depth." width="90%"><p class="caption">
-Figure 3.5: Predictions of Pb concentration for different soil depths based on Ensemble ML. Red color indicates high values. Values of Pb clearly drop with soil depth.
+<img src="img/Pb_predictions_d1.jpg" alt="Predictions of Pb concentration for different soil depths based on Ensemble ML. Points indicate training points used to build the predictive mapping model. Red color indicates high values. Values of Pb clearly drop with soil depth." width="90%"><img src="img/Pb_predictions_d2.jpg" alt="Predictions of Pb concentration for different soil depths based on Ensemble ML. Points indicate training points used to build the predictive mapping model. Red color indicates high values. Values of Pb clearly drop with soil depth." width="90%"><img src="img/Pb_predictions_d3.jpg" alt="Predictions of Pb concentration for different soil depths based on Ensemble ML. Points indicate training points used to build the predictive mapping model. Red color indicates high values. Values of Pb clearly drop with soil depth." width="90%"><p class="caption">
+Figure 3.6: Predictions of Pb concentration for different soil depths based on Ensemble ML. Points indicate training points used to build the predictive mapping model. Red color indicates high values. Values of Pb clearly drop with soil depth.
 </p>
 </div>
-<p>In general it can be said that:</p>
+<p>Based on these results, it can be said that in general:</p>
 <ol style="list-style-type: decimal">
 <li>Distribution of Pb across USA seem to be controlled by a mixture of factors
-including climatic factors and anthropogenic factors (travel distance to cities);<br>
+including climatic factors, soil-terrain units and anthropogenic factors (travel distance to cities);<br>
 </li>
 <li>Overall big urban areas show significantly higher concentrations for some heavy
-metals;<br>
+metals and this relationship if log-log linear;<br>
 </li>
 <li>Soil depth for some geochemical elements comes as the overall most important
 covariate hence mapping soil variables in 3D is fully justified;</li>
@@ -260,20 +307,22 @@ covariate hence mapping soil variables in 3D is fully justified;</li>
 <span class="header-section-number">3.3</span> Advantages and limitations of running 3D predictive mapping<a class="anchor" aria-label="anchor" href="#advantages-and-limitations-of-running-3d-predictive-mapping"><i class="fas fa-link"></i></a>
 </h2>
 <p>In summary 3D soil mapping is relatively straight forward to implement especially
-for mapping soil variables from soil profile samples. Before modeling the target
-variable with depth, it is a good idea to plot relationship between target variable
-and depth under different settings (as in Fig. <a href="spatial-interpolation-in-3d-using-ensemble-ml.html#fig:cor-depth">3.2</a>). 3D soil mapping
-based on Machine Learning is now increasingly common <span class="citation">(<a href="references.html#ref-sothe2022large" role="doc-biblioref">Sothe, Gonsamo, Arabian, &amp; Snider, 2022</a>)</span>.</p>
-<p>A serious limitation for 3D predictive mapping is the size of data i.e. data volumes
-increasing proportionally to number of slices we need to predict. Also, we show that
-points with exactly the same coordinates might result in e.g. Random Forest overfitting
-emphasizing some covariate layers that are possibly less important, hence it is
-again important to use the blocking parameter that separates training and validation
-points.</p>
+for mapping soil variables from soil profiles (multiple samples per soil layer).
+Before modeling the target variable with depth, it is a good idea to plot
+relationship between target variable and depth under different settings
+(as in Fig. <a href="spatial-interpolation-in-3d-using-ensemble-ml.html#fig:cor-depth">3.2</a>). 3D soil mapping based on Machine Learning is
+now increasingly common <span class="citation">(<a href="references.html#ref-hengl2019predictive" role="doc-biblioref">T. Hengl &amp; MacMillan, 2019</a>; <a href="references.html#ref-sothe2022large" role="doc-biblioref">Sothe, Gonsamo, Arabian, &amp; Snider, 2022</a>)</span>.</p>
+<p>A limitation for 3D predictive mapping is the size of data i.e. data volumes
+increasing proportionally to number of slices we need to predict (in this case three).
+Also, we show that points with exactly the same coordinates might result in e.g. 
+Random Forest overfitting emphasizing some covariate layers that are possibly
+less important, hence it is again important to use the blocking parameter that
+separates training and validation points.</p>
 <p>Soil depth is for many soil variables most important explanatory variables, but
-in the cases it does not correlate with the target variable, probably there is
-probably also no need for 3D soil mapping. In the case depth is not significantly
-correlated one could simply first aggregate all values to block depth and convert modeling to 2D.</p>
+in the cases it does not correlate with the target variable, there is probably
+also no need for 3D soil mapping. In the case depth is not significantly
+correlated, one could simply first aggregate all values to fixed block depth and
+convert modeling from 3D to 2D.</p>
 
 </div>
 </div>

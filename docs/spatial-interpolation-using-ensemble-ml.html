@@ -57,7 +57,7 @@
 <span class="header-section-number">2</span> Spatial interpolation using Ensemble ML<a class="anchor" aria-label="anchor" href="#spatial-interpolation-using-ensemble-ml"><i class="fas fa-link"></i></a>
 </h1>
 <div class="rmdnote">
-<p>You are reading the work-in-progress Spatial and spatiotemporal interpolation using Ensemble Machine Learning. This chapter is currently currently draft version, a peer-review publication is pending. You can find the polished first edition at <a href="https://opengeohub.github.io/spatial-prediction-eml/" class="uri">https://opengeohub.github.io/spatial-prediction-eml/</a>.</p>
+<p>You are reading the work-in-progress Spatial and spatiotemporal interpolation using Ensemble Machine Learning. This chapter is currently draft version, a peer-review publication is pending. You can find the polished first edition at <a href="https://opengeohub.github.io/spatial-prediction-eml/" class="uri">https://opengeohub.github.io/spatial-prediction-eml/</a>.</p>
 </div>
 <div id="spatial-interpolation-using-ml-and-buffer-distances-to-points" class="section level2" number="2.1">
 <h2>
@@ -229,12 +229,12 @@ Figure 2.3: Values of first neighbor for meuse dataset.
 <p>In summary, based on the Figs. <a href="spatial-interpolation-using-ensemble-ml.html#fig:map-buff">2.1</a> and <a href="spatial-interpolation-using-ensemble-ml.html#fig:map-r">2.3</a>,
 we can conclude that predictions produced using nearest neighbors (Fig. <a href="spatial-interpolation-using-ensemble-ml.html#fig:map-r">2.3</a>) show quite different patterns than
 predictions based on buffer distances (Fig. <a href="spatial-interpolation-using-ensemble-ml.html#fig:map-buff">2.1</a>). The method by <span class="citation"><a href="references.html#ref-sekulic2020random" role="doc-biblioref">Sekulić, Kilibarda, Heuvelink, Nikolić, &amp; Bajat</a> (<a href="references.html#ref-sekulic2020random" role="doc-biblioref">2020</a>)</span>
-(Random Forest Spatial Interpolation RFSI) is probably more interesting for general applications as it could be
+(<strong>Random Forest Spatial Interpolation</strong>) RFSI is probably more interesting for general applications as it could be
 also added to spatiotemporal data problems. It also reflects closely idea of using
 spatial autocorrelation of values as used in kriging since both values of neighbors and
 distances to neighbors are used as covariates. On the other hand, RFSI seem to
 produce predictions that contain also short range variability (more noisy) and as
-such look more like geostatistical simulations.</p>
+such predictions might appear to look more like geostatistical simulations.</p>
 </div>
 <div id="interpolation-of-numeric-values-using-spatial-regression" class="section level2" number="2.3">
 <h2>
@@ -316,7 +316,7 @@ maps by using:</p>
 <span class="co">#&gt; converged</span></code></pre></div>
 <p>This runs number of steps including derivation of geographical distances <span class="citation">(<a href="references.html#ref-moller2020oblique" role="doc-biblioref">Møller, Beucher, Pouladi, &amp; Greve, 2020</a>)</span>,
 derivation of principal components (to make sure all features are numeric and complete),
-fitting of variogram using the <strong>geoR</strong> package <span class="citation">(<a href="references.html#ref-diggle1998model" role="doc-biblioref">Peter J. Diggle, Tawn, &amp; Moyeed, 1998</a>)</span>, spatial overlay,
+fitting of variogram using the <strong>geoR</strong> package <span class="citation">(<a href="references.html#ref-Diggle2007Springer" role="doc-biblioref">Diggle &amp; Ribeiro Jr, 2007</a>)</span>, spatial overlay,
 training of individual learners and training of the super learner. In principle, the only
 parameter we need to set manually in the <code>train.spLearner</code> is the <code>lambda = 1</code>
 which is required to estimate variogram: in this case the target variable is

@@ -1,7 +1,7 @@
 # Summary
 
 ::: {.rmdnote}
-You are reading the work-in-progress Spatial and spatiotemporal interpolation using Ensemble Machine Learning. This chapter is currently currently draft version, a peer-review publication is pending. You can find the polished first edition at <https://opengeohub.github.io/spatial-prediction-eml/>.
+You are reading the work-in-progress Spatial and spatiotemporal interpolation using Ensemble Machine Learning. This chapter is currently draft version, a peer-review publication is pending. You can find the polished first edition at <https://opengeohub.github.io/spatial-prediction-eml/>.
 :::
 
 
@@ -11,7 +11,8 @@ mapping going from numeric 2D, to factor and to 3D variables. Have in mind that
 the examples shown are based on relatively small datasets, but can still become 
 computational if you add even more learners. In principle we do not recommend:
   
-- adding learners that are significantly less accurate than your best learners (i.e. focus on the top 4–5 best performing learners),  
+- adding learners that are significantly less accurate than your best learners 
+  (i.e. focusing on the top 4–5 best performing learners),  
 - fitting EML for <50–100 training points,
 - fitting EML for spatial interpolation where points are heavily spatially clustered,
 - using landmap package with large datasets,

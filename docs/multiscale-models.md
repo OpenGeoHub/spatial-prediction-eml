@@ -1,7 +1,7 @@
 # Multi-scale spatial prediction models
 
 ::: {.rmdnote}
-You are reading the work-in-progress Spatial and spatiotemporal interpolation using Ensemble Machine Learning. This chapter is currently currently draft version, a peer-review publication is pending. You can find the polished first edition at <https://opengeohub.github.io/spatial-prediction-eml/>.
+You are reading the work-in-progress Spatial and spatiotemporal interpolation using Ensemble Machine Learning. This chapter is currently draft version, a peer-review publication is pending. You can find the polished first edition at <https://opengeohub.github.io/spatial-prediction-eml/>.
 :::
 
 
@@ -594,7 +594,7 @@ comp.var
 #>         rowMeans(x[, c(r1, r2)])^2)
 #>     return(data.frame(response = r, stdev = v))
 #> }
-#> <bytecode: 0x2f86cec8>
+#> <bytecode: 0x3633b380>
 edgeroi.ocF$pred$model.errorF = X$stdev
 out.tif = "output/edgeroi/pred_oc_100m_merged_pe.tif"
 if(!file.exists(out.tif)){
@@ -606,5 +606,5 @@ So in summary, merging multi-scale predictions is a straight forward process,
 but it assumes that the reliable prediction errors are available for both coarse and fine scale predictions. 
 The pooled variance might show higher errors where predictions between independent 
 models differ significantly and this is correct. The 2-scale Ensemble Machine 
-Learning method of Predictive Soil Mapping was used for example to produce 
-predictions of [soil properties and nutrients of Africa](https://www.isda-africa.com/isdasoil/) [@hengl2021african].
+Learning method of Predictive Soil Mapping was used, for example, to produce 
+predictions of [soil properties and nutrients of Africa at 30-m spatial resolution](https://www.isda-africa.com/isdasoil/) [@hengl2021african].
