@@ -29,6 +29,7 @@ fig:map-fs
 fig:varimp-st
 fig:predictions-fs
 fig:fagus-ge
+fig:decomposition-signal
 fig:map-oc250m
 fig:map-oc100m
 fig:two-scale

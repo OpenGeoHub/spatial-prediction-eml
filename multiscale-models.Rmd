@@ -29,7 +29,7 @@ spatial variation [@hengl2021african]:
 In fact, we can imagine that spatial variation can probably be decomposed into different 
 scale components, as illustrated in plot below.
 
-```{r space-time-cube, echo = FALSE, out.width = "100%", fig.cap = "Decomposition of a signal of spatial variation into four components plus noise. Based on McBratney (1998)."}
+```{r decomposition-signal, echo = FALSE, out.width = "100%", fig.cap = "Decomposition of a signal of spatial variation into four components plus noise. Based on McBratney (1998)."}
 knitr::include_graphics("./img/Fig_signal_decomposition.png")
 ```
 
@@ -211,7 +211,11 @@ plot(raster(edgeroi.ocF$pred["model.error"]), col=rev(bpy.colors()),
 If we compare the coarse scale and fine scale predictions we see:
 
 ```{r two-scale, echo = FALSE, out.width = "100%", fig.cap = "Coarse-scale and fine-scale predictions of soil organic carbon at 5-cm depth for the Edgeroi study area."}
-knitr::include_graphics("./img/ebergotzen_two_scale_model_ensemble.gif")
+if(knitr:::is_latex_output()){
+  knitr::include_graphics("./img/ebergotzen_two_scale_model_ensemble.jpg")
+} else {
+  knitr::include_graphics("./img/ebergotzen_two_scale_model_ensemble.gif")
+}
 ```
 
 Overall there is a match between general patterns but there are also differences locally. This is to expect as the two models are fitted independently using completely different covariates. We can merge the two predictions and produce the final ensemble prediction by using the following principles:

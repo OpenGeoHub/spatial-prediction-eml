@@ -6,13 +6,18 @@ description: "This R tutorial explains step-by-step how to use Ensemble Machine 
 url: 'https\://opengeohub.github.io/spatial-prediction-eml/'
 bibliography: ./tex/refs.bib
 csl: ./tex/apa.csl  
+documentclass: svmono
+classoption: graybox,natbib,nospthms
+geometry: "paperwidth=18.90cm, paperheight=24.58cm, top=2.1cm, bottom=2.1cm, inner=2cm, outer=2cm"
+monofont: "Source Code Pro"
+monofontoptions: "Scale=0.7"
+biblio-style: spbasic
 fig_caption: yes
 link-citations: yes
 gihub-repo: OpenGeoHub/spatial-prediction-eml/
 twitter-handle: opengeohub
 cover-image: cover.png
 site: bookdown::bookdown_site
-documentclass: book
 ---
 
 ```{r setup, include=FALSE}
@@ -22,6 +27,8 @@ knitr::opts_chunk$set(echo = TRUE)
 # Introduction {.unnumbered}
 
 ## Ensemble Machine Learning {.unnumbered}
+
+[![DOI](https://zenodo.org/badge/doi/10.5281/zenodo.5894878.svg)](https://doi.org/10.5281/zenodo.5894878)
 
 [![Access source code](cover.jpg){.cover width="250"}](https://opengeohub.github.io/spatial-prediction-eml/) This [Rmarkdown tutorial](https://opengeohub.github.io/spatial-prediction-eml/) provides practical instructions, illustrated with sample 
 dataset, on how to use Ensemble Machine Learning to generate predictions (maps) from 

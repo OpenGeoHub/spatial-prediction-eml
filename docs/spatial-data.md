@@ -17,9 +17,9 @@ visualize geospatial data are [becoming essential](https://towardsdatascience.co
 
 **Spatial interpolation** and/or **Spatial Prediction** is a process of estimating values 
 of the target variable over the whole area of interest by using some input training 
-point data, algorithm and values of the covariates at new locations [@Mitas1999Wiley]. Interpolation 
-results in images or maps, which can then be used for decision making or similar. 
-There is a small difference between _interpolation_ and _prediction_: _prediction_ 
+point data, algorithm and values of the covariates at new locations [@Mitas1999Wiley]. 
+Interpolation results in images or maps, which can then be used for decision making or similar. 
+There is a difference between _interpolation_ and _prediction_: _prediction_ 
 can imply both interpolation and extrapolation. We will more commonly use the 
 term _spatial prediction_ in this tutorial, even though the term _spatial interpolation_ 
 has been more widely accepted [@Mitas1999Wiley]. In geostatistics, e.g. in the 
@@ -58,7 +58,7 @@ m = mlr::makeStackedLearner(base.learners = lrns,
 
 here the base learner predictions will be computed by 5-fold cross-validation 
 (repeated re-fitting) and then used to determine the meta-learner. This algorithm 
-is known as the _“SuperLearner”_ algorithm [@Polley2010]. 
+is known as the _[“Super Learner”](https://machinelearningmastery.com/super-learner-ensemble-in-python/)_ algorithm [@Polley2010]. 
 
 In the case of spatial prediction, we also want to _block_ training points based on 
 spatial proximity to prevent from producing bias predictions. For this we should 
@@ -626,6 +626,6 @@ In summary: it appears that combining linear and non-linear tree-based
 models in an Ensemble ML framework helps both: decrease over-fitting and produce 
 more realistic predictions of uncertainty / prediction intervals. The Ensemble ML
 framework correctly identifies linear models as being more important than 
-random forest or similar. Hopefully this provides enough evidence to convince you 
+random forest or similar. Hopefully, this provides enough evidence to convince you 
 that Ensemble ML is potentially interesting for use as a generic solution for 
 spatial and spatiotemporal interpolation and extrapolation.

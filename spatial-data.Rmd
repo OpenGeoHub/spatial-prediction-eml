@@ -26,9 +26,9 @@ visualize geospatial data are [becoming essential](https://towardsdatascience.co
 
 **Spatial interpolation** and/or **Spatial Prediction** is a process of estimating values 
 of the target variable over the whole area of interest by using some input training 
-point data, algorithm and values of the covariates at new locations [@Mitas1999Wiley]. Interpolation 
-results in images or maps, which can then be used for decision making or similar. 
-There is a small difference between _interpolation_ and _prediction_: _prediction_ 
+point data, algorithm and values of the covariates at new locations [@Mitas1999Wiley]. 
+Interpolation results in images or maps, which can then be used for decision making or similar. 
+There is a difference between _interpolation_ and _prediction_: _prediction_ 
 can imply both interpolation and extrapolation. We will more commonly use the 
 term _spatial prediction_ in this tutorial, even though the term _spatial interpolation_ 
 has been more widely accepted [@Mitas1999Wiley]. In geostatistics, e.g. in the 
@@ -66,7 +66,7 @@ m = mlr::makeStackedLearner(base.learners = lrns,
 
 here the base learner predictions will be computed by 5-fold cross-validation 
 (repeated re-fitting) and then used to determine the meta-learner. This algorithm 
-is known as the _“SuperLearner”_ algorithm [@Polley2010]. 
+is known as the _[“Super Learner”](https://machinelearningmastery.com/super-learner-ensemble-in-python/)_ algorithm [@Polley2010]. 
 
 In the case of spatial prediction, we also want to _block_ training points based on 
 spatial proximity to prevent from producing bias predictions. For this we should 
@@ -223,7 +223,11 @@ OpenLandMap.org also has multiple temporal datasets and users can interactive wi
 the time-dimension by using time-slider implemented in [OpenLayers and Geoserver](http://osgl.grf.bg.ac.rs/books/gvvk-en/) [@KilibardaProtic2019].
 
 ```{r hilda, echo = FALSE, out.width = "100%", fig.cap = "Visualization of [land cover change using animation](https://medium.com/nerd-for-tech/restoration-culture-what-is-land-degradation-how-to-measure-it-and-what-can-you-do-to-reverse-341e448994da) in www.OpenLandMap.org."}
-knitr::include_graphics("./img/Fig_HILDA_visualization_landcover.gif")
+if(knitr:::is_latex_output()){
+  knitr::asis_output('\\url{https://miro.medium.com/max/700/0*fqWNU4XNbjHE3Uv_}')
+} else {
+  knitr::include_graphics("./img/Fig_HILDA_visualization_landcover.gif")
+}
 ```
 
 
@@ -518,6 +522,6 @@ In summary: it appears that combining linear and non-linear tree-based
 models in an Ensemble ML framework helps both: decrease over-fitting and produce 
 more realistic predictions of uncertainty / prediction intervals. The Ensemble ML
 framework correctly identifies linear models as being more important than 
-random forest or similar. Hopefully this provides enough evidence to convince you 
+random forest or similar. Hopefully, this provides enough evidence to convince you 
 that Ensemble ML is potentially interesting for use as a generic solution for 
 spatial and spatiotemporal interpolation and extrapolation.

@@ -22,7 +22,7 @@ scale components, as illustrated in plot below.
 
 <div class="figure" style="text-align: center">
 <img src="./img/Fig_signal_decomposition.png" alt="Decomposition of a signal of spatial variation into four components plus noise. Based on McBratney (1998)." width="100%" />
-<p class="caption">(\#fig:space-time-cube)Decomposition of a signal of spatial variation into four components plus noise. Based on McBratney (1998).</p>
+<p class="caption">(\#fig:decomposition-signal)Decomposition of a signal of spatial variation into four components plus noise. Based on McBratney (1998).</p>
 </div>
 
 The idea of modeling soil spatial variation at different scales can be traced back to the work of @McBratney1998.
@@ -594,7 +594,7 @@ comp.var
 #>         rowMeans(x[, c(r1, r2)])^2)
 #>     return(data.frame(response = r, stdev = v))
 #> }
-#> <bytecode: 0x3633b380>
+#> <bytecode: 0x2f2b3cb8>
 edgeroi.ocF$pred$model.errorF = X$stdev
 out.tif = "output/edgeroi/pred_oc_100m_merged_pe.tif"
 if(!file.exists(out.tif)){
