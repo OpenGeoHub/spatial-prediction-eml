@@ -151,7 +151,7 @@ have contributed data, software, fixes and improvements via pull request.
 
 [OpenGeoHub](https://opengeohub.org) is an independent not-for-profit research 
 foundation promoting Open Source and Open Data solutions. These tools were developed 
-primarily for the need of the Geo-harmonizer project and to enable generation of 
+primarily for the need of the Geo-harmonizer project and to enable creation of 
 next-generation environmental layers for continental Europe [@witjes2021spatiotemporal; @Bonannella2022].
 **[EnvirometriX Ltd.](https://envirometrix.nl)** is the commercial branch of the group 
 responsible for designing soil sampling designs for the **[AgriCapture](https://agricaptureco2.eu/)** 
