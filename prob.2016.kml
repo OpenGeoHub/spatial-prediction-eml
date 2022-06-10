@@ -1,0 +1,35 @@
+<kml xmlns:xsd="https://schemas.opengis.net/kml/2.2.0/ogckml22.xsd" xmlns:xmlns="https://www.opengis.net/kml/2.2/" version="1.0">
+  <Document>
+    <name>m1</name>
+    <open>1</open>
+    <Folder>
+      <name>SpatialGridDataFrame</name>
+      <GroundOverlay>
+        <name>m1@data[, paste0("Prob.", j)]</name>
+        <TimeSpan>
+          <begin>2016-01-01T00:00:00Z</begin>
+          <end>2016-12-31T00:00:00Z</end>
+        </TimeSpan>
+        <altitude>0</altitude>
+        <altitudeMode>clampToGround</altitudeMode>
+        <Icon>
+          <href>prob.2016.png</href>
+        </Icon>
+        <LatLonBox>
+          <north>45.1699682737739</north>
+          <south>44.8805282737739</south>
+          <east>5.81614154610372</east>
+          <west>5.41174854610372</west>
+        </LatLonBox>
+      </GroundOverlay>
+    </Folder>
+    <ScreenOverlay>
+      <name>Legend</name>
+      <Icon>
+        <href>prob_legend.png</href>
+      </Icon>
+      <overlayXY x="0" y="1" xunits="fraction" yunits="fraction"/>
+      <screenXY x="0" y="1" xunits="fraction" yunits="fraction"/>
+    </ScreenOverlay>
+  </Document>
+</kml>
