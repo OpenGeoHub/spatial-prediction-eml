@@ -75,7 +75,7 @@ i.e. a wrapper functions to mlr implemented in the landmap package.
 ## Using geographical distances to improve spatial interpolation {.unnumbered}
 
 Machine Learning was for long time been considered suboptimal for spatial 
-interpolation problems, in comparison to classifical geostatistical techniques 
+interpolation problems, in comparison to classical geostatistical techniques 
 such as kriging, because it basically ignores spatial dependence structure in 
 the data. To incorporate spatial dependence structures in machine learning, one 
 can now add the so-called "geographical features": buffer distance, oblique 
