@@ -314,6 +314,7 @@ We can load a snapshot of data by using:
 
 ```{r, message=FALSE}
 library(data.table)
+library(dplyr)
 library(mlr)
 library(sp)
 fs.rm = readRDS('input/fagus_sylvatica_st.rds')
@@ -352,7 +353,7 @@ The header columns are:
 Other columns are the EO and ecological covariates that we use for
 modeling distribution of [*Fagus sylvatica*](https://www.gbif.org/species/2882316). We can plot distribution of points over EU using:
 
-```{r map-fs, echo=TRUE, fig.width=8, out.width="100%", fig.cap="Distribution of occurrence locations for Fagus Sylvatica. Each training points is also referrenced in time and hence can be used to run spacetime overlay."}
+```{r map-fs, echo=TRUE, fig.width=8, out.width="100%", fig.cap="Distribution of occurrence locations for Fagus sylvatica. Each training points is also referrenced in time and hence can be used to run spacetime overlay."}
 library(rnaturalearth)
 library(raster)
 europe <- rnaturalearth::ne_countries(scale=10, continent = 'europe')
@@ -361,7 +362,6 @@ op = par(mar=c(0,0,0,0))
 plot(europe, col="lightgrey", border="darkgrey", axes=FALSE)
 points(occ.pnts[occ.pnts$Atlas_class==1,], pch="+", cex=.8)
 par(op)
-#dev.off()
 ```
 
 As in previous examples, we first define the target model formula. We
@@ -375,38 +375,47 @@ fs.rm$Atlas_class = factor(fs.rm$Atlas_class)
 all.vars(fm.fs)[1:5]
 ```
 
-To speed-up fitting of the models we have prepared a function that wraps all modeling steps:
+To speed-up fitting of the models we have prepared two functions that wrap all modeling steps. First step
+consists of fine-tuning the base learners: 
 
 ```{r, message=FALSE, warning=FALSE}
 source("mlst_functions.R")
-fs.rm0 = fs.rm[runif(nrow(fs.rm))<.2,]
-eml.fs = train_sp_eml(data = fs.rm0, formula = fm.fs, blocking = as.factor(fs.rm$Tile_ID))
+fs.rm0 = fs.rm %>% sample_n(5000)
+tnd.ml = tune_learners(data = fs.rm0, formula = fm.fs, blocking = factor(fs.rm$Tile_ID))
 ```
 
-This fits an ensemble model of binary classification models 
-(`classif.ranger`, `classif.xgboost`, `classif.glmnet`) and which basically can 
-be used to predict probability of any training point being classified `0`
-(not-occurring) or `1` (occurring).
+This function runs hyperparameter optimization on binary classification models (`classif.ranger`, `classif.xgboost`, `classif.glmnet`) which will be later used to create an ensemble model. 
+The intermediate models (fine-tuned RF and XGboost) are written to local folder `output` as RDS files. 
+The output of the function is a RDS file including all the fine-tuned models and the formula. 
 
-The intermediate models (fine-tuned RF and XGboost) are written to local
-folder `output` as RDS files. For meta-learner we use a GLM model with binomial link
-function:
+The second step is the fitting of the ensemble model based on stacked regularization:
+
+```{r, message=FALSE, warning=FALSE}
+eml.fs = train_sp_eml(data = fs.rm0, tune_result = tnd.ml, blocking = as.factor(fs.rm$Tile_ID))
+```
+
+The function fits separately each of the previously used classification models: each algorithm
+will classify independently the probability of any training point being classified `0`
+(not-occurring) or `1` (occurring). The probability outputs of each model are then used as training dataset
+for the meta-learner. We use a GLM model with binomial link function (logistic regression):
 
 ```{r}
-#eml.fs = readRDS("output/EML_model.rds")
+#eml.fs = readRDS("output/eml_model.rds")
 summary(eml.fs$learner.model$super.model$learner.model)
 ```
 
 The variable importance analysis (RF component) shows that the most
 important covariates for mapping distribution of Fagus sylvatica are
-landsat images (which is expected):
+landsat images (which is expected considering the high spatial resolution)
+and the spatial distribution of other tree species (tree species commonly found
+together with Fagus sylvatica in the field):
 
 ```{r varimp-st, echo=TRUE, fig.width=8, out.width="90%", fig.cap="Variable importance for spatiotemporal model used to predict distribution of Fagus sylvatica."}
 library(ggplot2)
 xl <- as.data.frame(mlr::getFeatureImportance(eml.fs[["learner.model"]][["base.models"]][[1]])$res)
 xl$relative_importance = 100*xl$importance/sum(xl$importance)
 xl = xl[order(xl$relative_importance, decreasing = T),]
-xl$variable = paste0(c(1:182), ". ", xl$variable)
+xl$variable = paste0(c(1:238), ". ", xl$variable)
 ggplot(data = xl[1:20,], aes(x = reorder(variable, relative_importance), y = relative_importance)) +
   geom_bar(fill = "steelblue",
            stat = "identity") +
@@ -414,31 +423,30 @@ ggplot(data = xl[1:20,], aes(x = reorder(variable, relative_importance), y = rel
   labs(title = "Variable importance",
        x = NULL,
        y = NULL) +
-  theme_bw() + theme(text = element_text(size=15))
+  theme_bw() + theme(text = element_text(size=10))
 ```
 
-To produce spacetime predictions for some tiles (120-m spatial
+To produce spacetime predictions for some tiles (30-m spatial
 resolution) we can run:
 
 ```{r, message=FALSE}
-m1 = predict_tiles(input = "9690.2015",  model = eml.fs)
-m2 = predict_tiles(input = "9690.2017",  model = eml.fs)
-m3 = predict_tiles(input = "9690.2019",  model = eml.fs)
-m1$Prob.2015 = m1$Prob
-m1$Prob.2017 = m2$Prob
-m1$Prob.2019 = m3$Prob
+m1 = predict_tiles(input = "9690.2012",  model = eml.fs)
+m2 = predict_tiles(input = "9690.2016",  model = eml.fs)
+m3 = predict_tiles(input = "9690.2020",  model = eml.fs)
+m1$Prob.2012 = m1$Prob
+m1$Prob.2016 = m2$Prob
+m1$Prob.2020 = m3$Prob
 ```
 
 We can compare predictions of the probability of occurrence of the
 target species for two years next to each other by using:
 
-```{r predictions-fs, echo=TRUE, fig.width=8, out.width="100%", fig.cap="Predicted probability of occurrence for Fagus Sylvatica for three periods."}
+```{r predictions-fs, echo=TRUE, fig.width=8, out.width="100%", fig.cap="Predicted probability of occurrence for Fagus sylvatica for three periods."}
 pts = list("sp.points", spTransform(occ.pnts[occ.pnts$Atlas_class==1,], CRS("+init=epsg:3035")), 
            pch = "+", col="black")
-spplot(m1[,c("Prob.2015","Prob.2017","Prob.2019")], col.regions=rev(bpy.colors()),
+spplot(m1[,c("Prob.2012","Prob.2016","Prob.2020")], names.attr = c("Prob.2010-2014", "Prob.2014-2018", "Prob.2018-2020"), col.regions=rev(bpy.colors()),
   sp.layout = list(pts),
-  main="Predictions Fagus Sylvatica")
-#dev.off()
+  main="Realized distribution of Fagus sylvatica")
 ```
 
 In this case there seems to be no drastic changes in the distribution of
@@ -453,7 +461,7 @@ visualize predictions also in Google Earth or similar:
 
 ```{r, eval=FALSE}
 library(plotKML)
-for(j in c(2015,2017,2019)){
+for(j in c(2012,2016,2020)){
   kml(m1, colour=m1@data[,paste0("Prob.", j)], file.name=paste0("prob.", j, ".kml"),
       raster_name = paste0("prob.", j, ".png"),
       colour_scale = SAGA_pal[["SG_COLORS_YELLOW_BLUE"]], 
@@ -469,9 +477,96 @@ analyze how much are the changes in vegetation cover connected with relief,
 proximity to urban areas, possible fire / flood events and similar.
 
 ```{r fagus-ge, echo = FALSE, out.width = "100%", fig.cap = "Spacetime predictions of distribution of Fagus Sylvatica visualized as time-series data in Google Earth."}
-knitr::include_graphics("./img/Fig_google_earth_prob_ts.jpg")
+knitr::include_graphics("./img/Fig_google_earth_prob_ts.png")
 ```
 
+We can check how the ensemble model performs in the classification task compared to the
+component models by running a resampling operation for each learner and the meta-learner.
+In this example we use a 5-fold spatial cross validation repeated 5 times. We first create new learners
+and assign the hyperparameters obtained from the fine-tuning operation:
+
+```{r lrns.acc.assessment}
+learners = list(makeLearner("classif.ranger", predict.type = "prob", num.trees = 85),
+                makeLearner("classif.xgboost", predict.type = "prob"),
+                makeLearner("classif.glmnet", predict.type = "prob"))
+learners[[1]] = mlr::setHyperPars(learners[[1]], par.vals = mlr::getHyperPars(tnd.ml[[1]]$learner))
+learners[[2]] = mlr::setHyperPars(learners[[2]], par.vals = mlr::getHyperPars(tnd.ml[[2]]$learner))
+learners[[3]] = mlr::setHyperPars(learners[[3]], par.vals = list(s = min(tnd.ml[[3]]$learner.model$lambda)))
+```
+
+Then we create the classification task (previously included in the functions), select which
+metric we want to evaluate our models on and resampling strategy. We are using logarithmic loss as 
+performance metric for this example. After that, everything is set for the resampling operation, which
+we run in parallel:
+
+```{r mlr.framework, echo=FALSE}
+tsk <- mlr::makeClassifTask(data = fs.rm0[,c(7,9:length(fs.rm0))], 
+                            target = all.vars(tnd.ml[[4]][[2]]), 
+                            blocking = factor(fs.rm0$Tile_ID),
+                            positive = "1")
+mser = list(logloss)
+rdesc = makeResampleDesc("RepCV", reps = 5, folds = 5, blocking.cv = T)
+
+set.seed(123, "L'Ecuyer")
+parallelMap::parallelStartSocket(parallel::detectCores())
+out.rf = "output/rf_resample.rds"
+out.xg = "output/xgb_resample.rds"
+out.glm =  "output/glm_resample.rds"
+rf.rsmp = mlr::resample(learners[[1]], tsk, rdesc, mser, keep.pred = TRUE, models = F)
+saveRDS(rf.rsmp, out.rf)
+xg.rsmp = mlr::resample(learners[[2]], tsk, rdesc, mser, keep.pred = TRUE, models = F)
+saveRDS(xg.rsmp, out.xg)
+glm.rsmp = mlr::resample(learners[[3]], tsk, rdesc, mser, keep.pred = TRUE, models = F)
+saveRDS(glm.rsmp, out.glm)
+```
+
+For the meta-learner, we access the predicted probabilities of the component models stored inside
+the ensemble model and use them as training data for the meta-learner in the resampling task. We 
+need to create an additional task:
+
+```{r meta-learner resampling, echo=FALSE}
+eml.task = mlr::makeClassifTask(data = eml.fs$learner.model$super.model$learner.model$data, 
+                                target = all.vars(tnd.ml[[4]][[2]]), 
+                                blocking = factor(fs.rm0$Tile_ID),
+                                positive = "1")
+out.eml = "output/eml_resample.rds"
+eml.rsmp = mlr::resample(mlr::makeLearner("classif.logreg", predict.type = "prob"),
+                         eml.task, rdesc, mser, keep.pred = T, models = F)
+saveRDS(eml.rsmp, out.eml)
+parallelMap::parallelStop()
+```
+
+Logloss is a robust metric when assessing performances of classification algorithms in the
+probability space. However, it is less intuitive to represent. To better compare performances across
+models, we standardize the logloss values according to the following equation:
+
+$R^2_\text{logloss} = 1 -\frac{Logloss_\text{m}}{Logloss_\text{r}}$
+
+Where $Logloss_\text{m}$ is the logloss value of the model and $Logloss_\text{r}$ is
+the logloss value of a model that performs no better than a random guess. We use the value of 
+$Logloss_\text{r}$ as a baseline for predictive performances. Values of $R^2_\text{logloss}$ close to `1` 
+indicate high predictive performances, while values close to `0` indicate poor predictive performances:
+
+```{r logloss-ratio, echo=FALSE}
+abs = summary(factor(fs.rm0$Atlas_class))[1]
+pr = summary(factor(fs.rm0$Atlas_class))[2]
+p = pr/(pr+abs)
+log_r = ((-(1*log(p)+(1-1)*log(1-p))*pr)+(-(0*log(p)+(1-0)*log(1-p))*abs))/(pr+abs)
+
+log_rf = 1-rf.rsmp[["aggr"]][["logloss.test.mean"]]/log_r
+log_xg = 1-xg.rsmp[["aggr"]][["logloss.test.mean"]]/log_r
+log_glm = 1-glm.rsmp[["aggr"]][["logloss.test.mean"]]/log_r
+log_eml = 1-eml.rsmp[["aggr"]][["logloss.test.mean"]]/log_r
+
+log_values = c(log_rf, log_xg, log_glm, log_eml)
+names(log_values) = c("RF", "XGB", "GLM", "EML")
+log_values
+```
+
+From this example, we can see that the ensemble model outperforms, although slightly, all
+the other models. It is also interesting to notice how Random forest is the best component
+model if we look at the ensemble model coefficients, but in terms of performances Xgboost
+is actually the closest to the ensemble.
 
 ## Summary notes
 
@@ -516,7 +611,7 @@ Finally, we recommend following these generic steps to fit spatiotemporal models
 1.  Prepare training (points) data and a data cube with all covariates
     referenced in spacetime.  
 2.  Overlay points in spacetime, create a spatiotemporal
-    regression-matrix.  
+    regression- or classification-matrix.  
 3.  Add seasonal components, fine-tune initial model, reduce complexity
     as much as possible, and produce production-ready spatiotemporal prediction model
     (usually using Ensemble Machine Learning).  

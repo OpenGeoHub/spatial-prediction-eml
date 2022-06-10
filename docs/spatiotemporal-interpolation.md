@@ -56,6 +56,8 @@ The gridded data includes: (a) static covariates (relief data), and
 hrgrid1km = readRDS("input/hrgrid1km.rds")
 #plot(hrgrid1km[1])
 proj4string(idsta.pnts) = proj4string(hrgrid1km)
+#> Warning in proj4string(hrgrid1km): CRS object has comment, which is lost in output; in tests, see
+#> https://cran.r-project.org/web/packages/sp/vignettes/CRS_warnings.html
 str(hrgrid1km@data)
 #> 'data.frame':	238630 obs. of  4 variables:
 #>  $ HRdem : int  1599 1426 1440 1764 1917 1912 1707 1550 1518 1516 ...
@@ -104,9 +106,15 @@ we use our custom function `extract_st`, which basically builds on top of the
 
 ```r
 library(terra)
-#> terra version 0.8.11 (beta-release)
+#> terra version 1.4.22
 #> 
 #> Attaching package: 'terra'
+#> The following object is masked from 'package:landmap':
+#> 
+#>     makeTiles
+#> The following object is masked from 'package:mlr':
+#> 
+#>     resample
 #> The following object is masked from 'package:rgdal':
 #> 
 #>     project
@@ -205,14 +213,6 @@ We next fit an Ensemble ML using the same process described in the previous sect
 
 ```r
 library(mlr)
-#> Loading required package: ParamHelpers
-#> 'mlr' is in maintenance mode since July 2019. Future development
-#> efforts will go into its successor 'mlr3' (<https://mlr3.mlr-org.com>).
-#> 
-#> Attaching package: 'mlr'
-#> The following object is masked from 'package:terra':
-#> 
-#>     resample
 lrn.rf = mlr::makeLearner("regr.ranger", num.trees=150, importance="impurity",
                           num.threads = parallel::detectCores())
 lrns.st <- list(lrn.rf, mlr::makeLearner("regr.nnet"), mlr::makeLearner("regr.gamboost"))
@@ -263,14 +263,14 @@ summary(eml.TMP$learner.model$super.model$learner.model)
 #> 
 #> Residuals:
 #>      Min       1Q   Median       3Q      Max 
-#> -16.2439  -1.8106   0.0204   1.8004  14.9611 
+#> -16.2441  -1.8103   0.0187   1.8002  14.9609 
 #> 
 #> Coefficients:
 #>               Estimate Std. Error t value Pr(>|t|)    
-#> (Intercept)   35.06219    8.10904   4.324 1.55e-05 ***
-#> regr.ranger    0.70575    0.02770  25.474  < 2e-16 ***
-#> regr.nnet     -2.72276    0.62920  -4.327 1.53e-05 ***
-#> regr.gamboost  0.29540    0.02799  10.553  < 2e-16 ***
+#> (Intercept)   35.08516    8.10905   4.327 1.53e-05 ***
+#> regr.ranger    0.70576    0.02771  25.474  < 2e-16 ***
+#> regr.nnet     -2.72453    0.62920  -4.330 1.51e-05 ***
+#> regr.gamboost  0.29539    0.02799  10.552  < 2e-16 ***
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 #> 
@@ -432,12 +432,16 @@ We can load a snapshot of data by using:
 
 ```r
 library(data.table)
+library(dplyr)
 library(mlr)
 library(sp)
 fs.rm = readRDS('input/fagus_sylvatica_st.rds')
 occ.pnts = fs.rm[,c("Atlas_class","easting","northing")]
 coordinates(occ.pnts) = ~ easting + northing
 proj4string(occ.pnts) = "+init=epsg:3035"
+#> Warning in showSRID(uprojargs, format = "PROJ", multiline = "NO", prefer_proj
+#> = prefer_proj): Discarded datum European_Terrestrial_Reference_System_1989 in
+#> Proj4 definition
 occ.pnts = spTransform(occ.pnts, CRS("+init=epsg:4326"))
 ```
 
@@ -450,27 +454,20 @@ The first columns of this dataset show:
 
 ```r
 head(fs.rm[,1:10])
-#>          id year postprocess Tile_ID easting northing Atlas_class lc1
-#> 9   1499539 2015   spacetime    9689 3948500  2431500           1    
-#> 38   660325 2008   spacetime    8728 3318500  2283500           1    
-#> 56   660325 2002   spacetime    8728 3318500  2283500           1    
-#> 68  2044229 2006   spacetime   11017 4294500  2655500           1    
-#> 104  586994 2016   spacetime    8724 3204500  2309500           1    
-#> 111  622055 2016   spacetime    8349 3231500  2226500           1    
-#>     clm_air.temp_era5.copernicus_av_1km_200..200cm_02.01..02.28_avg_5yrs_eumap_epsg3035_v0.1.tif
-#> 9                                                                                            -35
-#> 38                                                                                             0
-#> 56                                                                                            19
-#> 68                                                                                           -35
-#> 104                                                                                           31
-#> 111                                                                                           -6
-#>     clm_air.temp_era5.copernicus_av_1km_200..200cm_02.01..02.28_mean_eumap_epsg3035_v0.1.tif
-#> 9                                                                                        -36
-#> 38                                                                                        31
-#> 56                                                                                        22
-#> 68                                                                                       -40
-#> 104                                                                                       46
-#> 111                                                                                        9
+#>        id year postprocess Tile_ID easting northing Atlas_class lc1
+#> 1  217127 2015   spacetime    4579 2925585  1639819           0    
+#> 2 1078455 2007   spacetime   12496 3551500  2886500           1    
+#> 3  332623 2012      yearly    8806 5650000  2286000           0 D20
+#> 4  488689 2018      yearly   14583 4116000  3230000           0 B16
+#> 5 2977316 2009   spacetime   23273 5376500  4601500           0    
+#> 6  649000 2002   spacetime    8163 3286500  2211500           1    
+#>   Abies_alba_distr.tiff Abies_spp._distr.tiff
+#> 1                     0                     0
+#> 2                   100                     0
+#> 3                     0                     0
+#> 4                   100                     0
+#> 5                     0                     0
+#> 6                     0                     0
 ```
 
 The header columns are:
@@ -500,14 +497,14 @@ europe <- rnaturalearth::ne_countries(scale=10, continent = 'europe')
 europe <- raster::crop(europe, extent(-24.8,35.2,31,68.5))
 op = par(mar=c(0,0,0,0))
 plot(europe, col="lightgrey", border="darkgrey", axes=FALSE)
+#> Warning in wkt(obj): CRS object has no comment
 points(occ.pnts[occ.pnts$Atlas_class==1,], pch="+", cex=.8)
 par(op)
-#dev.off()
 ```
 
 <div class="figure" style="text-align: center">
-<img src="spatiotemporal-interpolation_files/figure-html/map-fs-1.png" alt="Distribution of occurrence locations for Fagus Sylvatica. Each training points is also referrenced in time and hence can be used to run spacetime overlay." width="100%" />
-<p class="caption">(\#fig:map-fs)Distribution of occurrence locations for Fagus Sylvatica. Each training points is also referrenced in time and hence can be used to run spacetime overlay.</p>
+<img src="spatiotemporal-interpolation_files/figure-html/map-fs-1.png" alt="Distribution of occurrence locations for Fagus sylvatica. Each training points is also referrenced in time and hence can be used to run spacetime overlay." width="100%" />
+<p class="caption">(\#fig:map-fs)Distribution of occurrence locations for Fagus sylvatica. Each training points is also referrenced in time and hence can be used to run spacetime overlay.</p>
 </div>
 
 As in previous examples, we first define the target model formula. We
@@ -520,34 +517,40 @@ covs = grep("id|year|postprocess|Tile_ID|easting|northing|Atlas_class|lc1",
 fm.fs = stats::as.formula(paste("Atlas_class ~ ", paste(covs, collapse="+")))
 fs.rm$Atlas_class = factor(fs.rm$Atlas_class)
 all.vars(fm.fs)[1:5]
-#> [1] "Atlas_class"                                                                                 
-#> [2] "clm_air.temp_era5.copernicus_av_1km_200..200cm_02.01..02.28_avg_5yrs_eumap_epsg3035_v0.1.tif"
-#> [3] "clm_air.temp_era5.copernicus_av_1km_200..200cm_02.01..02.28_mean_eumap_epsg3035_v0.1.tif"    
-#> [4] "clm_air.temp_era5.copernicus_av_1km_200..200cm_02.01..02.28_std_eumap_epsg3035_v0.1.tif"     
-#> [5] "clm_air.temp_era5.copernicus_av_1km_200..200cm_03.01..03.31_avg_5yrs_eumap_epsg3035_v0.1.tif"
+#> [1] "Atlas_class"                    "Abies_alba_distr.tiff"         
+#> [3] "Abies_spp._distr.tiff"          "Acer_campestre_distr.tiff"     
+#> [5] "Acer_pseudoplatanus_distr.tiff"
 ```
 
-To speed-up fitting of the models we have prepared a function that wraps all modeling steps:
+To speed-up fitting of the models we have prepared two functions that wrap all modeling steps. First step
+consists of fine-tuning the base learners: 
 
 
 ```r
 source("mlst_functions.R")
-fs.rm0 = fs.rm[runif(nrow(fs.rm))<.2,]
-eml.fs = train_sp_eml(data = fs.rm0, formula = fm.fs, blocking = as.factor(fs.rm$Tile_ID))
+fs.rm0 = fs.rm %>% sample_n(5000)
+tnd.ml = tune_learners(data = fs.rm0, formula = fm.fs, blocking = factor(fs.rm$Tile_ID))
 ```
 
-This fits an ensemble model of binary classification models 
-(`classif.ranger`, `classif.xgboost`, `classif.glmnet`) and which basically can 
-be used to predict probability of any training point being classified `0`
-(not-occurring) or `1` (occurring).
+This function runs hyperparameter optimization on binary classification models (`classif.ranger`, `classif.xgboost`, `classif.glmnet`) which will be later used to create an ensemble model. 
+The intermediate models (fine-tuned RF and XGboost) are written to local folder `output` as RDS files. 
+The output of the function is a RDS file including all the fine-tuned models and the formula. 
 
-The intermediate models (fine-tuned RF and XGboost) are written to local
-folder `output` as RDS files. For meta-learner we use a GLM model with binomial link
-function:
+The second step is the fitting of the ensemble model based on stacked regularization:
 
 
 ```r
-#eml.fs = readRDS("output/EML_model.rds")
+eml.fs = train_sp_eml(data = fs.rm0, tune_result = tnd.ml, blocking = as.factor(fs.rm$Tile_ID))
+```
+
+The function fits separately each of the previously used classification models: each algorithm
+will classify independently the probability of any training point being classified `0`
+(not-occurring) or `1` (occurring). The probability outputs of each model are then used as training dataset
+for the meta-learner. We use a GLM model with binomial link function (logistic regression):
+
+
+```r
+#eml.fs = readRDS("output/eml_model.rds")
 summary(eml.fs$learner.model$super.model$learner.model)
 #> 
 #> Call:
@@ -556,29 +559,31 @@ summary(eml.fs$learner.model$super.model$learner.model)
 #> 
 #> Deviance Residuals: 
 #>     Min       1Q   Median       3Q      Max  
-#> -3.4025  -0.0917   0.0666   0.0701   3.2589  
+#> -3.0986  -0.1150  -0.1123  -0.1122   3.1439  
 #> 
 #> Coefficients:
 #>                 Estimate Std. Error z value Pr(>|z|)    
-#> (Intercept)       5.6680     0.4800  11.807  < 2e-16 ***
-#> classif.ranger   -8.4832     0.6452 -13.147  < 2e-16 ***
-#> classif.xgboost   1.2604     1.2307   1.024    0.306    
-#> classif.glmnet   -3.4816     0.5708  -6.099 1.07e-09 ***
+#> (Intercept)      -5.0655     0.1776 -28.527  < 2e-16 ***
+#> classif.ranger    3.7088     0.6548   5.664 1.48e-08 ***
+#> classif.xgboost   3.3720     0.5377   6.272 3.57e-10 ***
+#> classif.glmnet    2.7881     0.2986   9.337  < 2e-16 ***
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 #> 
 #> (Dispersion parameter for binomial family taken to be 1)
 #> 
-#>     Null deviance: 8432.56  on 7472  degrees of freedom
-#> Residual deviance:  700.97  on 7469  degrees of freedom
-#> AIC: 708.97
+#>     Null deviance: 5314.27  on 4999  degrees of freedom
+#> Residual deviance:  729.32  on 4996  degrees of freedom
+#> AIC: 737.32
 #> 
-#> Number of Fisher Scoring iterations: 8
+#> Number of Fisher Scoring iterations: 7
 ```
 
 The variable importance analysis (RF component) shows that the most
 important covariates for mapping distribution of Fagus sylvatica are
-landsat images (which is expected):
+landsat images (which is expected considering the high spatial resolution)
+and the spatial distribution of other tree species (tree species commonly found
+together with Fagus sylvatica in the field):
 
 
 ```r
@@ -586,7 +591,7 @@ library(ggplot2)
 xl <- as.data.frame(mlr::getFeatureImportance(eml.fs[["learner.model"]][["base.models"]][[1]])$res)
 xl$relative_importance = 100*xl$importance/sum(xl$importance)
 xl = xl[order(xl$relative_importance, decreasing = T),]
-xl$variable = paste0(c(1:182), ". ", xl$variable)
+xl$variable = paste0(c(1:238), ". ", xl$variable)
 ggplot(data = xl[1:20,], aes(x = reorder(variable, relative_importance), y = relative_importance)) +
   geom_bar(fill = "steelblue",
            stat = "identity") +
@@ -594,7 +599,7 @@ ggplot(data = xl[1:20,], aes(x = reorder(variable, relative_importance), y = rel
   labs(title = "Variable importance",
        x = NULL,
        y = NULL) +
-  theme_bw() + theme(text = element_text(size=15))
+  theme_bw() + theme(text = element_text(size=10))
 ```
 
 <div class="figure" style="text-align: center">
@@ -602,38 +607,32 @@ ggplot(data = xl[1:20,], aes(x = reorder(variable, relative_importance), y = rel
 <p class="caption">(\#fig:varimp-st)Variable importance for spatiotemporal model used to predict distribution of Fagus sylvatica.</p>
 </div>
 
-To produce spacetime predictions for some tiles (120-m spatial
+To produce spacetime predictions for some tiles (30-m spatial
 resolution) we can run:
 
 
 ```r
-m1 = predict_tiles(input = "9690.2015",  model = eml.fs)
+m1 = predict_tiles(input = "9690.2012",  model = eml.fs)
 #> [1] "9690 - reading the data"
-#> Warning in dir.create(tmp_folder, recursive = TRUE): 'output//9690' already
-#> exists
 #> [1] "9690 - running predictions"
 #> Warning in if (class(probability_map) == "try-error") {: the condition has
 #> length > 1 and only the first element will be used
 #> [1] "9690 - writing files"
-m2 = predict_tiles(input = "9690.2017",  model = eml.fs)
+m2 = predict_tiles(input = "9690.2016",  model = eml.fs)
 #> [1] "9690 - reading the data"
-#> Warning in dir.create(tmp_folder, recursive = TRUE): 'output//9690' already
-#> exists
 #> [1] "9690 - running predictions"
 #> Warning in if (class(probability_map) == "try-error") {: the condition has
 #> length > 1 and only the first element will be used
 #> [1] "9690 - writing files"
-m3 = predict_tiles(input = "9690.2019",  model = eml.fs)
+m3 = predict_tiles(input = "9690.2020",  model = eml.fs)
 #> [1] "9690 - reading the data"
-#> Warning in dir.create(tmp_folder, recursive = TRUE): 'output//9690' already
-#> exists
 #> [1] "9690 - running predictions"
 #> Warning in if (class(probability_map) == "try-error") {: the condition has
 #> length > 1 and only the first element will be used
 #> [1] "9690 - writing files"
-m1$Prob.2015 = m1$Prob
-m1$Prob.2017 = m2$Prob
-m1$Prob.2019 = m3$Prob
+m1$Prob.2012 = m1$Prob
+m1$Prob.2016 = m2$Prob
+m1$Prob.2020 = m3$Prob
 ```
 
 We can compare predictions of the probability of occurrence of the
@@ -643,15 +642,14 @@ target species for two years next to each other by using:
 ```r
 pts = list("sp.points", spTransform(occ.pnts[occ.pnts$Atlas_class==1,], CRS("+init=epsg:3035")), 
            pch = "+", col="black")
-spplot(m1[,c("Prob.2015","Prob.2017","Prob.2019")], col.regions=rev(bpy.colors()),
+spplot(m1[,c("Prob.2012","Prob.2016","Prob.2020")], names.attr = c("Prob.2010-2014", "Prob.2014-2018", "Prob.2018-2020"), col.regions=rev(bpy.colors()),
   sp.layout = list(pts),
-  main="Predictions Fagus Sylvatica")
-#dev.off()
+  main="Realized distribution of Fagus sylvatica")
 ```
 
 <div class="figure" style="text-align: center">
-<img src="spatiotemporal-interpolation_files/figure-html/predictions-fs-1.png" alt="Predicted probability of occurrence for Fagus Sylvatica for three periods." width="100%" />
-<p class="caption">(\#fig:predictions-fs)Predicted probability of occurrence for Fagus Sylvatica for three periods.</p>
+<img src="spatiotemporal-interpolation_files/figure-html/predictions-fs-1.png" alt="Predicted probability of occurrence for Fagus sylvatica for three periods." width="100%" />
+<p class="caption">(\#fig:predictions-fs)Predicted probability of occurrence for Fagus sylvatica for three periods.</p>
 </div>
 
 In this case there seems to be no drastic changes in the distribution of
@@ -667,7 +665,7 @@ visualize predictions also in Google Earth or similar:
 
 ```r
 library(plotKML)
-for(j in c(2015,2017,2019)){
+for(j in c(2012,2016,2020)){
   kml(m1, colour=m1@data[,paste0("Prob.", j)], file.name=paste0("prob.", j, ".kml"),
       raster_name = paste0("prob.", j, ".png"),
       colour_scale = SAGA_pal[["SG_COLORS_YELLOW_BLUE"]], 
@@ -683,10 +681,93 @@ analyze how much are the changes in vegetation cover connected with relief,
 proximity to urban areas, possible fire / flood events and similar.
 
 <div class="figure" style="text-align: center">
-<img src="./img/Fig_google_earth_prob_ts.jpg" alt="Spacetime predictions of distribution of Fagus Sylvatica visualized as time-series data in Google Earth." width="100%" />
+<img src="./img/Fig_google_earth_prob_ts.png" alt="Spacetime predictions of distribution of Fagus Sylvatica visualized as time-series data in Google Earth." width="100%" />
 <p class="caption">(\#fig:fagus-ge)Spacetime predictions of distribution of Fagus Sylvatica visualized as time-series data in Google Earth.</p>
 </div>
 
+We can check how the ensemble model performs in the classification task compared to the
+component models by running a resampling operation for each learner and the meta-learner.
+In this example we use a 5-fold spatial cross validation repeated 5 times. We first create new learners
+and assign the hyperparameters obtained from the fine-tuning operation:
+
+
+```r
+learners = list(makeLearner("classif.ranger", predict.type = "prob", num.trees = 85),
+                makeLearner("classif.xgboost", predict.type = "prob"),
+                makeLearner("classif.glmnet", predict.type = "prob"))
+learners[[1]] = mlr::setHyperPars(learners[[1]], par.vals = mlr::getHyperPars(tnd.ml[[1]]$learner))
+learners[[2]] = mlr::setHyperPars(learners[[2]], par.vals = mlr::getHyperPars(tnd.ml[[2]]$learner))
+learners[[3]] = mlr::setHyperPars(learners[[3]], par.vals = list(s = min(tnd.ml[[3]]$learner.model$lambda)))
+```
+
+Then we create the classification task (previously included in the functions), select which
+metric we want to evaluate our models on and resampling strategy. We are using logarithmic loss as 
+performance metric for this example. After that, everything is set for the resampling operation, which
+we run in parallel:
+
+
+```
+#> Starting parallelization in mode=socket with cpus=96.
+#> Exporting objects to slaves for mode socket: .mlr.slave.options
+#> Resampling: repeated cross-validation
+#> Measures:             logloss
+#> Mapping in parallel: mode = socket; level = mlr.resample; cpus = 96; elements = 25.
+#> 
+#> Aggregated Result: logloss.test.mean=0.1131968
+#> 
+#> Exporting objects to slaves for mode socket: .mlr.slave.options
+#> Resampling: repeated cross-validation
+#> Measures:             logloss
+#> Mapping in parallel: mode = socket; level = mlr.resample; cpus = 96; elements = 25.
+#> 
+#> Aggregated Result: logloss.test.mean=0.0818324
+#> 
+#> Exporting objects to slaves for mode socket: .mlr.slave.options
+#> Resampling: repeated cross-validation
+#> Measures:             logloss
+#> Mapping in parallel: mode = socket; level = mlr.resample; cpus = 96; elements = 25.
+#> 
+#> Aggregated Result: logloss.test.mean=0.1695897
+#> 
+```
+
+For the meta-learner, we access the predicted probabilities of the component models stored inside
+the ensemble model and use them as training data for the meta-learner in the resampling task. We 
+need to create an additional task:
+
+
+```
+#> Exporting objects to slaves for mode socket: .mlr.slave.options
+#> Resampling: repeated cross-validation
+#> Measures:             logloss
+#> Mapping in parallel: mode = socket; level = mlr.resample; cpus = 96; elements = 25.
+#> 
+#> Aggregated Result: logloss.test.mean=0.0743475
+#> 
+#> Stopped parallelization. All cleaned up.
+```
+
+Logloss is a robust metric when assessing performances of classification algorithms in the
+probability space. However, it is less intuitive to represent. To better compare performances across
+models, we standardize the logloss values according to the following equation:
+
+$R^2_\text{logloss} = 1 -\frac{Logloss_\text{m}}{Logloss_\text{r}}$
+
+Where $Logloss_\text{m}$ is the logloss value of the model and $Logloss_\text{r}$ is
+the logloss value of a model that performs no better than a random guess. We use the value of 
+$Logloss_\text{r}$ as a baseline for predictive performances. Values of $R^2_\text{logloss}$ close to `1` 
+indicate high predictive performances, while values close to `0` indicate poor predictive performances:
+
+
+```
+#>        RF       XGB       GLM       EML 
+#> 0.7887610 0.8472908 0.6835250 0.8612585
+```
+
+From this example, we can see that the ensemble model outperforms, although slightly, all
+the other models. It is also interesting to notice how Random forest is the best component
+model if we look at the ensemble model coefficients, but in terms of performances Xgboost
+is actually the closest to the ensemble.
 
 ## Summary notes
 
@@ -731,7 +812,7 @@ Finally, we recommend following these generic steps to fit spatiotemporal models
 1.  Prepare training (points) data and a data cube with all covariates
     referenced in spacetime.  
 2.  Overlay points in spacetime, create a spatiotemporal
-    regression-matrix.  
+    regression- or classification-matrix.  
 3.  Add seasonal components, fine-tune initial model, reduce complexity
     as much as possible, and produce production-ready spatiotemporal prediction model
     (usually using Ensemble Machine Learning).  
