@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>1 Introduction to spatial and spatiotemporal data | Spatial and spatiotemporal interpolation using Ensemble Machine Learning</title>
 <meta name="author" content="Tom Hengl, Leandro Parente and Carmelo Bonannella">
-<!-- JS --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><script src="https://cdn.jsdelivr.net/npm/fuse.js@6.4.2"></script><script src="https://kit.fontawesome.com/6ecbd6c532.js" crossorigin="anonymous"></script><script src="libs/header-attrs-2.8.1/header-attrs.js"></script><script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<!-- JS --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><script src="https://cdn.jsdelivr.net/npm/fuse.js@6.4.2"></script><script src="https://kit.fontawesome.com/6ecbd6c532.js" crossorigin="anonymous"></script><script src="libs/header-attrs-2.14/header-attrs.js"></script><script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="libs/bootstrap-4.6.0/bootstrap.min.css" rel="stylesheet">
 <script src="libs/bootstrap-4.6.0/bootstrap.bundle.min.js"></script><script src="libs/bs3compat-0.3.1/transition.js"></script><script src="libs/bs3compat-0.3.1/tabs.js"></script><script src="libs/bs3compat-0.3.1/bs3compat.js"></script><link href="libs/bs4_book-1.0.0/bs4_book.css" rel="stylesheet">
 <script src="libs/bs4_book-1.0.0/bs4_book.js"></script><!-- Global site tag (gtag.js) - Google Analytics --><script async src="https://www.googletagmanager.com/gtag/js?id=G-1BH6J2NKGP"></script><script>
@@ -79,7 +79,7 @@ term <em>spatial prediction</em> in this tutorial, even though the term <em>spat
 has been more widely accepted <span class="citation">(<a href="references.html#ref-Mitas1999Wiley" role="doc-biblioref">Mitas &amp; Mitasova, 1999</a>)</span>. In geostatistics, e.g. in the
 case of <strong>ordinary kriging</strong>, interpolation corresponds to cases where the
 location being estimated is surrounded by the sampling locations and is within
-the spatial auto-correlation range <span class="citation">(<a href="references.html#ref-Diggle2007Springer" role="doc-biblioref">Diggle &amp; Ribeiro Jr, 2007</a>)</span>. Prediction outside of the practical range
+the spatial auto-correlation range <span class="citation">(<a href="references.html#ref-brown2015model" role="doc-biblioref">Brown, 2015</a>; <a href="references.html#ref-Diggle2007Springer" role="doc-biblioref">Diggle &amp; Ribeiro Jr, 2007</a>)</span>. Prediction outside of the practical range
 (i.e. where prediction error exceeds the global variance) is referred to as
 <strong>spatial extrapolation</strong>. In other words, extrapolation is prediction at locations
 where we do not have enough statistical evidence (based on the statistical model)
@@ -228,7 +228,7 @@ Figure 1.2: Illustration of decomposition of time-series into: (1) trend, (2) se
 component is determined by variations in Earth’s orbit and/or Sun’s
 energy output resulting in gradual drops and rises of global mean
 temperature (<a href="https://en.wikipedia.org/wiki/Ice_age">glacials and interglacials</a>).
-Fig. <a href="introduction-to-spatial-and-spatiotemporal-data.html#fig:global-temp">1.3</a> shows example of a global temperature reconstruction from proxy data of <span class="citation"><a href="references.html#ref-Marcott1198" role="doc-biblioref">Marcott, Shakun, Clark, &amp; Mix</a> (<a href="references.html#ref-Marcott1198" role="doc-biblioref">2013</a>)</span>.</p>
+Fig. <a href="introduction-to-spatial-and-spatiotemporal-data.html#fig:global-temp">1.3</a> shows example of a global temperature reconstruction from proxy data of <span class="citation">Marcott, Shakun, Clark, &amp; Mix (<a href="references.html#ref-Marcott1198" role="doc-biblioref">2013</a>)</span>.</p>
 <div class="figure" style="text-align: center">
 <span id="fig:global-temp"></span>
 <img src="img/Fig_global_mean_temp_longterm_trend.png" alt="Global temperature reconstruction. This shows how global temperature varies on a long-term term scale. Graph by: Klaus Bitterman." width="100%"><p class="caption">
@@ -258,7 +258,7 @@ is systematic and can be modeling using latitude, altitude and time/day of the y
 </h2>
 <p>Spatial data is usually visualized using static or interactive maps (see e.g. <a href="https://r-spatial.github.io/mapview/">mapview</a> and/or <a href="https://cran.r-project.org/web/packages/tmap/vignettes/tmap-getstarted.html">tmap package</a>).
 Spatiotemporal data (2D+T) is more complex to visualize than 2D data, while 3D+T data
-can even require special software <span class="citation">(<a href="references.html#ref-hengl2015plotkml" role="doc-biblioref">T. Hengl, Roudier, Beaudette, &amp; Pebesma, 2015</a>)</span> before
+can even require special software <span class="citation">(<a href="references.html#ref-hengl2015plotkml" role="doc-biblioref">T. Hengl et al., 2015</a>)</span> before
 users can make any seamless interpretation.</p>
 <p>There are three possible groups of ways to visualize spatiotemporal
 data:</p>
@@ -273,7 +273,7 @@ spatial domain but changing in time (time-lapses).<br>
 allowing users to choose <em>speed</em> and <em>direction</em> of animation.</li>
 </ol>
 <p>For an introduction to visualizing spatiotemporal and time-series data
-refer to <span class="citation"><a href="references.html#ref-lamigueiro2014displaying" role="doc-biblioref">Lamigueiro</a> (<a href="references.html#ref-lamigueiro2014displaying" role="doc-biblioref">2014</a>)</span>. More complex visualization of
+refer to <span class="citation">Lamigueiro (<a href="references.html#ref-lamigueiro2014displaying" role="doc-biblioref">2014</a>)</span>. More complex visualization of
 spatiotemporal / dynamic geographic features is possible by using the
 <a href="https://geemap.org/" class="uri">https://geemap.org/</a> package (a Python package for interactive mapping with Google Earth Engine, ipyleaflet, and ipywidgets).</p>
 <p>OpenLandMap.org also has multiple temporal datasets and users can interactive with
@@ -303,9 +303,9 @@ some EO data that is available as a time-series and covers the same spacetime cu
 of interest. Once we establish a significant relation between <strong>dynamic target</strong> and
 <strong>dynamic covariates</strong>, we can use the fitted model to predict anywhere in spacetime cube.</p>
 <p>For more in-depth discussion on spatiotemporal data in R please refer to
-<span class="citation"><a href="references.html#ref-wikle2019spatio" role="doc-biblioref">Wikle, Zammit-Mangion, &amp; Cressie</a> (<a href="references.html#ref-wikle2019spatio" role="doc-biblioref">2019</a>)</span>. For in-depth discussion on spatial and spatiotemporal
+<span class="citation">Wikle, Zammit-Mangion, &amp; Cressie (<a href="references.html#ref-wikle2019spatio" role="doc-biblioref">2019</a>)</span>. For in-depth discussion on spatial and spatiotemporal
 blocking for purpose of modeling building and cross-validation refer to
-<span class="citation"><a href="references.html#ref-roberts2017cross" role="doc-biblioref">Roberts et al.</a> (<a href="references.html#ref-roberts2017cross" role="doc-biblioref">2017</a>)</span>.</p>
+<span class="citation">Roberts et al. (<a href="references.html#ref-roberts2017cross" role="doc-biblioref">2017</a>)</span>.</p>
 </div>
 <div id="modeling-seasonal-components" class="section level2" number="1.7">
 <h2>
@@ -324,7 +324,7 @@ at different <strong>time-scales</strong>:</p>
 <li>hourly i.e. day-time and night-time patterns,</li>
 </ul>
 <p>The monthly and daily seasonal component of variation is determined by Earth’s rotation
-and Sun’s angle. <span class="citation"><a href="references.html#ref-kilibarda2014spatio" role="doc-biblioref">Milan Kilibarda et al.</a> (<a href="references.html#ref-kilibarda2014spatio" role="doc-biblioref">2014</a>)</span> have shown that the seasonal
+and Sun’s angle. <span class="citation">Milan Kilibarda et al. (<a href="references.html#ref-kilibarda2014spatio" role="doc-biblioref">2014</a>)</span> have shown that the seasonal
 component e.g. geometric Earth surface minimum and maximum daily temperature
 can be modeled, universally anywhere on globe, by using the following formula:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
@@ -365,7 +365,7 @@ Figure 1.6: Geometric temperature function plot for a given latitude.
 <span class="header-section-number">1.8</span> Predictive mapping using spatial and spatiotemporal ML in R<a class="anchor" aria-label="anchor" href="#predictive-mapping-using-spatial-and-spatiotemporal-ml-in-r"><i class="fas fa-link"></i></a>
 </h2>
 <p>Standard spatiotemporal ML for predictive mapping typically includes the
-following steps <span class="citation">(<a href="references.html#ref-hengl2019predictive" role="doc-biblioref">T. Hengl &amp; MacMillan, 2019</a>; <a href="references.html#ref-hengl2018random" role="doc-biblioref">T. Hengl, Nussbaum, Wright, Heuvelink, &amp; Gräler, 2018</a>)</span>:</p>
+following steps <span class="citation">(<a href="references.html#ref-hengl2019predictive" role="doc-biblioref">T. Hengl &amp; MacMillan, 2019</a>; <a href="references.html#ref-hengl2018random" role="doc-biblioref">T. Hengl et al., 2018</a>)</span>:</p>
 <ol style="list-style-type: decimal">
 <li>Prepare training (points) data and data cube with all covariates
 ideally as an analysis-ready datacube.</li>
@@ -395,7 +395,7 @@ Figure 1.7: General Machine Learning framework recommended for predictive mappin
 framework. ML techniques such as <strong>Random Forest</strong> (RF) have proven to
 over-perform vs more simple linear statistical methods, especially where
 the datasets are large, complex and target variable follows complex
-relationship with covariates <span class="citation">(<a href="references.html#ref-hengl2018random" role="doc-biblioref">T. Hengl, Nussbaum, Wright, Heuvelink, &amp; Gräler, 2018</a>)</span>. Random Forest comes at a cost
+relationship with covariates <span class="citation">(<a href="references.html#ref-hengl2018random" role="doc-biblioref">T. Hengl et al., 2018</a>)</span>. Random Forest comes at a cost
 however. There are four main practical disadvantages of RF:</p>
 <ul>
 <li>Depending on data and assumptions about data, it can over-fit values
@@ -467,7 +467,7 @@ noise component we have inserted on purpose using the <code>rnorm</code> functio
 <span class="co">#&gt; </span>
 <span class="co">#&gt;           Mean of squared residuals: 202.6445</span>
 <span class="co">#&gt;                     % Var explained: 78.34</span></code></pre></div>
-<p>Next, we can estimate the prediction errors using the method of <span class="citation"><a href="references.html#ref-lu2021unified" role="doc-biblioref">Lu &amp; Hardin</a> (<a href="references.html#ref-lu2021unified" role="doc-biblioref">2021</a>)</span>,
+<p>Next, we can estimate the prediction errors using the method of <span class="citation">Lu &amp; Hardin (<a href="references.html#ref-lu2021unified" role="doc-biblioref">2021</a>)</span>,
 which is available via the <code>forestError</code> package:</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">forestError</span><span class="op">)</span>
@@ -522,7 +522,7 @@ fitted line over-fit, and hence any further down the pipeline over-optimistic
 prediction uncertainty can result in decision makers being over-confident,
 leading to wrong decisions, and consequently making users losing any confidence in RF.
 For an in-depth discussion on extrapolation problems and <strong>Area of Applicability</strong>
-of Machine Learning models please refer to <span class="citation"><a href="references.html#ref-meyerPebesma2020" role="doc-biblioref">Meyer &amp; Pebesma</a> (<a href="references.html#ref-meyerPebesma2020" role="doc-biblioref">2021</a>)</span>.</p>
+of Machine Learning models please refer to <span class="citation">Meyer &amp; Pebesma (<a href="references.html#ref-meyerPebesma2020" role="doc-biblioref">2021</a>)</span>.</p>
 <p>A possible solution to the problem above is to, instead of using only one
 learners, we use multiple learners and then apply robust cross-validation that
 prevents the target model from over-fitting. This can be implemented efficiently,

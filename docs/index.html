@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Introduction | Spatial and spatiotemporal interpolation using Ensemble Machine Learning</title>
 <meta name="author" content="Tom Hengl, Leandro Parente and Carmelo Bonannella">
-<!-- JS --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><script src="https://cdn.jsdelivr.net/npm/fuse.js@6.4.2"></script><script src="https://kit.fontawesome.com/6ecbd6c532.js" crossorigin="anonymous"></script><script src="libs/header-attrs-2.8.1/header-attrs.js"></script><script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<!-- JS --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><script src="https://cdn.jsdelivr.net/npm/fuse.js@6.4.2"></script><script src="https://kit.fontawesome.com/6ecbd6c532.js" crossorigin="anonymous"></script><script src="libs/header-attrs-2.14/header-attrs.js"></script><script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="libs/bootstrap-4.6.0/bootstrap.min.css" rel="stylesheet">
 <script src="libs/bootstrap-4.6.0/bootstrap.bundle.min.js"></script><script src="libs/bs3compat-0.3.1/transition.js"></script><script src="libs/bs3compat-0.3.1/tabs.js"></script><script src="libs/bs3compat-0.3.1/bs3compat.js"></script><link href="libs/bs4_book-1.0.0/bs4_book.css" rel="stylesheet">
 <script src="libs/bs4_book-1.0.0/bs4_book.js"></script><!-- Global site tag (gtag.js) - Google Analytics --><script async src="https://www.googletagmanager.com/gtag/js?id=G-1BH6J2NKGP"></script><script>
@@ -111,7 +111,7 @@ i.e. a wrapper functions to mlr implemented in the landmap package.</p>
 <h2>Using geographical distances to improve spatial interpolation<a class="anchor" aria-label="anchor" href="#using-geographical-distances-to-improve-spatial-interpolation"><i class="fas fa-link"></i></a>
 </h2>
 <p>Machine Learning was for long time been considered suboptimal for spatial
-interpolation problems, in comparison to classifical geostatistical techniques
+interpolation problems, in comparison to classical geostatistical techniques
 such as kriging, because it basically ignores spatial dependence structure in
 the data. To incorporate spatial dependence structures in machine learning, one
 can now add the so-called “geographical features”: buffer distance, oblique
@@ -132,7 +132,7 @@ have been produced by kriging <span class="citation">(<a href="references.html#r
 covariates are diverse, and that the points are equally spread in an area of
 interest, there is probably no need for using geographical distances in model
 training because unique combinations of features become so large that they can
-be used to represent <em>geographical position</em> <span class="citation">(<a href="references.html#ref-hengl2018random" role="doc-biblioref">T. Hengl, Nussbaum, Wright, Heuvelink, &amp; Gräler, 2018</a>)</span>.</p>
+be used to represent <em>geographical position</em> <span class="citation">(<a href="references.html#ref-hengl2018random" role="doc-biblioref">T. Hengl et al., 2018</a>)</span>.</p>
 </div>
 <div id="installing-the-landmap-package" class="section level2 unnumbered">
 <h2>Installing the landmap package<a class="anchor" aria-label="anchor" href="#installing-the-landmap-package"><i class="fas fa-link"></i></a>
@@ -180,7 +180,7 @@ book by Hadley Wickham and contributors.</p>
 have contributed data, software, fixes and improvements via pull request.</p>
 <p><a href="https://opengeohub.org">OpenGeoHub</a> is an independent not-for-profit research
 foundation promoting Open Source and Open Data solutions. These tools were developed
-primarily for the need of the Geo-harmonizer project and to enable generation of
+primarily for the need of the Geo-harmonizer project and to enable creation of
 next-generation environmental layers for continental Europe <span class="citation">(<a href="references.html#ref-Bonannella2022" role="doc-biblioref">Bonannella et al., 2022?</a>; <a href="references.html#ref-witjes2021spatiotemporal" role="doc-biblioref">Witjes et al., 2022?</a>)</span>.
 <strong><a href="https://envirometrix.nl">EnvirometriX Ltd.</a></strong> is the commercial branch of the group
 responsible for designing soil sampling designs for the <strong><a href="https://agricaptureco2.eu/">AgriCapture</a></strong>

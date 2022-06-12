@@ -25,7 +25,7 @@ term _spatial prediction_ in this tutorial, even though the term _spatial interp
 has been more widely accepted [@Mitas1999Wiley]. In geostatistics, e.g. in the 
 case of **ordinary kriging**, interpolation corresponds to cases where the 
 location being estimated is surrounded by the sampling locations and is within 
-the spatial auto-correlation range [@Diggle2007Springer]. Prediction outside of the practical range 
+the spatial auto-correlation range [@Diggle2007Springer; @brown2015model]. Prediction outside of the practical range 
 (i.e. where prediction error exceeds the global variance) is referred to as 
 **spatial extrapolation**. In other words, extrapolation is prediction at locations 
 where we do not have enough statistical evidence (based on the statistical model) 

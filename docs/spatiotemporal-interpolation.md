@@ -56,8 +56,6 @@ The gridded data includes: (a) static covariates (relief data), and
 hrgrid1km = readRDS("input/hrgrid1km.rds")
 #plot(hrgrid1km[1])
 proj4string(idsta.pnts) = proj4string(hrgrid1km)
-#> Warning in proj4string(hrgrid1km): CRS object has comment, which is lost in output; in tests, see
-#> https://cran.r-project.org/web/packages/sp/vignettes/CRS_warnings.html
 str(hrgrid1km@data)
 #> 'data.frame':	238630 obs. of  4 variables:
 #>  $ HRdem : int  1599 1426 1440 1764 1917 1912 1707 1550 1518 1516 ...
@@ -106,15 +104,9 @@ we use our custom function `extract_st`, which basically builds on top of the
 
 ```r
 library(terra)
-#> terra version 1.4.22
+#> terra version 0.8.11 (beta-release)
 #> 
 #> Attaching package: 'terra'
-#> The following object is masked from 'package:landmap':
-#> 
-#>     makeTiles
-#> The following object is masked from 'package:mlr':
-#> 
-#>     resample
 #> The following object is masked from 'package:rgdal':
 #> 
 #>     project
@@ -213,6 +205,14 @@ We next fit an Ensemble ML using the same process described in the previous sect
 
 ```r
 library(mlr)
+#> Loading required package: ParamHelpers
+#> 'mlr' is in maintenance mode since July 2019. Future development
+#> efforts will go into its successor 'mlr3' (<https://mlr3.mlr-org.com>).
+#> 
+#> Attaching package: 'mlr'
+#> The following object is masked from 'package:terra':
+#> 
+#>     resample
 lrn.rf = mlr::makeLearner("regr.ranger", num.trees=150, importance="impurity",
                           num.threads = parallel::detectCores())
 lrns.st <- list(lrn.rf, mlr::makeLearner("regr.nnet"), mlr::makeLearner("regr.gamboost"))
@@ -263,14 +263,14 @@ summary(eml.TMP$learner.model$super.model$learner.model)
 #> 
 #> Residuals:
 #>      Min       1Q   Median       3Q      Max 
-#> -16.2441  -1.8103   0.0187   1.8002  14.9609 
+#> -16.2439  -1.8106   0.0204   1.8004  14.9611 
 #> 
 #> Coefficients:
 #>               Estimate Std. Error t value Pr(>|t|)    
-#> (Intercept)   35.08516    8.10905   4.327 1.53e-05 ***
-#> regr.ranger    0.70576    0.02771  25.474  < 2e-16 ***
-#> regr.nnet     -2.72453    0.62920  -4.330 1.51e-05 ***
-#> regr.gamboost  0.29539    0.02799  10.552  < 2e-16 ***
+#> (Intercept)   35.06219    8.10904   4.324 1.55e-05 ***
+#> regr.ranger    0.70575    0.02770  25.474  < 2e-16 ***
+#> regr.nnet     -2.72276    0.62920  -4.327 1.53e-05 ***
+#> regr.gamboost  0.29540    0.02799  10.553  < 2e-16 ***
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 #> 
@@ -439,9 +439,6 @@ fs.rm = readRDS('input/fagus_sylvatica_st.rds')
 occ.pnts = fs.rm[,c("Atlas_class","easting","northing")]
 coordinates(occ.pnts) = ~ easting + northing
 proj4string(occ.pnts) = "+init=epsg:3035"
-#> Warning in showSRID(uprojargs, format = "PROJ", multiline = "NO", prefer_proj
-#> = prefer_proj): Discarded datum European_Terrestrial_Reference_System_1989 in
-#> Proj4 definition
 occ.pnts = spTransform(occ.pnts, CRS("+init=epsg:4326"))
 ```
 
@@ -497,7 +494,6 @@ europe <- rnaturalearth::ne_countries(scale=10, continent = 'europe')
 europe <- raster::crop(europe, extent(-24.8,35.2,31,68.5))
 op = par(mar=c(0,0,0,0))
 plot(europe, col="lightgrey", border="darkgrey", axes=FALSE)
-#> Warning in wkt(obj): CRS object has no comment
 points(occ.pnts[occ.pnts$Atlas_class==1,], pch="+", cex=.8)
 par(op)
 ```
@@ -613,23 +609,8 @@ resolution) we can run:
 
 ```r
 m1 = predict_tiles(input = "9690.2012",  model = eml.fs)
-#> [1] "9690 - reading the data"
-#> [1] "9690 - running predictions"
-#> Warning in if (class(probability_map) == "try-error") {: the condition has
-#> length > 1 and only the first element will be used
-#> [1] "9690 - writing files"
 m2 = predict_tiles(input = "9690.2016",  model = eml.fs)
-#> [1] "9690 - reading the data"
-#> [1] "9690 - running predictions"
-#> Warning in if (class(probability_map) == "try-error") {: the condition has
-#> length > 1 and only the first element will be used
-#> [1] "9690 - writing files"
 m3 = predict_tiles(input = "9690.2020",  model = eml.fs)
-#> [1] "9690 - reading the data"
-#> [1] "9690 - running predictions"
-#> Warning in if (class(probability_map) == "try-error") {: the condition has
-#> length > 1 and only the first element will be used
-#> [1] "9690 - writing files"
 m1$Prob.2012 = m1$Prob
 m1$Prob.2016 = m2$Prob
 m1$Prob.2020 = m3$Prob
@@ -646,11 +627,6 @@ spplot(m1[,c("Prob.2012","Prob.2016","Prob.2020")], names.attr = c("Prob.2010-20
   sp.layout = list(pts),
   main="Realized distribution of Fagus sylvatica")
 ```
-
-<div class="figure" style="text-align: center">
-<img src="spatiotemporal-interpolation_files/figure-html/predictions-fs-1.png" alt="Predicted probability of occurrence for Fagus sylvatica for three periods." width="100%" />
-<p class="caption">(\#fig:predictions-fs)Predicted probability of occurrence for Fagus sylvatica for three periods.</p>
-</div>
 
 In this case there seems to be no drastic changes in the distribution of
 the target species through time, which is also expected because forest species distribution
@@ -707,25 +683,25 @@ we run in parallel:
 
 
 ```
-#> Starting parallelization in mode=socket with cpus=96.
+#> Starting parallelization in mode=socket with cpus=32.
 #> Exporting objects to slaves for mode socket: .mlr.slave.options
 #> Resampling: repeated cross-validation
 #> Measures:             logloss
-#> Mapping in parallel: mode = socket; level = mlr.resample; cpus = 96; elements = 25.
+#> Mapping in parallel: mode = socket; level = mlr.resample; cpus = 32; elements = 25.
 #> 
 #> Aggregated Result: logloss.test.mean=0.1131968
 #> 
 #> Exporting objects to slaves for mode socket: .mlr.slave.options
 #> Resampling: repeated cross-validation
 #> Measures:             logloss
-#> Mapping in parallel: mode = socket; level = mlr.resample; cpus = 96; elements = 25.
+#> Mapping in parallel: mode = socket; level = mlr.resample; cpus = 32; elements = 25.
 #> 
 #> Aggregated Result: logloss.test.mean=0.0818324
 #> 
 #> Exporting objects to slaves for mode socket: .mlr.slave.options
 #> Resampling: repeated cross-validation
 #> Measures:             logloss
-#> Mapping in parallel: mode = socket; level = mlr.resample; cpus = 96; elements = 25.
+#> Mapping in parallel: mode = socket; level = mlr.resample; cpus = 32; elements = 25.
 #> 
 #> Aggregated Result: logloss.test.mean=0.1695897
 #> 
@@ -740,7 +716,7 @@ need to create an additional task:
 #> Exporting objects to slaves for mode socket: .mlr.slave.options
 #> Resampling: repeated cross-validation
 #> Measures:             logloss
-#> Mapping in parallel: mode = socket; level = mlr.resample; cpus = 96; elements = 25.
+#> Mapping in parallel: mode = socket; level = mlr.resample; cpus = 32; elements = 25.
 #> 
 #> Aggregated Result: logloss.test.mean=0.0743475
 #> 

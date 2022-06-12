@@ -429,7 +429,7 @@ ggplot(data = xl[1:20,], aes(x = reorder(variable, relative_importance), y = rel
 To produce spacetime predictions for some tiles (30-m spatial
 resolution) we can run:
 
-```{r, message=FALSE}
+```{r, eval=FALSE, message=FALSE}
 m1 = predict_tiles(input = "9690.2012",  model = eml.fs)
 m2 = predict_tiles(input = "9690.2016",  model = eml.fs)
 m3 = predict_tiles(input = "9690.2020",  model = eml.fs)
@@ -441,7 +441,7 @@ m1$Prob.2020 = m3$Prob
 We can compare predictions of the probability of occurrence of the
 target species for two years next to each other by using:
 
-```{r predictions-fs, echo=TRUE, fig.width=8, out.width="100%", fig.cap="Predicted probability of occurrence for Fagus sylvatica for three periods."}
+```{r predictions-fs, eval=FALSE, echo=TRUE, fig.width=8, out.width="100%", fig.cap="Predicted probability of occurrence for Fagus sylvatica for three periods."}
 pts = list("sp.points", spTransform(occ.pnts[occ.pnts$Atlas_class==1,], CRS("+init=epsg:3035")), 
            pch = "+", col="black")
 spplot(m1[,c("Prob.2012","Prob.2016","Prob.2020")], names.attr = c("Prob.2010-2014", "Prob.2014-2018", "Prob.2018-2020"), col.regions=rev(bpy.colors()),

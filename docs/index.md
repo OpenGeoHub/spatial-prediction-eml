@@ -73,7 +73,7 @@ i.e. a wrapper functions to mlr implemented in the landmap package.
 ## Using geographical distances to improve spatial interpolation {.unnumbered}
 
 Machine Learning was for long time been considered suboptimal for spatial 
-interpolation problems, in comparison to classifical geostatistical techniques 
+interpolation problems, in comparison to classical geostatistical techniques 
 such as kriging, because it basically ignores spatial dependence structure in 
 the data. To incorporate spatial dependence structures in machine learning, one 
 can now add the so-called "geographical features": buffer distance, oblique 
@@ -140,7 +140,7 @@ have contributed data, software, fixes and improvements via pull request.
 
 [OpenGeoHub](https://opengeohub.org) is an independent not-for-profit research 
 foundation promoting Open Source and Open Data solutions. These tools were developed 
-primarily for the need of the Geo-harmonizer project and to enable generation of 
+primarily for the need of the Geo-harmonizer project and to enable creation of 
 next-generation environmental layers for continental Europe [@witjes2021spatiotemporal; @Bonannella2022].
 **[EnvirometriX Ltd.](https://envirometrix.nl)** is the commercial branch of the group 
 responsible for designing soil sampling designs for the **[AgriCapture](https://agricaptureco2.eu/)** 

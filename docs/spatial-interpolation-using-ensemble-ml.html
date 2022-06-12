@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>2 Spatial interpolation using Ensemble ML | Spatial and spatiotemporal interpolation using Ensemble Machine Learning</title>
 <meta name="author" content="Tom Hengl, Leandro Parente and Carmelo Bonannella">
-<!-- JS --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><script src="https://cdn.jsdelivr.net/npm/fuse.js@6.4.2"></script><script src="https://kit.fontawesome.com/6ecbd6c532.js" crossorigin="anonymous"></script><script src="libs/header-attrs-2.8.1/header-attrs.js"></script><script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<!-- JS --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><script src="https://cdn.jsdelivr.net/npm/fuse.js@6.4.2"></script><script src="https://kit.fontawesome.com/6ecbd6c532.js" crossorigin="anonymous"></script><script src="libs/header-attrs-2.14/header-attrs.js"></script><script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="libs/bootstrap-4.6.0/bootstrap.min.css" rel="stylesheet">
 <script src="libs/bootstrap-4.6.0/bootstrap.bundle.min.js"></script><script src="libs/bs3compat-0.3.1/transition.js"></script><script src="libs/bs3compat-0.3.1/tabs.js"></script><script src="libs/bs3compat-0.3.1/bs3compat.js"></script><link href="libs/bs4_book-1.0.0/bs4_book.css" rel="stylesheet">
 <script src="libs/bs4_book-1.0.0/bs4_book.js"></script><!-- Global site tag (gtag.js) - Google Analytics --><script async src="https://www.googletagmanager.com/gtag/js?id=G-1BH6J2NKGP"></script><script>
@@ -65,7 +65,7 @@
 </h2>
 <p>A relatively simple approach to interpolate values from point data using e.g. 
 Random Forest is to use <strong>buffer distances</strong> to all points as covariates. We can
-here use the meuse dataset for testing <span class="citation">(<a href="references.html#ref-hengl2018random" role="doc-biblioref">T. Hengl, Nussbaum, Wright, Heuvelink, &amp; Gräler, 2018</a>)</span>:</p>
+here use the meuse dataset for testing <span class="citation">(<a href="references.html#ref-hengl2018random" role="doc-biblioref">T. Hengl et al., 2018</a>)</span>:</p>
 <div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="http://rgdal.r-forge.r-project.org">rgdal</a></span><span class="op">)</span>
 <span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/imbs-hl/ranger">ranger</a></span><span class="op">)</span>
@@ -123,7 +123,7 @@ parameterized</em> with basically more covariates than training points.</p>
 <span class="header-section-number">2.2</span> Spatial interpolation using ML and geographical distances to neighbors<a class="anchor" aria-label="anchor" href="#spatial-interpolation-using-ml-and-geographical-distances-to-neighbors"><i class="fas fa-link"></i></a>
 </h2>
 <p>Deriving buffer distances for all points is obviously not suitable for very
-large point datasets. <span class="citation"><a href="references.html#ref-sekulic2020random" role="doc-biblioref">Sekulić, Kilibarda, Heuvelink, Nikolić, &amp; Bajat</a> (<a href="references.html#ref-sekulic2020random" role="doc-biblioref">2020</a>)</span> describe an alternative, a more scalable
+large point datasets. <span class="citation">Sekulić, Kilibarda, Heuvelink, Nikolić, &amp; Bajat (<a href="references.html#ref-sekulic2020random" role="doc-biblioref">2020</a>)</span> describe an alternative, a more scalable
 method that uses closest neighbors (and their values) as covariates to predict
 target variable. This can be implemented using the <code>meteo</code> package:</p>
 <div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
@@ -228,7 +228,7 @@ Figure 2.3: Values of first neighbor for meuse dataset.
 </div>
 <p>In summary, based on the Figs. <a href="spatial-interpolation-using-ensemble-ml.html#fig:map-buff">2.1</a> and <a href="spatial-interpolation-using-ensemble-ml.html#fig:map-r">2.3</a>,
 we can conclude that predictions produced using nearest neighbors (Fig. <a href="spatial-interpolation-using-ensemble-ml.html#fig:map-r">2.3</a>) show quite different patterns than
-predictions based on buffer distances (Fig. <a href="spatial-interpolation-using-ensemble-ml.html#fig:map-buff">2.1</a>). The method by <span class="citation"><a href="references.html#ref-sekulic2020random" role="doc-biblioref">Sekulić, Kilibarda, Heuvelink, Nikolić, &amp; Bajat</a> (<a href="references.html#ref-sekulic2020random" role="doc-biblioref">2020</a>)</span>
+predictions based on buffer distances (Fig. <a href="spatial-interpolation-using-ensemble-ml.html#fig:map-buff">2.1</a>). The method by <span class="citation">Sekulić et al. (<a href="references.html#ref-sekulic2020random" role="doc-biblioref">2020</a>)</span>
 (<strong>Random Forest Spatial Interpolation</strong>) RFSI is probably more interesting for general applications as it could be
 also added to spatiotemporal data problems. It also reflects closely idea of using
 spatial autocorrelation of values as used in kriging since both values of neighbors and
@@ -367,10 +367,10 @@ only used buffer distances.</p>
 <p>If not otherwise specified, derivation of the prediction error (<strong>Root Mean Square
 Prediction Error</strong>), bias and lower and upper prediction intervals is implemented
 by default via the <a href="https://cran.r-project.org/package=forestError">forestError</a>
-algorithm. The method is explained in detail in <span class="citation"><a href="references.html#ref-lu2021unified" role="doc-biblioref">Lu &amp; Hardin</a> (<a href="references.html#ref-lu2021unified" role="doc-biblioref">2021</a>)</span>.</p>
+algorithm. The method is explained in detail in <span class="citation">Lu &amp; Hardin (<a href="references.html#ref-lu2021unified" role="doc-biblioref">2021</a>)</span>.</p>
 <p>We could also produce the prediction intervals by using the <strong>quantreg</strong> Random Forest
 algorithm <span class="citation">(<a href="references.html#ref-meinshausen2006quantile" role="doc-biblioref">Meinshausen, 2006</a>)</span> as implemented in the ranger package, or as
-a standard deviation of the bootstraped models, although using the method by <span class="citation"><a href="references.html#ref-lu2021unified" role="doc-biblioref">Lu &amp; Hardin</a> (<a href="references.html#ref-lu2021unified" role="doc-biblioref">2021</a>)</span> is recommended.</p>
+a standard deviation of the bootstraped models, although using the method by <span class="citation">Lu &amp; Hardin (<a href="references.html#ref-lu2021unified" role="doc-biblioref">2021</a>)</span> is recommended.</p>
 <p>To determine the prediction errors without drastically increasing computing time,
 we basically fit an independent random forest model using the five base-learners
 with setting <code>quantreg = TRUE</code>:</p>
@@ -645,7 +645,7 @@ prediction error (±1 s.d.) can be derived by:</p>
 </h2>
 <p>Ensemble Machine Learning can also be used to interpolate factor type variables
 e.g. soil types. This is an example with the Ebergotzen dataset available from
-the package plotKML <span class="citation">(<a href="references.html#ref-hengl2015plotkml" role="doc-biblioref">T. Hengl, Roudier, Beaudette, &amp; Pebesma, 2015</a>)</span>:</p>
+the package plotKML <span class="citation">(<a href="references.html#ref-hengl2015plotkml" role="doc-biblioref">T. Hengl et al., 2015</a>)</span>:</p>
 <div class="sourceCode" id="cb46"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/Envirometrix/plotKML">plotKML</a></span><span class="op">)</span>
 <span class="fu"><a href="https://rdrr.io/r/utils/data.html">data</a></span><span class="op">(</span><span class="va">eberg_grid</span><span class="op">)</span>

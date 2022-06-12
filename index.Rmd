@@ -130,7 +130,7 @@ functionality what is available via the mlr package in R.
 This work is licensed under a [Creative Commons Attribution-ShareAlike 4.0 International License](http://creativecommons.org/licenses/by-sa/4.0/).
 
 ```{r, include=FALSE, message=FALSE, results='hide'}
-ls <- c("rgdal", "raster", "plotKML", "geoR", "ranger", "mlr", "ggridges", "viridis",
+ls <- c("rgdal", "raster", "plotKML", "ranger", "mlr", "ggridges", "viridis",
         "xgboost", "fastSave", "glmnet", "matrixStats", "kernlab", "deepnet", 
         "ggplot2", "landmap")
 new.packages <- ls[!(ls %in% installed.packages()[,"Package"])]
