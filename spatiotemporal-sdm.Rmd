@@ -36,7 +36,7 @@ and/or land surface temperature. Species data comes with specific properties tha
 In this chapter we provide a scalable framework for predicting either **probability of 
 occurrence** and/or **species density** (number of individuals per area) using Ensemble 
 ML and spatiotemporal data (time-series of images). A review of ML methods for SDM 
-is available also in @zhang2017review.
+is available also in @zhang2017review. 
 
 In order to be able to interpolate species distribution, probability of occurrence 
 and/or density of species in space-time using Ensemble ML, we can not simply use occurrence-only data. 
@@ -56,17 +56,33 @@ The tiger mosquito ([Aedes albopictus](https://www.ecdc.europa.eu/en/disease-vec
 including those responsible for dengue fever, Zika and chikungunya. The natural habitat 
 of this species was limited in the past, however, in the recent time this species has spread 
 to many countries through the transport of goods and international travel e.g. shipping 
-routes or similar [@benedict2007spread].
+routes or similar [@benedict2007spread,@da2021will]. The R package **[dynamAedes](https://cran.r-project.org/web/packages/dynamAedes/vignettes/dynamAedes_tutorial.html)** 
+contains stochastic, time-discrete and spatially-explicit population dynamical models for _Aedes sp._ 
+invesive species [@da2021dynamaedes].
 
 We can obtain occurrences of the _Aedes albopictus_ by either using the `rgbif::` 
-function, or by downloding the CSV file from the [GBIF website](https://www.gbif.org/species/1651430). 
-A local copy of the occurences for Europe can be loaded using:
+function, or by downloading the CSV file from the [GBIF website](https://www.gbif.org/species/1651430). 
+A local copy of the occurrences for Europe can be loaded by using:
 
 ```{r}
-
+## occ = rgbif::occ_data(taxonKey=1651430, hasCoordinate = TRUE, year = '2000,2022')
+occ = readRDS("./input/gbif_aedes_albopictus_mood.rds")
+str(occ)
 ```
 
-```{r pseudo-absences, echo=FALSE, fig.width=6, fig.cap="Spatiotemporal visualization of the GBIF occurrence records of the Tiger mosquito.", out.width="90%"}
+To visualize the mosquito point data over Europe we can use e.g.:
+
+```{r, eval=FALSE}
+library(spacetime)
+library(plotKML)
+sp_ST <- STIDF(SpatialPoints(occ[,c("decimalLongitude", "decimalLatitude")], proj4string = "EPSG:4326"), 
+               occ$Date, data.frame(individualCount=occ$individualCount))
+data(SAGA_pal)
+## plot in Google Earth:
+plotKML(sp_ST, colour_scale=SAGA_pal[[1]])
+```
+
+```{r google-vis, echo=FALSE, fig.width=6, fig.cap="Spatiotemporal visualization of the GBIF occurrence records of the Tiger mosquito.", out.width="90%"}
 knitr::include_graphics("./img/tiger_mosquito_europe_2000_2021.gif")
 ```
 
@@ -123,14 +139,137 @@ knitr::include_graphics("./img/Fig_predicted_maxlike_tiger_mosquito_Spain.jpg")
 ```
 
 This shows that the Tiger mosquito seems to prefer coastal areas and is mainly limited 
-by winter temperatures.
+by the winter temperatures. The minimum temperature for survival of the mosquito adults 
+is about 3-4 degrees, for eggs minimum temperature is lower but still should be > -4 degrees.
 
 Next, we can generate a reasonable number of pseudo-absences (they should not exceed 
 actual number of occurrence points) by using:
 
-This gives finally:
+```{r, eval=FALSE}
+max.ml.p = rgdal::writeGDAL("./output/occ.prob_aedes_albopictus.tif")
+## insert 0 values for all occurrences before the date:
+max.ml.p$absence = ifelse(max.ml.p$band1==100, 1, NA)
+dens.var <- spatstat.geom::as.im(sp::as.image.SpatialGridDataFrame(max.ml.p["absence"]))
+pnts.new <- rpoint(600, f=dens.var)
+```
 
-```{r pseudo-absences, echo=FALSE, fig.width=6, fig.cap="Simulated pseudo-absences based on the maxent analysis (predictions in the background).", out.width="80%"}
+A single realisation of 600 pseudo-absences:
+
+```{r pnts-eu, echo=FALSE, fig.width=6, fig.cap="Simulated pseudo-absences based on the maxent analysis (predictions in the background).", out.width="80%"}
 knitr::include_graphics("./img/Fig_pseudo_absences_mood.jpg")
 ```
 
+## Modeling distribution of mosquitos through time
+
+Next we can bind the occurrences / adult counts and pseudo-absences, then overlay 
+training points in spacetime to produce a spatiotemporal regression-matrix:
+
+```{r}
+rm.all = readRDS("./input/regmatrix_aedes_1km.rds")
+dim(rm.all)
+```
+
+This is now a relatively large regression matrix with basically diversity of Earth Observation 
+and climatic time-series of images. We can fit an Ensemble ML model to predict spatiotemporal 
+distribution of species for 2000-2021 period by using:
+
+```{r, eval=FALSE}
+source("mood_functions.R")
+rm.all$log.Count = log1p(rm.all$individualCount)
+try( x  <- train_eml(t.var="log.Count", pr.var=pr.vars, X=rm.all, rf.feature=FALSE, out.dir="./output/") )
+cat_eml(t.var="log.Count", out.dir="./modelsT/", n.max = length(pr.vars)-1)
+```
+
+which shows the following:
+
+```{r}
+t.m <- readRDS(paste0("./output/eml.m_log.Count.rds"))
+summary(t.m$learner.model$super.model$learner.model)
+```
+
+The most important variable based on the variable importance seems to be:
+
+- Night lights (NLT) based on ;  
+- Travel time to cities and ports based on ;
+- Population density based on ;
+
+## Generating the trend maps
+
+After we have produced predictions we can also stack them and then derive beta 
+coefficient per pixel to see if some parts of Europe are showing higher increase 
+in mosquito density. For this we can run:
+
+```{r, pred-count, echo=FALSE, fig.width=6, fig.cap="Predictions of mosquito density over Europe with a zoom in on Spain.", out.width="90%"}
+library(plotKML); library(raster)
+es.tifs = list.files("./output/spain1km", glob2rx("*_M_*.tif"), full.names = TRUE)
+spain1km = raster::brick(raster::stack(es.tifs))
+spplot(spain1km[[c(1,8,16,20)]], col.regions=SAGA_pal[[1]])
+```
+
+```{r, eval=FALSE}
+#install.packages("greenbrown", repos="http://R-Forge.R-project.org")
+library(greenbrown)
+trendmap <- TrendRaster(spain1km, start=c(2000, 1), freq=1, breaks=1) 
+## can be computationally intensive
+plot(trendmap[["SlopeSEG1"]], 
+     col=rev(SAGA_pal[["SG_COLORS_GREEN_GREY_RED"]]), 
+     zlim=c(-1.5,1.5), main="Slope SEG1")
+```
+
+## Summary
+
+This chapter shows how to use occurrence-only records to map distribution of target species in spacetime.
+We again use Ensemble Machine Learning on training data overlaid in spacetime vs time-series 
+of Night Light, vegetation, climatic images (years 2000--2021).
+The training data is limited to occurrence-only records and these are neither based on 
+probability sampling nor a consistent in time. Just because there are more records of the mosquito species 
+for more recent years, that does not mean that the mosquito has appeared in recent years. In fact, 
+if we would use year as a covariate, we would most likely introduce a bias in predictions.
+
+The simple alternative to derive (kernel) density maps of mosquitos for Europe would be to use the `sparr::spattemp.density` 
+function:
+
+```{r, eval=FALSE}
+st.f = occ[,c("decimalLongitude","decimalLatitude","Date","individualCount")]
+st.f$individualCount = as.numeric(ifelse(is.na(st.f$individualCount), 1, st.f$individualCount))
+coordinates(st.f) <- c("decimalLongitude", "decimalLatitude")
+proj4string(st.f) <- CRS("+init=epsg:4326")
+grid1d = readGDAL("./input/mask_5km.tif")
+grid1d = as(grid1d, "SpatialPixelsDataFrame")
+te = as.vector(grid1d@bbox)
+#plot(grid1d)
+mg_owin <- spatstat.geom::as.owin(data.frame(x = grid1d@coords[,1], y = grid1d@coords[,2], window = TRUE))
+st.f_sp <- spTransform(st.f, grid1d@proj4string)
+pp = ppp(x=st.f_sp@coords[,1], y=st.f_sp@coords[,2], marks=as.numeric(substr(st.f_sp$Date, 1, 4)), window = mg_owin)
+## Warning messages:
+#1: 41072 points were rejected as lying outside the specified window 
+#2: data contain duplicated points
+pp$n
+## 13893
+str(pp$marks)
+## spacetime density ----
+eu.stgrid = sparr::spattemp.density(pp, tt = pp$marks, tlim = c(2000,2022), sres=1569, verbose = TRUE)
+## Calculating trivariate smooth...Done.
+## Edge-correcting...Done.
+## Conditioning on time...Done.
+#plot(eu.stgrid, 2018)
+dmap <- maptools::as.SpatialGridDataFrame.im(eu.stgrid$z[["2012"]])
+summary(dmap$v*1e12)
+plot(dmap)
+```
+
+The problem of this approach is that (a) it can not work with count data, (b) it 
+assumes that ALL or equaly sampled occurrences of the phenomena are available. 
+If this is not the case, the function `sparr::spattemp.density` would produce a biased 
+estimate of the density of mosquitos.
+
+Ensemble Machine Learning, on the other hand, can help produce unbiased estimate of 
+mosquito densities over Europe for a time-series of years. The disadvantages of the using 
+spatiotemporal ML are:
+
+- We are correlating the Earth Observation data with mosquito density, but mosquitos 
+are dynamic and can not be sensed from space, at least not at 1km resolution;  
+- We assume that the training points are representative for various environmental conditions, while in practice less 
+training data is available for physically distant areas e.g. mountains (hence censored);
+- Predictions produced in this example come with relatively high errors, so the predictions should be 
+used with care;
