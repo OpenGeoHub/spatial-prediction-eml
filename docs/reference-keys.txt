@@ -31,7 +31,7 @@ fig:fagus-ge
 fig:google-vis
 fig:pseudo-absences
 fig:pnts-eu
-fig:pred-count
+fig:qgis-vis
 fig:decomposition-signal
 fig:map-oc250m
 fig:map-oc100m
@@ -71,6 +71,7 @@ generating-pseudo-absence-data
 modeling-distribution-of-mosquitos-through-time
 generating-the-trend-maps
 summary
+acknowledgments
 multi-scale-spatial-prediction-models
 rationale-for-multiscale-models
 fitting-and-predicting-with-multiscale-models

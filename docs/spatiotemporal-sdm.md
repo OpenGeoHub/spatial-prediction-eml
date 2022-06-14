@@ -9,7 +9,7 @@ You are reading the work-in-progress Spatial and spatiotemporal interpolation us
 ## Species Distribution Modeling
 
 [Species Distribution Modeling](https://rspatial.org/raster/sdm/) (SDM) and/or Mapping aims 
-at explaining and mapping distribution of species as a function of ecological conditions 
+at explaining and mapping distribution of species as a function of ecological, environmental conditions 
 and/or human influence. Typical steps in SDM include [@hijmans2019spatial]:
 
 1. Prepare locations of occurrence of a species or species density;  
@@ -18,17 +18,24 @@ and/or human influence. Typical steps in SDM include [@hijmans2019spatial]:
 4. Predict habitat / occurrence probability across the region of interest (and perhaps for a future or past climate).  
 
 Modeling species distribution is different from mapping quantitative soil properties 
-and/or land surface temperature. Species data comes with specific properties that include [@martinez2018species,@fois2018using]:
+and/or land surface temperature described in previous chapters. Species data comes 
+with specific properties that include [@martinez2018species,@fois2018using]:
 
-- Typically occurrence-only data is available: biologists / ecologists often only record where some species was observed;  
-- Species and their dynamics is complex; some species such as migratory birds change location seasonaly, some are more static;  
-- Modeling distribution of species such as birds or similar animals and insects in spacetime context is highly complex;
+- Typically occurrence-only records: biologists / ecologists often only record where some species was observed;  
+- Species and their dynamics is often complex: some species such as migratory birds change location seasonaly;  
+- Modeling distribution of species such as birds or similar animals and insects 
+in spacetime context is highly complex as various levels of chaotic behavior apply;
 
-In this chapter we provide a scalable framework for predicting either **probability of 
-occurrence** and/or **species density** (number of individuals per area) using Ensemble 
-ML and spatiotemporal data (time-series of images). A review of ML methods for SDM 
-is available also in @zhang2017review. 
+In recent years there has been increasing interest in using Machine Learning for 
+species distribution modeling, especially to model disease outbreaks.
+A review of ML methods for SDM is available also in @zhang2017review.
+In this chapter we describe a scalable framework for predicting species occurrences 
+based on the Ensemble Machine Learning described in the previous chapters.
+The target variable we map is **probability of occurrence** and/or **species density** 
+(number of individuals per area) using Ensemble. As covariates we use time-series of 
+Earth Observation images and similar climatic and terrain-based images.
 
+Modeling species distribution using Ensemble ML is not trivial, however.
 In order to be able to interpolate species distribution, probability of occurrence 
 and/or density of species in space-time using Ensemble ML, we can not simply use occurrence-only data. 
 Instead, we need to provide enough training data on both occurrence and absence of 
@@ -49,7 +56,7 @@ of this species was limited in the past, however, in the recent time this specie
 to many countries through the transport of goods and international travel e.g. shipping 
 routes or similar [@benedict2007spread,@da2021will]. The R package **[dynamAedes](https://cran.r-project.org/web/packages/dynamAedes/vignettes/dynamAedes_tutorial.html)** 
 contains stochastic, time-discrete and spatially-explicit population dynamical models for _Aedes sp._ 
-invesive species [@da2021dynamaedes].
+invasive species [@da2021dynamaedes].
 
 We can obtain occurrences of the _Aedes albopictus_ by either using the `rgbif::` 
 function, or by downloading the CSV file from the [GBIF website](https://www.gbif.org/species/1651430). 
@@ -90,9 +97,14 @@ plotKML(sp_ST, colour_scale=SAGA_pal[[1]])
 <p class="caption">(\#fig:google-vis)Spatiotemporal visualization of the GBIF occurrence records of the Tiger mosquito.</p>
 </div>
 
+This shows that mosquito seems to be concentrated in the southern Europe (coast), 
+although some adults have been spotted also in the Northern Europe. Note also 
+that the mosquito seems to be continuously spreading with most of records in GBIF 
+coming last 5 years.
+
 ## Generating pseudo-absence data
 
-To generate pseudo-absence data we can use the maxlike package. First, we need 
+To generate pseudo-absence data we can use the [maxlike](https://github.com/rbchan/maxlike) package. First, we need 
 to prepare enough ecological information that can help us map habitat of the species 
 using all records for Europe. In the local folder we can find:
 
@@ -159,9 +171,10 @@ plot(max.ml.p)
 <p class="caption">(\#fig:pseudo-absences)Predicted probability of occurence for Tiger mosquito based on the maxent analysis.</p>
 </div>
 
-This shows that the Tiger mosquito seems to prefer coastal areas and is mainly limited 
-by the winter temperatures. The minimum temperature for survival of the mosquito adults 
-is about 3-4 degrees, for eggs minimum temperature is lower but still should be > -4 degrees.
+The resulting maxlike predictions of occurrence probability indicates that the Tiger 
+mosquito seems to prefer coastal areas and is mainly limited by the winter temperatures. 
+The minimum temperature for survival of the mosquito adults is about 3-4 C degrees, 
+for eggs minimum temperature is lower but still should be above -4 degrees.
 
 Next, we can generate a reasonable number of pseudo-absences (they should not exceed 
 actual number of occurrence points) by using:
@@ -175,81 +188,175 @@ dens.var <- spatstat.geom::as.im(sp::as.image.SpatialGridDataFrame(max.ml.p["abs
 pnts.new <- rpoint(600, f=dens.var)
 ```
 
-A single realisation of 600 pseudo-absences:
+A single realization of 600 simulated pseudo-absences:
 
 <div class="figure" style="text-align: center">
 <img src="./img/Fig_pseudo_absences_mood.jpg" alt="Simulated pseudo-absences based on the maxent analysis (predictions in the background)." width="80%" />
 <p class="caption">(\#fig:pnts-eu)Simulated pseudo-absences based on the maxent analysis (predictions in the background).</p>
 </div>
 
+Note we only use pixels that have 0 probability of occurrence based on maxlike results.
+Once we have generated pseudo-absences, we can bind all `1` and `0` values together 
+to produce a regression and/or classification matrix, and which can then be used to 
+fit ML models.
+
 ## Modeling distribution of mosquitos through time
 
-Next we can bind the occurrences / adult counts and pseudo-absences, then overlay 
-training points in spacetime to produce a spatiotemporal regression-matrix:
+Next we can overlay training points ((occurrences / adult counts and pseudo-absences) 
+in spacetime to produce a spatiotemporal regression-matrix. This has been pre-computed 
+already and is available via:
 
 
 ```r
+source("mood_functions.R")
 rm.all = readRDS("./input/regmatrix_aedes_1km.rds")
 dim(rm.all)
 #> [1] 27034   182
 ```
 
 This is now a relatively large regression matrix with basically diversity of Earth Observation 
-and climatic time-series of images. We can fit an Ensemble ML model to predict spatiotemporal 
-distribution of species for 2000-2021 period by using:
+and climatic time-series of images. We can define the model as classification problem 
+where occurrence/absence values (0/1) are two states of the target variable:
 
 
 ```r
-source("mood_functions.R")
-rm.all$log.Count = log1p(rm.all$individualCount)
-try( x  <- train_eml(t.var="log.Count", pr.var=pr.vars, X=rm.all, rf.feature=FALSE, out.dir="./output/") )
-cat_eml(t.var="log.Count", out.dir="./modelsT/", n.max = length(pr.vars)-1)
+rm.all$occurrence = as.factor(ifelse(rm.all$individualCount>0, 1, 0))
+summary(rm.all$occurrence)
+#>     0     1 
+#> 13200 13834
 ```
 
-which shows the following:
+and which can be modeled as a function of number of static and dynamic covariate layers:
 
 
 ```r
-t.m <- readRDS(paste0("./output/eml.m_log.Count.rds"))
+sel.stat = c(gsub("4km", "1km", tools::file_path_sans_ext(basename(eco.tifs))), 
+             "dtm_twi_merit.dem_m_1km_s0..0cm_2017_mood_v1",
+             "dtm_floodmap.500y_jrc.hazardmapping_m_1km_s0..0cm_1500..2016_mood_v1.0",
+             "dtm_slope_merit.dem_m_1km_s0..0cm_2017_mood_v1",
+             paste0("adm_travel.time.to.cities.cl", 1:10, "_cgiar_m_1km_s0..0cm_2000..2020_mood_v1"),
+             paste0("adm_travel.time.to.ports.cl", 1:5, "_cgiar_m_1km_s0..0cm_2000..2020_mood_v1"))
+pr.vars = c(sel.stat,  c("CRP", "FOR", "HFP", "LST", "N02", "N08", "NLT", "PPD", "PRE", "SNW", "T02", "T08"))
+fm.fs = stats::as.formula(paste("occurrence ~ ", paste(pr.vars, collapse="+")))
+str(all.vars(fm.fs))
+#>  chr [1:45] "occurrence" ...
+```
+
+We fit an Ensemble ML model to predict spatiotemporal distribution of species 
+for 2000-2021 period by first fine-tuning the model parameters, then fitting 
+a stacked model based on the mlr package:
+
+
+```r
+library(dplyr)
+#> 
+#> Attaching package: 'dplyr'
+#> The following object is masked from 'package:matrixStats':
+#> 
+#>     count
+#> The following objects are masked from 'package:terra':
+#> 
+#>     collapse, select
+#> The following objects are masked from 'package:raster':
+#> 
+#>     intersect, select, union
+#> The following objects are masked from 'package:stats':
+#> 
+#>     filter, lag
+#> The following objects are masked from 'package:base':
+#> 
+#>     intersect, setdiff, setequal, union
+fs.rm0 = rm.all %>% dplyr::sample_n(5000)
+f = "./output/aedes/"
+tnd.ml = tune_learners(data = fs.rm0, formula = fm.fs, 
+                      blocking = factor(fs.rm0$ID), out.dir=f)
+#> Using learners: classif.ranger, classif.xgboost, classif.glmnet...TRUE
+t.m = train_sp_eml(data = rm.all, tune_result = tnd.ml, 
+                   blocking = as.factor(rm.all$ID), out.dir = f)
 summary(t.m$learner.model$super.model$learner.model)
 #> 
 #> Call:
-#> stats::lm(formula = f, data = d)
+#> stats::glm(formula = f, family = "binomial", data = getTaskData(.task, 
+#>     .subset), weights = .weights, model = FALSE)
 #> 
-#> Residuals:
-#>     Min      1Q  Median      3Q     Max 
-#> -4.3138 -0.3393 -0.0843  0.0748  6.3857 
+#> Deviance Residuals: 
+#>     Min       1Q   Median       3Q      Max  
+#> -3.0771  -0.0571   0.1328   0.1328   3.5211  
 #> 
 #> Coefficients:
-#>             Estimate Std. Error t value Pr(>|t|)    
-#> (Intercept)  0.02319    0.01064   2.180   0.0293 *  
-#> regr.ranger  1.56557    0.01631  95.969   <2e-16 ***
-#> regr.rpart  -0.02256    0.01147  -1.967   0.0492 *  
-#> regr.nnet   -0.13971    0.01442  -9.691   <2e-16 ***
+#>                 Estimate Std. Error z value Pr(>|z|)    
+#> (Intercept)      -6.4165     0.1578 -40.659   <2e-16 ***
+#> classif.ranger    6.9401     0.3916  17.722   <2e-16 ***
+#> classif.xgboost   0.7456     0.3598   2.073   0.0382 *  
+#> classif.glmnet    3.4580     0.2340  14.780   <2e-16 ***
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 #> 
-#> Residual standard error: 0.8566 on 25646 degrees of freedom
-#> Multiple R-squared:  0.5143,	Adjusted R-squared:  0.5143 
-#> F-statistic:  9053 on 3 and 25646 DF,  p-value: < 2.2e-16
+#> (Dispersion parameter for binomial family taken to be 1)
+#> 
+#>     Null deviance: 35500  on 25649  degrees of freedom
+#> Residual deviance:  2644  on 25646  degrees of freedom
+#> AIC: 2652
+#> 
+#> Number of Fisher Scoring iterations: 8
 ```
 
-The most important variable based on the variable importance seems to be:
+which shows the model is significant with errors in probability space ranging from -0.08 to 0.12.
+The most important variables based on the variable importance seem to be:
 
-- Night lights (NLT) based on ;  
-- Travel time to cities and ports based on ;
-- Population density based on ;
+
+```r
+xl <- as.data.frame(mlr::getFeatureImportance(t.m[["learner.model"]][["base.models"]][[1]])$res)
+xl$relative_importance = 100*xl$importance/sum(xl$importance)
+xl = xl[order(xl$relative_importance, decreasing = T),]
+xl$variable = paste0(c(1:length(t.m$features)), ". ", xl$variable)
+xl[1:8,]
+#>                                                                    variable
+#> 39                                                                   1. NLT
+#> 27 2. adm_travel.time.to.cities.cl10_cgiar_m_1km_s0..0cm_2000..2020_mood_v1
+#> 32   3. adm_travel.time.to.ports.cl5_cgiar_m_1km_s0..0cm_2000..2020_mood_v1
+#> 40                                                                   4. PPD
+#> 31   5. adm_travel.time.to.ports.cl4_cgiar_m_1km_s0..0cm_2000..2020_mood_v1
+#> 24  6. adm_travel.time.to.cities.cl7_cgiar_m_1km_s0..0cm_2000..2020_mood_v1
+#> 6     7. clm_lst_mod11a2.nighttime.m03_p50_1km_s0..0cm_2000..2021_mood_v1.2
+#> 29   8. adm_travel.time.to.ports.cl2_cgiar_m_1km_s0..0cm_2000..2020_mood_v1
+#>    importance relative_importance
+#> 39  3511.4150           27.457711
+#> 27  1917.2612           14.992134
+#> 32  1248.7636            9.764778
+#> 40  1160.6025            9.075398
+#> 31  1039.1456            8.125659
+#> 24   688.1127            5.380737
+#> 6    338.8319            2.649515
+#> 29   315.6362            2.468135
+```
+
+- Night lights (NLT) based on @li2020harmonized;  
+- Travel time to cities and ports based on @nelson2019suite;
+- Population density (PPD) based on [Gridded Population of the World (GPW), v4](https://doi.org/10.7927/H49C6VHW);
+- Night time images based on [MOD11A2](https://doi.org/10.5281/zenodo.1420114);
+- Human Footprint dataset based on @mu2022global;
 
 ## Generating the trend maps
 
-After we have produced predictions we can also stack them and then derive beta 
-coefficient per pixel to see if some parts of Europe are showing higher increase 
-in mosquito density. For this we can run:
+After we have produced predictions we can also stack them and visualize them as 
+animation:
 
 <div class="figure" style="text-align: center">
-<img src="spatiotemporal-sdm_files/figure-html/pred-count-1.png" alt="Predictions of mosquito density over Europe with a zoom in on Spain." width="90%" />
-<p class="caption">(\#fig:pred-count)Predictions of mosquito density over Europe with a zoom in on Spain.</p>
+<img src="./img/tiger_mosquito_europe_2000_2021_probs.gif" alt="Spatiotemporal visualization of the predicted occurrence probability for the Tiger mosquito with a Zoom in on Spain." width="90%" />
+<p class="caption">(\#fig:qgis-vis)Spatiotemporal visualization of the predicted occurrence probability for the Tiger mosquito with a Zoom in on Spain.</p>
 </div>
+
+we can also derive beta coefficient per pixel to see if some parts of Europe 
+are showing higher increase in mosquito density. For this we can run:
+
+
+```r
+library(plotKML); library(raster)
+es.tifs = list.files("./output/spain1km", glob2rx("*_M_*.tif"), full.names = TRUE)
+spain1km = raster::brick(raster::stack(es.tifs))
+#spplot(spain1km[[c(1,22)]], col.regions=SAGA_pal[[10]])
+```
 
 
 ```r
@@ -268,9 +375,16 @@ This chapter shows how to use occurrence-only records to map distribution of tar
 We again use Ensemble Machine Learning on training data overlaid in spacetime vs time-series 
 of Night Light, vegetation, climatic images (years 2000--2021).
 The training data is limited to occurrence-only records and these are neither based on 
-probability sampling nor a consistent in time. Just because there are more records of the mosquito species 
+probability sampling nor a consistent in time. Probably more suited training data set 
+would have been in e.g. meteorological stations across EU have also produced daily 
+records of mosquito occurrence (0/1).
+
+We did not use Year of occurrence as a covariate but it is possible to add it to the modeling.
+If we would add Year as covariate to this training point data, then it would have shown that 
+probability of occurrence is increasing significantly. This does not necessarily has to 
+match reality. Just because there are more records of the mosquito species 
 for more recent years, that does not mean that the mosquito has appeared in recent years. In fact, 
-if we would use year as a covariate, we would most likely introduce a bias in predictions.
+if we would use year as a covariate with this data, we would most likely introduce a bias in predictions.
 
 The simple alternative to derive (kernel) density maps of mosquitos for Europe would be to use the `sparr::spattemp.density` 
 function:
@@ -307,7 +421,7 @@ plot(dmap)
 
 The problem of this approach is that (a) it can not work with count data, (b) it 
 assumes that ALL or equaly sampled occurrences of the phenomena are available. 
-If this is not the case, the function `sparr::spattemp.density` would produce a biased 
+If this is not the case, the function `sparr::spattemp.density` would also produce a biased 
 estimate of the density of mosquitos.
 
 Ensemble Machine Learning, on the other hand, can help produce unbiased estimate of 
@@ -320,3 +434,7 @@ are dynamic and can not be sensed from space, at least not at 1km resolution;
 training data is available for physically distant areas e.g. mountains (hence censored);
 - Predictions produced in this example come with relatively high errors, so the predictions should be 
 used with care;
+
+## Acknowledgments
+
+This project has received funding from the European Union's Horizon 2020 Research and innovation programme under [grant agreement No 874850](https://cordis.europa.eu/project/id/874850).
