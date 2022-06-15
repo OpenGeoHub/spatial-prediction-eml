@@ -41,7 +41,7 @@
 <li><a class="" href="introduction-to-spatial-and-spatiotemporal-data.html"><span class="header-section-number">1</span> Introduction to spatial and spatiotemporal data</a></li>
 <li><a class="" href="spatial-interpolation-using-ensemble-ml.html"><span class="header-section-number">2</span> Spatial interpolation using Ensemble ML</a></li>
 <li><a class="" href="spatial-interpolation-in-3d-using-ensemble-ml.html"><span class="header-section-number">3</span> Spatial interpolation in 3D using Ensemble ML</a></li>
-<li><a class="" href="spatiotemporal-interpolation-using-ensemble-ml.html"><span class="header-section-number">4</span> Spatiotemporal interpolation using Ensemble ML</a></li>
+<li><a class="" href="spatiotemporal-ml.html"><span class="header-section-number">4</span> Spatiotemporal interpolation using Ensemble ML</a></li>
 <li><a class="active" href="spatiotemporal-machine-learning-for-species-distribution-modeling.html"><span class="header-section-number">5</span> Spatiotemporal Machine Learning for Species Distribution Modeling</a></li>
 <li><a class="" href="multi-scale-spatial-prediction-models.html"><span class="header-section-number">6</span> Multi-scale spatial prediction models</a></li>
 <li><a class="" href="summary-1.html"><span class="header-section-number">7</span> Summary</a></li>
@@ -77,36 +77,37 @@ and/or human influence. Typical steps in SDM include <span class="citation">(<a 
 <li>Predict habitat / occurrence probability across the region of interest (and perhaps for a future or past climate).</li>
 </ol>
 <p>Modeling species distribution is different from mapping quantitative soil properties
-and/or land surface temperature described in previous chapters. Species data comes
-with specific properties that include <span class="citation">Fois, Cuena-Lombraña, Fenu, &amp; Bacchetta (<a href="references.html#ref-fois2018using" role="doc-biblioref">2018</a>)</span>:</p>
+and/or land surface temperature described in previous chapters. Species training data often comes
+with specific properties that include <span class="citation">(<a href="references.html#ref-fois2018using" role="doc-biblioref">Fois, Cuena-Lombraña, Fenu, &amp; Bacchetta, 2018</a>; <a href="references.html#ref-martinez2018species" role="doc-biblioref">Martinez-Minaya, Cameletti, Conesa, &amp; Pennino, 2018</a>)</span>:</p>
 <ul>
-<li>Typically occurrence-only records: biologists / ecologists often only record where some species was observed;<br>
+<li>Dealing with occurrence-only records: biologists / ecologists often only record where some species was observed;<br>
 </li>
 <li>Species and their dynamics is often complex: some species such as migratory birds change location seasonaly;<br>
 </li>
 <li>Modeling distribution of species such as birds or similar animals and insects
 in spacetime context is highly complex as various levels of chaotic behavior apply;</li>
 </ul>
-<p>In recent years there has been increasing interest in using Machine Learning for
+<p>In recent years there has been an increasing interest in using Machine Learning for
 species distribution modeling, especially to model disease outbreaks.
 A review of ML methods for SDM is available also in <span class="citation">J. Zhang &amp; Li (<a href="references.html#ref-zhang2017review" role="doc-biblioref">2017</a>)</span>.
 In this chapter we describe a scalable framework for predicting species occurrences
-based on the Ensemble Machine Learning described in the previous chapters.
-The target variable we map is <strong>probability of occurrence</strong> and/or <strong>species density</strong>
-(number of individuals per area) using Ensemble. As covariates we use time-series of
+based on the Ensemble Machine Learning described in the <a href="spatiotemporal-ml.html#spatiotemporal-ml">previous chapter</a>.
+The target variables of interest in the case of SDM are usually (a) <strong>probability of occurrence</strong>
+and/or (b) <strong>species density</strong> (number of individuals per area) and/or (c) habitat
+suitability indices. As covariates for SDM we use time-series of
 Earth Observation images and similar climatic and terrain-based images.</p>
-<p>Modeling species distribution using Ensemble ML is not trivial, however.
+<p>Extending spatiotemporal Ensemble ML to modeling species distribution is not trivial.
 In order to be able to interpolate species distribution, probability of occurrence
-and/or density of species in space-time using Ensemble ML, we can not simply use occurrence-only data.
-Instead, we need to provide enough training data on both occurrence and absence of
-the specific species. If absence training points are not available, we can use various
+and/or density of species in space-time using Ensemble ML, we can not simply
+import and model occurrence-only data as these miss any quantities or states.
+We need to provide instead run several steps to make data suited for ML.
+For example, if absence training points are not available, we can use various
 method do derive most likely locations where certain species do NOT occur i.e. are
 highly unlikely to occur due to ecological limitations such as minimum winter temperature
 minimum rainfall or similar. These are referred to as the <strong>pseudo-absence</strong> training points.
-Pseudo-absence points can be generated in several ways <span class="citation">(<a href="references.html#ref-Iturbide2015" role="doc-biblioref">Iturbide et al., 2015</a>)</span>.
-In this tutorial we will show how to generate pseudo-absence data using the <a href="https://github.com/rbchan/maxlike">maxlike
-package</a>; alternatively one could also use the
-<a href="https://github.com/johnbaums/rmaxent">maxent algorithm</a> or similar.</p>
+Hence, we will first show how to generate pseudo-absence data using the <a href="https://github.com/rbchan/maxlike">maxlike
+package</a>, then after enough of occurrence and
+absence records are available, we apply standard ML steps.</p>
 </div>
 <div id="tiger-mosquito-over-europe" class="section level2" number="5.2">
 <h2>
@@ -114,12 +115,12 @@ package</a>; alternatively one could also use the
 </h2>
 <p>The tiger mosquito (<a href="https://www.ecdc.europa.eu/en/disease-vectors/facts/mosquito-factsheets/aedes-albopictus">Aedes albopictus</a>) is a vector species for many different viruses
 including those responsible for dengue fever, Zika and chikungunya. The natural habitat
-of this species was limited in the past, however, in the recent time this species has spread
+of this species was limited in the past, however, in the recent time, this species has spread
 to many countries through the transport of goods and international travel e.g. shipping
-routes or similar <span class="citation">Da Re, Montecino-Latorre, Vanwambeke, &amp; Marcantonio (<a href="references.html#ref-da2021will" role="doc-biblioref">2021</a>)</span>. The R package <strong><a href="https://cran.r-project.org/web/packages/dynamAedes/vignettes/dynamAedes_tutorial.html">dynamAedes</a></strong>
+routes or similar <span class="citation">(<a href="references.html#ref-benedict2007spread" role="doc-biblioref">Benedict, Levine, Hawley, &amp; Lounibos, 2007</a>; <a href="references.html#ref-da2021will" role="doc-biblioref">Da Re, Montecino-Latorre, Vanwambeke, &amp; Marcantonio, 2021</a>)</span>. The R package <strong><a href="https://cran.r-project.org/web/packages/dynamAedes/vignettes/dynamAedes_tutorial.html">dynamAedes</a></strong>
 contains stochastic, time-discrete and spatially-explicit population dynamical models for <em>Aedes sp.</em>
-invasive species <span class="citation">(<a href="references.html#ref-da2021dynamaedes" role="doc-biblioref">Da Re et al., 2021</a>)</span>.</p>
-<p>We can obtain occurrences of the <em>Aedes albopictus</em> by either using the <code>rgbif::</code>
+invasive species <span class="citation">(<a href="references.html#ref-da2021dynamaedes" role="doc-biblioref">Da Re, Van Bortel, et al., 2021</a>)</span>.</p>
+<p>We can obtain occurrences of the <em>Aedes albopictus</em> by either using the <code><a href="https://docs.ropensci.org/rgbif/reference/occ_data.html">rgbif::occ_data</a></code>
 function, or by downloading the CSV file from the <a href="https://www.gbif.org/species/1651430">GBIF website</a>.
 A local copy of the occurrences for Europe can be loaded by using:</p>
 <div class="sourceCode" id="cb99"><pre class="downlit sourceCode r">
@@ -151,16 +152,18 @@ A local copy of the occurrences for Europe can be loaded by using:</p>
 Figure 5.1: Spatiotemporal visualization of the GBIF occurrence records of the Tiger mosquito.
 </p>
 </div>
-<p>This shows that mosquito seems to be concentrated in the southern Europe (coast),
-although some adults have been spotted also in the Northern Europe. Note also
-that the mosquito seems to be continuously spreading with most of records in GBIF
-coming last 5 years.</p>
+<p>This shows that mosquito seems to be concentrated in the southern Europe,
+primarily along coast-line, although some adults have been spotted also in the
+Northern Europe. Note also that the mosquito seems to be continuously spreading
+across Europe, however, we are not sure if this is also just because there are
+more records in GBIF coming from the last 5 years.</p>
 </div>
 <div id="generating-pseudo-absence-data" class="section level2" number="5.3">
 <h2>
 <span class="header-section-number">5.3</span> Generating pseudo-absence data<a class="anchor" aria-label="anchor" href="#generating-pseudo-absence-data"><i class="fas fa-link"></i></a>
 </h2>
-<p>To generate pseudo-absence data we can use the <a href="https://github.com/rbchan/maxlike">maxlike</a> package. First, we need
+<p>Pseudo-absence points can be generated in several ways <span class="citation">(<a href="references.html#ref-Iturbide2015" role="doc-biblioref">Iturbide et al., 2015</a>)</span>.<br>
+To generate pseudo-absence data we can use the <a href="https://github.com/rbchan/maxlike">maxlike</a> package. First, we need
 to prepare enough ecological information that can help us map habitat of the species
 using all records for Europe. In the local folder we can find:</p>
 <div class="sourceCode" id="cb101"><pre class="downlit sourceCode r">
@@ -184,7 +187,7 @@ using all records for Europe. In the local folder we can find:</p>
 annual air temperature, annual precipitation amount and similar, <a href="https://doi.org/10.5281/zenodo.1420114">MODIS Long-term nighttime Land Surface
 Temperatures</a> for months 1, 3, 6 and 9,
 <a href="https://doi.org/10.5281/zenodo.5774953">snow probability images for winter months</a> and DTM elevation model from Copernicus.
-We can load the stack of rasters to R and use principal components to reduce
+We can load the stack of rasters into R and use principal components to reduce
 overlap between different layers:</p>
 <div class="sourceCode" id="cb102"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co">#gc()</span>
@@ -210,58 +213,89 @@ and predict values at all locations:</p>
 <span class="va">max.ml.p</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/raster/man/predict.html">predict</a></span><span class="op">(</span><span class="va">max.ml</span><span class="op">)</span>
 <span class="va">max.ml.p</span> <span class="op">&lt;-</span> <span class="fu">methods</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/methods/as.html">as</a></span><span class="op">(</span><span class="va">max.ml.p</span>, <span class="st">"SpatialGridDataFrame"</span><span class="op">)</span>
 <span class="fu"><a href="https://rdrr.io/pkg/raster/man/plot.html">plot</a></span><span class="op">(</span><span class="va">max.ml.p</span><span class="op">)</span></code></pre></div>
+<p>The resulting maps produced using maxlike are shown below.</p>
 <div class="figure" style="text-align: center">
 <span id="fig:pseudo-absences"></span>
-<img src="img/Fig_predicted_maxlike_tiger_mosquito.jpg" alt="Predicted probability of occurence for Tiger mosquito based on the maxent analysis." width="90%"><img src="img/Fig_predicted_maxlike_tiger_mosquito_Spain.jpg" alt="Predicted probability of occurence for Tiger mosquito based on the maxent analysis." width="90%"><p class="caption">
-Figure 5.2: Predicted probability of occurence for Tiger mosquito based on the maxent analysis.
+<img src="img/Fig_predicted_maxlike_tiger_mosquito.jpg" alt="Predicted probability of occurence for Tiger mosquito based on the maxent analysis. Darker-green areas indicated close to 100% probability of occurrence." width="90%"><img src="img/Fig_predicted_maxlike_tiger_mosquito_Spain.jpg" alt="Predicted probability of occurence for Tiger mosquito based on the maxent analysis. Darker-green areas indicated close to 100% probability of occurrence." width="90%"><p class="caption">
+Figure 5.2: Predicted probability of occurence for Tiger mosquito based on the maxent analysis. Darker-green areas indicated close to 100% probability of occurrence.
 </p>
 </div>
-<p>The resulting maxlike predictions of occurrence probability indicates that the Tiger
-mosquito seems to prefer coastal areas and is mainly limited by the winter temperatures.
-The minimum temperature for survival of the mosquito adults is about 3-4 C degrees,
-for eggs minimum temperature is lower but still should be above -4 degrees.</p>
-<p>Next, we can generate a reasonable number of pseudo-absences (they should not exceed
-actual number of occurrence points) by using:</p>
+<p>The maxlike occurrence probability map indicates that the Tiger
+mosquito seems to prefer coastal areas and is probably limited by the winter temperatures.
+The minimum temperature for survival of the mosquito adults is about 3–4 C degrees,
+for mosquito eggs minimum temperature is lower but still should be above -4 degrees <span class="citation">(<a href="references.html#ref-da2021will" role="doc-biblioref">Da Re, Montecino-Latorre, et al., 2021</a>)</span>.
+Note for habitat suitability analysis one could also use the <a href="https://github.com/johnbaums/rmaxent">maxent algorithm</a>
+or do analysis in both maxlike and maxent and then produce an ensemble estimate.</p>
+<p>Next, we can generate a reasonable number of pseudo-absences (as a rule of thumb,
+number of the generated pseudo-absences should not exceed 10 to 20% of the actual
+number of occurrence points):</p>
 <div class="sourceCode" id="cb104"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">max.ml.p</span> <span class="op">=</span> <span class="fu">rgdal</span><span class="fu">::</span><span class="fu"><a href="http://rgdal.r-forge.r-project.org/reference/readGDAL.html">writeGDAL</a></span><span class="op">(</span><span class="st">"./output/occ.prob_aedes_albopictus.tif"</span><span class="op">)</span>
 <span class="co">## insert 0 values for all occurrences before the date:</span>
 <span class="va">max.ml.p</span><span class="op">$</span><span class="va">absence</span> <span class="op">=</span> <span class="fu"><a href="https://Rdatatable.gitlab.io/data.table/reference/fifelse.html">ifelse</a></span><span class="op">(</span><span class="va">max.ml.p</span><span class="op">$</span><span class="va">band1</span><span class="op">==</span><span class="fl">100</span>, <span class="fl">1</span>, <span class="cn">NA</span><span class="op">)</span>
 <span class="va">dens.var</span> <span class="op">&lt;-</span> <span class="fu">spatstat.geom</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/spatstat.geom/man/as.im.html">as.im</a></span><span class="op">(</span><span class="fu">sp</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/sp/man/image.html">as.image.SpatialGridDataFrame</a></span><span class="op">(</span><span class="va">max.ml.p</span><span class="op">[</span><span class="st">"absence"</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>
 <span class="va">pnts.new</span> <span class="op">&lt;-</span> <span class="fu">rpoint</span><span class="op">(</span><span class="fl">600</span>, f<span class="op">=</span><span class="va">dens.var</span><span class="op">)</span></code></pre></div>
-<p>A single realization of 600 simulated pseudo-absences:</p>
+<p>A single realization of 600 simulated pseudo-absences is shown below:</p>
 <div class="figure" style="text-align: center">
 <span id="fig:pnts-eu"></span>
 <img src="img/Fig_pseudo_absences_mood.jpg" alt="Simulated pseudo-absences based on the maxent analysis (predictions in the background)." width="80%"><p class="caption">
 Figure 5.3: Simulated pseudo-absences based on the maxent analysis (predictions in the background).
 </p>
 </div>
-<p>Note we only use pixels that have 0 probability of occurrence based on maxlike results.
-Once we have generated pseudo-absences, we can bind all <code>1</code> and <code>0</code> values together
+<p>Note we only use pixels that have 0 probability of occurrence based on the maxlike results.
+This way we prevent from introducing any bias into further modeling.
+Once we have generated pseudo-absences, we can bind all <code>1</code> and <code>0</code> records together
 to produce a regression and/or classification matrix, and which can then be used to
 fit ML models.</p>
+<p>In the case of the GBIF data two possible target variables could be used:</p>
+<ul>
+<li>Individual counts i.e. number of adults observed at location;<br>
+</li>
+<li>Occurrence / absence states i.e. 0/1 values;</li>
+</ul>
+<p>We focus further on modeling the 0/1 states and predicting probabilities. This
+puts this ML exercises into the category of ML for classification.</p>
 </div>
 <div id="modeling-distribution-of-mosquitos-through-time" class="section level2" number="5.4">
 <h2>
 <span class="header-section-number">5.4</span> Modeling distribution of mosquitos through time<a class="anchor" aria-label="anchor" href="#modeling-distribution-of-mosquitos-through-time"><i class="fas fa-link"></i></a>
 </h2>
-<p>Next we can overlay training points ((occurrences / adult counts and pseudo-absences)
-in spacetime to produce a spatiotemporal regression-matrix. This has been pre-computed
-already and is available via:</p>
+<p>Next we can overlay training points (occurrences / adult counts and pseudo-absences)
+in spacetime to produce a spatiotemporal regression-matrix. The total list of
+layers for Europe (MOOD Horizon 2020 project) available as <a href="https://av.tib.eu/media/55228">Cloud-Optimized GeoTIFFs</a>
+is documented in:</p>
 <div class="sourceCode" id="cb105"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">cov.lst</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/utils/read.table.html">read.csv</a></span><span class="op">(</span><span class="st">"./input/mood_layers1km.csv"</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/utils/str.html">str</a></span><span class="op">(</span><span class="va">cov.lst</span><span class="op">)</span>
+<span class="co">#&gt; 'data.frame':    454 obs. of  5 variables:</span>
+<span class="co">#&gt;  $ n          : int  1 2 3 4 5 6 7 8 9 10 ...</span>
+<span class="co">#&gt;  $ filename   : chr  "https://s3.eu-central-1.wasabisys.com/mood/CRP/lcv_globalcropland_bowen.et.al_p_1km_s0..0cm_2000_mood_v0.1.tif" "https://s3.eu-central-1.wasabisys.com/mood/CRP/lcv_globalcropland_bowen.et.al_p_1km_s0..0cm_2001_mood_v0.1.tif" "https://s3.eu-central-1.wasabisys.com/mood/CRP/lcv_globalcropland_bowen.et.al_p_1km_s0..0cm_2002_mood_v0.1.tif" "https://s3.eu-central-1.wasabisys.com/mood/CRP/lcv_globalcropland_bowen.et.al_p_1km_s0..0cm_2003_mood_v0.1.tif" ...</span>
+<span class="co">#&gt;  $ size       : chr  "9.7 Mb" "9.7 Mb" "9.7 Mb" "9.8 Mb" ...</span>
+<span class="co">#&gt;  $ source_doi : chr  "http://doi.org/10.5194/essd-13-5403-2021" "http://doi.org/10.5194/essd-13-5403-2021" "http://doi.org/10.5194/essd-13-5403-2021" "http://doi.org/10.5194/essd-13-5403-2021" ...</span>
+<span class="co">#&gt;  $ description: chr  "Cropland fraction historic" "Cropland fraction historic" "Cropland fraction historic" "Cropland fraction historic" ...</span></code></pre></div>
+<div class="figure" style="text-align: center">
+<span id="fig:qgis-cogs"></span>
+<img src="img/mood_COG_files_QGIS.gif" alt="Opening Cloud-Optimized GeoTIFF layers in QGIS. The total size of layers exceeds 30GB so it is more efficient to access data using the COG-architecture and S3 services." width="90%"><p class="caption">
+Figure 5.4: Opening Cloud-Optimized GeoTIFF layers in QGIS. The total size of layers exceeds 30GB so it is more efficient to access data using the COG-architecture and S3 services.
+</p>
+</div>
+<p>The spacetime overlay process can be computational hence we have already pre-computed
+the regression / classification matrix:</p>
+<div class="sourceCode" id="cb106"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/source.html">source</a></span><span class="op">(</span><span class="st">"mood_functions.R"</span><span class="op">)</span>
 <span class="va">rm.all</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html">readRDS</a></span><span class="op">(</span><span class="st">"./input/regmatrix_aedes_1km.rds"</span><span class="op">)</span>
 <span class="fu"><a href="https://rdrr.io/pkg/raster/man/dimensions.html">dim</a></span><span class="op">(</span><span class="va">rm.all</span><span class="op">)</span>
-<span class="co">#&gt; [1] 27034   182</span></code></pre></div>
-<p>This is now a relatively large regression matrix with basically diversity of Earth Observation
+<span class="co">#&gt; [1] 18234   183</span></code></pre></div>
+<p>This is now a relatively large matrix with basically diversity of Earth Observation
 and climatic time-series of images. We can define the model as classification problem
 where occurrence/absence values (0/1) are two states of the target variable:</p>
-<div class="sourceCode" id="cb106"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb107"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">rm.all</span><span class="op">$</span><span class="va">occurrence</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/raster/man/factor.html">as.factor</a></span><span class="op">(</span><span class="fu"><a href="https://Rdatatable.gitlab.io/data.table/reference/fifelse.html">ifelse</a></span><span class="op">(</span><span class="va">rm.all</span><span class="op">$</span><span class="va">individualCount</span><span class="op">&gt;</span><span class="fl">0</span>, <span class="fl">1</span>, <span class="fl">0</span><span class="op">)</span><span class="op">)</span>
 <span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">rm.all</span><span class="op">$</span><span class="va">occurrence</span><span class="op">)</span>
 <span class="co">#&gt;     0     1 </span>
-<span class="co">#&gt; 13200 13834</span></code></pre></div>
-<p>and which can be modeled as a function of number of static and dynamic covariate layers:</p>
-<div class="sourceCode" id="cb107"><pre class="downlit sourceCode r">
+<span class="co">#&gt;  4400 13834</span></code></pre></div>
+<p>and which we model as a function of number of static and dynamic covariate layers:</p>
+<div class="sourceCode" id="cb108"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">sel.stat</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/terra/man/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/grep.html">gsub</a></span><span class="op">(</span><span class="st">"4km"</span>, <span class="st">"1km"</span>, <span class="fu">tools</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/tools/fileutils.html">file_path_sans_ext</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/basename.html">basename</a></span><span class="op">(</span><span class="va">eco.tifs</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>, 
              <span class="st">"dtm_twi_merit.dem_m_1km_s0..0cm_2017_mood_v1"</span>,
              <span class="st">"dtm_floodmap.500y_jrc.hazardmapping_m_1km_s0..0cm_1500..2016_mood_v1.0"</span>,
@@ -272,10 +306,17 @@ where occurrence/absence values (0/1) are two states of the target variable:</p>
 <span class="va">fm.fs</span> <span class="op">=</span> <span class="fu">stats</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/stats/formula.html">as.formula</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste</a></span><span class="op">(</span><span class="st">"occurrence ~ "</span>, <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste</a></span><span class="op">(</span><span class="va">pr.vars</span>, collapse<span class="op">=</span><span class="st">"+"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
 <span class="fu"><a href="https://rdrr.io/r/utils/str.html">str</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/allnames.html">all.vars</a></span><span class="op">(</span><span class="va">fm.fs</span><span class="op">)</span><span class="op">)</span>
 <span class="co">#&gt;  chr [1:45] "occurrence" ...</span></code></pre></div>
-<p>We fit an Ensemble ML model to predict spatiotemporal distribution of species
-for 2000-2021 period by first fine-tuning the model parameters, then fitting
-a stacked model based on the mlr package:</p>
-<div class="sourceCode" id="cb108"><pre class="downlit sourceCode r">
+<p>Next, we fit an Ensemble ML model to predict spatiotemporal distribution of species
+for 2000–2021 period by following the basic steps:</p>
+<ol style="list-style-type: decimal">
+<li>Fine-tune hyperparameters per base learner (using a smaller subset);<br>
+</li>
+<li>Fit the stacked learner using optimized parameters;<br>
+</li>
+<li>Generate predictions for the time-series of interest;</li>
+</ol>
+<p>The steps can be run using functions we created and which extend the mlr package:</p>
+<div class="sourceCode" id="cb109"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org">dplyr</a></span><span class="op">)</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; Attaching package: 'dplyr'</span>
@@ -309,56 +350,59 @@ a stacked model based on the mlr package:</p>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; Deviance Residuals: </span>
 <span class="co">#&gt;     Min       1Q   Median       3Q      Max  </span>
-<span class="co">#&gt; -3.0771  -0.0571   0.1328   0.1328   3.5211  </span>
+<span class="co">#&gt; -3.2362   0.0986   0.0986   0.0986   4.2849  </span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; Coefficients:</span>
 <span class="co">#&gt;                 Estimate Std. Error z value Pr(&gt;|z|)    </span>
-<span class="co">#&gt; (Intercept)      -6.4165     0.1578 -40.659   &lt;2e-16 ***</span>
-<span class="co">#&gt; classif.ranger    6.9401     0.3916  17.722   &lt;2e-16 ***</span>
-<span class="co">#&gt; classif.xgboost   0.7456     0.3598   2.073   0.0382 *  </span>
-<span class="co">#&gt; classif.glmnet    3.4580     0.2340  14.780   &lt;2e-16 ***</span>
+<span class="co">#&gt; (Intercept)     -12.0872     0.5069 -23.844  &lt; 2e-16 ***</span>
+<span class="co">#&gt; classif.ranger   14.4862     0.7916  18.301  &lt; 2e-16 ***</span>
+<span class="co">#&gt; classif.xgboost   1.0373     0.4281   2.423   0.0154 *  </span>
+<span class="co">#&gt; classif.glmnet    1.8872     0.3742   5.043 4.58e-07 ***</span>
 <span class="co">#&gt; ---</span>
 <span class="co">#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; (Dispersion parameter for binomial family taken to be 1)</span>
 <span class="co">#&gt; </span>
-<span class="co">#&gt;     Null deviance: 35500  on 25649  degrees of freedom</span>
-<span class="co">#&gt; Residual deviance:  2644  on 25646  degrees of freedom</span>
-<span class="co">#&gt; AIC: 2652</span>
+<span class="co">#&gt;     Null deviance: 18985.9  on 17505  degrees of freedom</span>
+<span class="co">#&gt; Residual deviance:  1192.9  on 17502  degrees of freedom</span>
+<span class="co">#&gt; AIC: 1200.9</span>
 <span class="co">#&gt; </span>
-<span class="co">#&gt; Number of Fisher Scoring iterations: 8</span></code></pre></div>
+<span class="co">#&gt; Number of Fisher Scoring iterations: 9</span></code></pre></div>
 <p>which shows the model is significant with errors in probability space ranging from -0.08 to 0.12.
-The most important variables based on the variable importance seem to be:</p>
-<div class="sourceCode" id="cb109"><pre class="downlit sourceCode r">
+The most important variables based on the variable importance functionality of the random forest seem to be:</p>
+<div class="sourceCode" id="cb110"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">xl</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/raster/man/as.data.frame.html">as.data.frame</a></span><span class="op">(</span><span class="fu">mlr</span><span class="fu">::</span><span class="fu"><a href="https://mlr.mlr-org.com/reference/getFeatureImportance.html">getFeatureImportance</a></span><span class="op">(</span><span class="va">t.m</span><span class="op">[[</span><span class="st">"learner.model"</span><span class="op">]</span><span class="op">]</span><span class="op">[[</span><span class="st">"base.models"</span><span class="op">]</span><span class="op">]</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">)</span><span class="op">$</span><span class="va">res</span><span class="op">)</span>
-<span class="va">xl</span><span class="op">$</span><span class="va">relative_importance</span> <span class="op">=</span> <span class="fl">100</span><span class="op">*</span><span class="va">xl</span><span class="op">$</span><span class="va">importance</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">xl</span><span class="op">$</span><span class="va">importance</span><span class="op">)</span>
+<span class="va">xl</span><span class="op">$</span><span class="va">relative_importance</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="fl">100</span><span class="op">*</span><span class="va">xl</span><span class="op">$</span><span class="va">importance</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">xl</span><span class="op">$</span><span class="va">importance</span><span class="op">)</span>, <span class="fl">1</span><span class="op">)</span>
 <span class="va">xl</span> <span class="op">=</span> <span class="va">xl</span><span class="op">[</span><span class="fu"><a href="https://Rdatatable.gitlab.io/data.table/reference/setorder.html">order</a></span><span class="op">(</span><span class="va">xl</span><span class="op">$</span><span class="va">relative_importance</span>, decreasing <span class="op">=</span> <span class="cn">T</span><span class="op">)</span>,<span class="op">]</span>
 <span class="va">xl</span><span class="op">$</span><span class="va">variable</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/terra/man/c.html">c</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/pkg/terra/man/dimensions.html">length</a></span><span class="op">(</span><span class="va">t.m</span><span class="op">$</span><span class="va">features</span><span class="op">)</span><span class="op">)</span>, <span class="st">". "</span>, <span class="va">xl</span><span class="op">$</span><span class="va">variable</span><span class="op">)</span>
 <span class="va">xl</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">8</span>,<span class="op">]</span>
 <span class="co">#&gt;                                                                    variable</span>
-<span class="co">#&gt; 39                                                                   1. NLT</span>
+<span class="co">#&gt; 40                                                                   1. NLT</span>
 <span class="co">#&gt; 27 2. adm_travel.time.to.cities.cl10_cgiar_m_1km_s0..0cm_2000..2020_mood_v1</span>
-<span class="co">#&gt; 32   3. adm_travel.time.to.ports.cl5_cgiar_m_1km_s0..0cm_2000..2020_mood_v1</span>
-<span class="co">#&gt; 40                                                                   4. PPD</span>
-<span class="co">#&gt; 31   5. adm_travel.time.to.ports.cl4_cgiar_m_1km_s0..0cm_2000..2020_mood_v1</span>
-<span class="co">#&gt; 24  6. adm_travel.time.to.cities.cl7_cgiar_m_1km_s0..0cm_2000..2020_mood_v1</span>
-<span class="co">#&gt; 6     7. clm_lst_mod11a2.nighttime.m03_p50_1km_s0..0cm_2000..2021_mood_v1.2</span>
-<span class="co">#&gt; 29   8. adm_travel.time.to.ports.cl2_cgiar_m_1km_s0..0cm_2000..2020_mood_v1</span>
+<span class="co">#&gt; 26  3. adm_travel.time.to.cities.cl9_cgiar_m_1km_s0..0cm_2000..2020_mood_v1</span>
+<span class="co">#&gt; 31   4. adm_travel.time.to.ports.cl4_cgiar_m_1km_s0..0cm_2000..2020_mood_v1</span>
+<span class="co">#&gt; 24  5. adm_travel.time.to.cities.cl7_cgiar_m_1km_s0..0cm_2000..2020_mood_v1</span>
+<span class="co">#&gt; 41                                                                   6. PPD</span>
+<span class="co">#&gt; 32   7. adm_travel.time.to.ports.cl5_cgiar_m_1km_s0..0cm_2000..2020_mood_v1</span>
+<span class="co">#&gt; 9        8. clm_bioclim.1_chelsa.climate_m_1km_s0..0cm_1980..2010_mood_v2.1</span>
 <span class="co">#&gt;    importance relative_importance</span>
-<span class="co">#&gt; 39  3511.4150           27.457711</span>
-<span class="co">#&gt; 27  1917.2612           14.992134</span>
-<span class="co">#&gt; 32  1248.7636            9.764778</span>
-<span class="co">#&gt; 40  1160.6025            9.075398</span>
-<span class="co">#&gt; 31  1039.1456            8.125659</span>
-<span class="co">#&gt; 24   688.1127            5.380737</span>
-<span class="co">#&gt; 6    338.8319            2.649515</span>
-<span class="co">#&gt; 29   315.6362            2.468135</span></code></pre></div>
+<span class="co">#&gt; 40  1342.8258                21.5</span>
+<span class="co">#&gt; 27  1030.3510                16.5</span>
+<span class="co">#&gt; 26   692.6710                11.1</span>
+<span class="co">#&gt; 31   639.9700                10.3</span>
+<span class="co">#&gt; 24   445.3388                 7.1</span>
+<span class="co">#&gt; 41   419.0600                 6.7</span>
+<span class="co">#&gt; 32   181.0785                 2.9</span>
+<span class="co">#&gt; 9    177.5123                 2.8</span></code></pre></div>
 <ul>
 <li>Night lights (NLT) based on <span class="citation">Li, Zhou, Zhao, &amp; Zhao (<a href="references.html#ref-li2020harmonized" role="doc-biblioref">2020</a>)</span>;<br>
 </li>
-<li>Travel time to cities and ports based on <span class="citation">Nelson et al. (<a href="references.html#ref-nelson2019suite" role="doc-biblioref">2019</a>)</span>;</li>
-<li>Population density (PPD) based on <a href="https://doi.org/10.7927/H49C6VHW">Gridded Population of the World (GPW), v4</a>;</li>
-<li>Night time images based on <a href="https://doi.org/10.5281/zenodo.1420114">MOD11A2</a>;</li>
+<li>Travel time to cities and ports based on <span class="citation">Nelson et al. (<a href="references.html#ref-nelson2019suite" role="doc-biblioref">2019</a>)</span>;<br>
+</li>
+<li>Population density (PPD) based on <a href="https://doi.org/10.7927/H49C6VHW">Gridded Population of the World (GPW), v4</a>;<br>
+</li>
+<li>Night time images based on <a href="https://doi.org/10.5281/zenodo.1420114">MOD11A2</a>;<br>
+</li>
 <li>Human Footprint dataset based on <span class="citation">Mu et al. (<a href="references.html#ref-mu2022global" role="doc-biblioref">2022</a>)</span>;</li>
 </ul>
 </div>
@@ -366,22 +410,22 @@ The most important variables based on the variable importance seem to be:</p>
 <h2>
 <span class="header-section-number">5.5</span> Generating the trend maps<a class="anchor" aria-label="anchor" href="#generating-the-trend-maps"><i class="fas fa-link"></i></a>
 </h2>
-<p>After we have produced predictions we can also stack them and visualize them as
-animation:</p>
+<p>After we have produced predictions for Europe for mosquito occurrence we can also
+stack them and visualize them as animation:</p>
 <div class="figure" style="text-align: center">
 <span id="fig:qgis-vis"></span>
 <img src="img/tiger_mosquito_europe_2000_2021_probs.gif" alt="Spatiotemporal visualization of the predicted occurrence probability for the Tiger mosquito with a Zoom in on Spain." width="90%"><p class="caption">
-Figure 5.4: Spatiotemporal visualization of the predicted occurrence probability for the Tiger mosquito with a Zoom in on Spain.
+Figure 5.5: Spatiotemporal visualization of the predicted occurrence probability for the Tiger mosquito with a Zoom in on Spain.
 </p>
 </div>
-<p>we can also derive beta coefficient per pixel to see if some parts of Europe
-are showing higher increase in mosquito density. For this we can run:</p>
-<div class="sourceCode" id="cb110"><pre class="downlit sourceCode r">
+<p>we can also derive beta coefficient per pixel using the <a href="https://greenbrown.r-forge.r-project.org/">greenbrown package</a> to see
+if some parts of Europe are showing higher increase in mosquito density. Example with predictions for Spain:</p>
+<div class="sourceCode" id="cb111"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/Envirometrix/plotKML">plotKML</a></span><span class="op">)</span>; <span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://rspatial.org/raster">raster</a></span><span class="op">)</span>
 <span class="va">es.tifs</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.files.html">list.files</a></span><span class="op">(</span><span class="st">"./output/spain1km"</span>, <span class="fu"><a href="https://rdrr.io/r/utils/glob2rx.html">glob2rx</a></span><span class="op">(</span><span class="st">"*_M_*.tif"</span><span class="op">)</span>, full.names <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>
 <span class="va">spain1km</span> <span class="op">=</span> <span class="fu">raster</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/raster/man/brick.html">brick</a></span><span class="op">(</span><span class="fu">raster</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/raster/man/stack.html">stack</a></span><span class="op">(</span><span class="va">es.tifs</span><span class="op">)</span><span class="op">)</span>
 <span class="co">#spplot(spain1km[[c(1,22)]], col.regions=SAGA_pal[[10]])</span></code></pre></div>
-<div class="sourceCode" id="cb111"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb112"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co">#install.packages("greenbrown", repos="http://R-Forge.R-project.org")</span>
 <span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">greenbrown</span><span class="op">)</span>
 <span class="va">trendmap</span> <span class="op">&lt;-</span> <span class="fu">TrendRaster</span><span class="op">(</span><span class="va">spain1km</span>, start<span class="op">=</span><span class="fu"><a href="https://rdrr.io/pkg/terra/man/c.html">c</a></span><span class="op">(</span><span class="fl">2000</span>, <span class="fl">1</span><span class="op">)</span>, freq<span class="op">=</span><span class="fl">1</span>, breaks<span class="op">=</span><span class="fl">1</span><span class="op">)</span> 
@@ -394,22 +438,25 @@ are showing higher increase in mosquito density. For this we can run:</p>
 <h2>
 <span class="header-section-number">5.6</span> Summary<a class="anchor" aria-label="anchor" href="#summary"><i class="fas fa-link"></i></a>
 </h2>
-<p>This chapter shows how to use occurrence-only records to map distribution of target species in spacetime.
+<p>In this chapter we demonstrate how to use occurrence-only records to map distribution of target species in spacetime.
 We again use Ensemble Machine Learning on training data overlaid in spacetime vs time-series
-of Night Light, vegetation, climatic images (years 2000–2021).
-The training data is limited to occurrence-only records and these are neither based on
-probability sampling nor a consistent in time. Probably more suited training data set
-would have been in e.g. meteorological stations across EU have also produced daily
-records of mosquito occurrence (0/1).</p>
-<p>We did not use Year of occurrence as a covariate but it is possible to add it to the modeling.
-If we would add Year as covariate to this training point data, then it would have shown that
-probability of occurrence is increasing significantly. This does not necessarily has to
-match reality. Just because there are more records of the mosquito species
-for more recent years, that does not mean that the mosquito has appeared in recent years. In fact,
-if we would use year as a covariate with this data, we would most likely introduce a bias in predictions.</p>
+of Night Light, vegetation, climatic images (years 2000–2021). The training data is
+limited to occurrence-only records and these are neither based on probability sampling
+nor a consistent in time. Probably more suited training data set would have been if for example
+meteorological stations across EU have recorded daily records of mosquito occurrence (0/1).
+Having a systematic records at dense and well distributed locations across Europe would be
+the perfect data set for this exercise, but even with using limited GBIF records we are
+able to produce relatively accurate maps of probability of occurrence.</p>
+<p>Note that in the case study above, we could have also used time i.e. Year of observation
+as a covariate. If we would add Year as covariate to this training point data, then predictions
+would have probably shown that probability of occurrence is increasing significantly in the recent years.
+This does not necessarily has to match reality on the ground. Just because there
+are more records of the mosquito species for more recent years, that does not mean
+that the mosquito has appeared in recent years. In fact, if we would use Year as a covariate
+with this data, we would most likely introduce a bias in predictions.</p>
 <p>The simple alternative to derive (kernel) density maps of mosquitos for Europe would be to use the <code><a href="https://tilmandavies.github.io/sparr/reference/spattemp.density.html">sparr::spattemp.density</a></code>
 function:</p>
-<div class="sourceCode" id="cb112"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb113"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">st.f</span> <span class="op">=</span> <span class="va">occ</span><span class="op">[</span>,<span class="fu"><a href="https://rdrr.io/pkg/terra/man/c.html">c</a></span><span class="op">(</span><span class="st">"decimalLongitude"</span>,<span class="st">"decimalLatitude"</span>,<span class="st">"Date"</span>,<span class="st">"individualCount"</span><span class="op">)</span><span class="op">]</span>
 <span class="va">st.f</span><span class="op">$</span><span class="va">individualCount</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html">as.numeric</a></span><span class="op">(</span><span class="fu"><a href="https://Rdatatable.gitlab.io/data.table/reference/fifelse.html">ifelse</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="va">st.f</span><span class="op">$</span><span class="va">individualCount</span><span class="op">)</span>, <span class="fl">1</span>, <span class="va">st.f</span><span class="op">$</span><span class="va">individualCount</span><span class="op">)</span><span class="op">)</span>
 <span class="fu"><a href="https://rdrr.io/pkg/raster/man/xyFromCell.html">coordinates</a></span><span class="op">(</span><span class="va">st.f</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/terra/man/c.html">c</a></span><span class="op">(</span><span class="st">"decimalLongitude"</span>, <span class="st">"decimalLatitude"</span><span class="op">)</span>
@@ -436,20 +483,22 @@ function:</p>
 <span class="va">dmap</span> <span class="op">&lt;-</span> <span class="fu">maptools</span><span class="fu">::</span><span class="fu"><a href="http://maptools.r-forge.r-project.org/reference/as.im.html">as.SpatialGridDataFrame.im</a></span><span class="op">(</span><span class="va">eu.stgrid</span><span class="op">$</span><span class="va">z</span><span class="op">[[</span><span class="st">"2012"</span><span class="op">]</span><span class="op">]</span><span class="op">)</span>
 <span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">dmap</span><span class="op">$</span><span class="va">v</span><span class="op">*</span><span class="fl">1e12</span><span class="op">)</span>
 <span class="fu"><a href="https://rdrr.io/pkg/raster/man/plot.html">plot</a></span><span class="op">(</span><span class="va">dmap</span><span class="op">)</span></code></pre></div>
-<p>The problem of this approach is that (a) it can not work with count data, (b) it
-assumes that ALL or equaly sampled occurrences of the phenomena are available.
-If this is not the case, the function <code><a href="https://tilmandavies.github.io/sparr/reference/spattemp.density.html">sparr::spattemp.density</a></code> would also produce a biased
-estimate of the density of mosquitos.</p>
-<p>Ensemble Machine Learning, on the other hand, can help produce unbiased estimate of
-mosquito densities over Europe for a time-series of years. The disadvantages of the using
+<p>The problem of usiong <code><a href="https://tilmandavies.github.io/sparr/reference/spattemp.density.html">sparr::spattemp.density</a></code> is that (a) it can be used
+only with occurrence only records, (b) it assumes that ALL or systematically
+sampled occurrences of the phenomena are available.
+If this is not the case, the function <code><a href="https://tilmandavies.github.io/sparr/reference/spattemp.density.html">sparr::spattemp.density</a></code> would also probably produce a biased
+estimate of the distribution of mosquitos through time.</p>
+<p>Ensemble Machine Learning we used to generate predictions helps produce unbiased estimate of
+mosquito occurrences over Europe for a time-series of years. The disadvantages of the using
 spatiotemporal ML are:</p>
 <ul>
 <li>We are correlating the Earth Observation data with mosquito density, but mosquitos
-are dynamic and can not be sensed from space, at least not at 1km resolution;<br>
+are dynamic and can not be sensed / seen from space, at least not at 1km resolution;
+we have to rely on correlation with environmental factors;<br>
 </li>
 <li>We assume that the training points are representative for various environmental conditions, while in practice less
-training data is available for physically distant areas e.g. mountains (hence censored);</li>
-<li>Predictions produced in this example come with relatively high errors, so the predictions should be
+training data is available for physically distant areas e.g. mountains (hence these training data can be considered to be <strong>censored</strong>);</li>
+<li>Predictions produced in this example come with relatively high errors in extrapolation areas, so the predictions should be
 used with care;</li>
 </ul>
 </div>
@@ -462,7 +511,7 @@ used with care;</li>
 </div>
 </div>
   <div class="chapter-nav">
-<div class="prev"><a href="spatiotemporal-interpolation-using-ensemble-ml.html"><span class="header-section-number">4</span> Spatiotemporal interpolation using Ensemble ML</a></div>
+<div class="prev"><a href="spatiotemporal-ml.html"><span class="header-section-number">4</span> Spatiotemporal interpolation using Ensemble ML</a></div>
 <div class="next"><a href="multi-scale-spatial-prediction-models.html"><span class="header-section-number">6</span> Multi-scale spatial prediction models</a></div>
 </div></main><div class="col-md-3 col-lg-2 d-none d-md-block sidebar sidebar-chapter">
     <nav id="toc" data-toggle="toc" aria-label="On this page"><h2>On this page</h2>

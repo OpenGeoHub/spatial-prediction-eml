@@ -1,4 +1,4 @@
-# Spatiotemporal interpolation using Ensemble ML
+# Spatiotemporal interpolation using Ensemble ML {#spatiotemporal-ml}
 
 ::: {.rmdnote}
 You are reading the work-in-progress Spatial and spatiotemporal interpolation using Ensemble Machine Learning. This chapter is currently draft version, a peer-review publication is pending. You can find the polished first edition at <https://opengeohub.github.io/spatial-prediction-eml/>.

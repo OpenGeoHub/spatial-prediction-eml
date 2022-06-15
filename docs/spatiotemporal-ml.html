@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>4 Spatiotemporal interpolation using Ensemble ML | Spatial and spatiotemporal interpolation using Ensemble Machine Learning</title>
+<meta name="author" content="Tom Hengl, Leandro Parente and Carmelo Bonannella">
+<!-- JS --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><script src="https://cdn.jsdelivr.net/npm/fuse.js@6.4.2"></script><script src="https://kit.fontawesome.com/6ecbd6c532.js" crossorigin="anonymous"></script><script src="libs/header-attrs-2.14/header-attrs.js"></script><script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<link href="libs/bootstrap-4.6.0/bootstrap.min.css" rel="stylesheet">
+<script src="libs/bootstrap-4.6.0/bootstrap.bundle.min.js"></script><script src="libs/bs3compat-0.3.1/transition.js"></script><script src="libs/bs3compat-0.3.1/tabs.js"></script><script src="libs/bs3compat-0.3.1/bs3compat.js"></script><link href="libs/bs4_book-1.0.0/bs4_book.css" rel="stylesheet">
+<script src="libs/bs4_book-1.0.0/bs4_book.js"></script><!-- Global site tag (gtag.js) - Google Analytics --><script async src="https://www.googletagmanager.com/gtag/js?id=G-1BH6J2NKGP"></script><script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-1BH6J2NKGP');
+    </script><script src="https://cdn.jsdelivr.net/autocomplete.js/0/autocomplete.jquery.min.js"></script><script src="https://cdn.jsdelivr.net/npm/mark.js@8.11.1/dist/mark.min.js"></script><!-- CSS -->
+</head>
+<body data-spy="scroll" data-target="#toc">
+
+<div class="container-fluid">
+<div class="row">
+  <header class="col-sm-12 col-lg-3 sidebar sidebar-book"><a class="sr-only sr-only-focusable" href="#content">Skip to main content</a>
+
+    <div class="d-flex align-items-start justify-content-between">
+      <h1>
+        <a href="index.html" title="">Spatial and spatiotemporal interpolation using Ensemble Machine Learning</a>
+      </h1>
+      <button class="btn btn-outline-primary d-lg-none ml-2 mt-1" type="button" data-toggle="collapse" data-target="#main-nav" aria-expanded="true" aria-controls="main-nav"><i class="fas fa-bars"></i><span class="sr-only">Show table of contents</span></button>
+    </div>
+
+    <div id="main-nav" class="collapse-lg">
+      <form role="search">
+        <input id="search" class="form-control" type="search" placeholder="Search" aria-label="Search">
+</form>
+
+      <nav aria-label="Table of contents"><h2>Table of contents</h2>
+        <ul class="book-toc list-unstyled">
+<li><a class="" href="index.html">Introduction</a></li>
+<li><a class="" href="introduction-to-spatial-and-spatiotemporal-data.html"><span class="header-section-number">1</span> Introduction to spatial and spatiotemporal data</a></li>
+<li><a class="" href="spatial-interpolation-using-ensemble-ml.html"><span class="header-section-number">2</span> Spatial interpolation using Ensemble ML</a></li>
+<li><a class="" href="spatial-interpolation-in-3d-using-ensemble-ml.html"><span class="header-section-number">3</span> Spatial interpolation in 3D using Ensemble ML</a></li>
+<li><a class="active" href="spatiotemporal-ml.html"><span class="header-section-number">4</span> Spatiotemporal interpolation using Ensemble ML</a></li>
+<li><a class="" href="spatiotemporal-machine-learning-for-species-distribution-modeling.html"><span class="header-section-number">5</span> Spatiotemporal Machine Learning for Species Distribution Modeling</a></li>
+<li><a class="" href="multi-scale-spatial-prediction-models.html"><span class="header-section-number">6</span> Multi-scale spatial prediction models</a></li>
+<li><a class="" href="summary-1.html"><span class="header-section-number">7</span> Summary</a></li>
+<li><a class="" href="references.html"><span class="header-section-number">8</span> References</a></li>
+</ul>
+
+        <div class="book-extra">
+          <p><a id="book-repo" href="https://github.com/OpenGeoHub/spatial-prediction-eml">View book source <i class="fab fa-github"></i></a></p>
+        </div>
+      </nav>
+</div>
+  </header><main class="col-sm-12 col-md-9 col-lg-7" id="content"><div id="spatiotemporal-ml" class="section level1" number="4">
+<h1>
+<span class="header-section-number">4</span> Spatiotemporal interpolation using Ensemble ML<a class="anchor" aria-label="anchor" href="#spatiotemporal-ml"><i class="fas fa-link"></i></a>
+</h1>
+<div class="rmdnote">
+<p>You are reading the work-in-progress Spatial and spatiotemporal interpolation using Ensemble Machine Learning. This chapter is currently draft version, a peer-review publication is pending. You can find the polished first edition at <a href="https://opengeohub.github.io/spatial-prediction-eml/" class="uri">https://opengeohub.github.io/spatial-prediction-eml/</a>.</p>
+</div>
+<div id="spatiotemporal-interpolation-of-daily-temperatures" class="section level2" number="4.1">
+<h2>
+<span class="header-section-number">4.1</span> Spatiotemporal interpolation of daily temperatures<a class="anchor" aria-label="anchor" href="#spatiotemporal-interpolation-of-daily-temperatures"><i class="fas fa-link"></i></a>
+</h2>
+<p>In previous examples we have demonstrated effects of over-fitting and
+how Ensemble ML helps decrease overfitting and extrapolation problems
+using synthetic data. We can now look at some real-life cases for example
+the daily temperatures measured for several years for Croatia described in <span class="citation">T. Hengl et al. (<a href="references.html#ref-hengl2012spatio" role="doc-biblioref">2012</a>)</span>.
+This data sets consist of two parts: (1) measurements of daily temperatures at
+meteo stations, (2) list of gridded covariates (Fig. <a href="spatiotemporal-ml.html#fig:croatia-meteo">4.1</a>).</p>
+<div class="figure" style="text-align: center">
+<span id="fig:croatia-meteo"></span>
+<img src="img/Fig_stations_meteo_croatia.png" alt="Temporal dynamics of mean-daily temperatures at sample meteorological stations. This shows seasonality effects (smoothed line) and daily oscillations." width="100%"><p class="caption">
+Figure 4.1: Temporal dynamics of mean-daily temperatures at sample meteorological stations. This shows seasonality effects (smoothed line) and daily oscillations.
+</p>
+</div>
+<p>We can load the point data by using:</p>
+<div class="sourceCode" id="cb66"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="http://rgdal.r-forge.r-project.org">rgdal</a></span><span class="op">)</span>
+<span class="va">hrmeteo</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html">readRDS</a></span><span class="op">(</span><span class="st">"input/hrtemp2006_meteo.rds"</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/utils/str.html">str</a></span><span class="op">(</span><span class="va">hrmeteo</span><span class="op">)</span>
+<span class="co">#&gt; List of 2</span>
+<span class="co">#&gt;  $ meteo   :'data.frame':    44895 obs. of  5 variables:</span>
+<span class="co">#&gt;   ..$ IDSTA : chr [1:44895] "GL001" "GL001" "GL001" "GL001" ...</span>
+<span class="co">#&gt;   ..$ DATE  : chr [1:44895] "2006-1-1" "2006-1-2" "2006-1-3" "2006-1-4" ...</span>
+<span class="co">#&gt;   ..$ MDTEMP: num [1:44895] 1.6 0.7 1.5 0.3 -0.1 1 0.3 -1.9 -5.4 -3.6 ...</span>
+<span class="co">#&gt;   ..$ cday  : num [1:44895] 13148 13149 13150 13151 13152 ...</span>
+<span class="co">#&gt;   .. ..- attr(*, "tzone")= chr ""</span>
+<span class="co">#&gt;   ..$ x     : num [1:44895] NA NA NA NA NA NA NA NA NA NA ...</span>
+<span class="co">#&gt;  $ stations:'data.frame':    152 obs. of  3 variables:</span>
+<span class="co">#&gt;   ..$ IDSTA: chr [1:152] "GL001" "GL002" "GL003" "GL004" ...</span>
+<span class="co">#&gt;   ..$ X    : num [1:152] 670760 643073 673778 752344 767729 ...</span>
+<span class="co">#&gt;   ..$ Y    : num [1:152] 5083464 5086417 5052001 4726567 4717878 ...</span>
+<span class="va">idsta.pnts</span> <span class="op">=</span> <span class="va">hrmeteo</span><span class="op">$</span><span class="va">stations</span>
+<span class="fu"><a href="https://rdrr.io/pkg/sp/man/coordinates.html">coordinates</a></span><span class="op">(</span><span class="va">idsta.pnts</span><span class="op">)</span> <span class="op">=</span> <span class="op">~</span> <span class="va">X</span> <span class="op">+</span> <span class="va">Y</span></code></pre></div>
+<p>This is a typical format for spatiotemporal meteorological data with locations
+of stations in one table, and measurements of daily temperatures (<code>MDTEMP</code>) in
+other. The column <code>cday</code> here is the cumulative day since 1970, which allows us
+to present time on a linear scale i.e. by using a numeric value instead of dates.</p>
+<p>The gridded data includes: (a) static covariates (relief data), and
+(b) dynamic time-series data (MODIS LST). To load the static covariates we use:</p>
+<div class="sourceCode" id="cb67"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">hrgrid1km</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html">readRDS</a></span><span class="op">(</span><span class="st">"input/hrgrid1km.rds"</span><span class="op">)</span>
+<span class="co">#plot(hrgrid1km[1])</span>
+<span class="fu"><a href="https://rdrr.io/pkg/sp/man/is.projected.html">proj4string</a></span><span class="op">(</span><span class="va">idsta.pnts</span><span class="op">)</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/sp/man/is.projected.html">proj4string</a></span><span class="op">(</span><span class="va">hrgrid1km</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/utils/str.html">str</a></span><span class="op">(</span><span class="va">hrgrid1km</span><span class="op">@</span><span class="va">data</span><span class="op">)</span>
+<span class="co">#&gt; 'data.frame':    238630 obs. of  4 variables:</span>
+<span class="co">#&gt;  $ HRdem : int  1599 1426 1440 1764 1917 1912 1707 1550 1518 1516 ...</span>
+<span class="co">#&gt;  $ HRdsea: num  93 89.6 89.8 93.6 95 ...</span>
+<span class="co">#&gt;  $ Lat   : num  46.5 46.5 46.5 46.5 46.5 ...</span>
+<span class="co">#&gt;  $ Lon   : num  13.2 13.2 13.2 13.2 13.2 ...</span></code></pre></div>
+<p>The dynamic time-series data is stored in a local folder (<code>input/LST2006HR</code>) as
+individual files that we can list by using:</p>
+<div class="sourceCode" id="cb68"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">LST.listday</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.files.html">dir</a></span><span class="op">(</span><span class="st">"input/LST2006HR"</span>, pattern<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/utils/glob2rx.html">glob2rx</a></span><span class="op">(</span><span class="st">"LST2006_**_**.LST_Day_1km.tif"</span><span class="op">)</span>, full.names <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>
+<span class="va">LST.listnight</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.files.html">dir</a></span><span class="op">(</span><span class="st">"input/LST2006HR"</span>, pattern<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/utils/glob2rx.html">glob2rx</a></span><span class="op">(</span><span class="st">"LST2006_**_**.LST_Night_1km.tif"</span><span class="op">)</span>, full.names <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/utils/str.html">str</a></span><span class="op">(</span><span class="va">LST.listday</span><span class="op">)</span>
+<span class="co">#&gt;  chr [1:46] "input/LST2006HR/LST2006_01_01.LST_Day_1km.tif" ...</span></code></pre></div>
+<p>Here we see there are 46 images for year 2006 with daytime and 46 images for
+night time estimates of LST. We do not want to load all these rasters to R
+because we might experience RAM problems. We can first overlay points and see
+which variables can help with mapping daily temperatures.</p>
+<p>For the static covariates we only have to run the overlay once:</p>
+<div class="sourceCode" id="cb69"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">idsta.ov</span> <span class="op">&lt;-</span> <span class="fu">sp</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/sp/man/over.html">over</a></span><span class="op">(</span><span class="va">idsta.pnts</span>, <span class="va">hrgrid1km</span><span class="op">)</span>
+<span class="va">idsta.ov</span><span class="op">$</span><span class="va">IDSTA</span> <span class="op">=</span> <span class="va">idsta.pnts</span><span class="op">$</span><span class="va">IDSTA</span>
+<span class="fu"><a href="https://rdrr.io/r/utils/str.html">str</a></span><span class="op">(</span><span class="va">idsta.ov</span><span class="op">)</span>
+<span class="co">#&gt; 'data.frame':    152 obs. of  5 variables:</span>
+<span class="co">#&gt;  $ HRdem : int  161 134 202 31 205 563 80 96 116 228 ...</span>
+<span class="co">#&gt;  $ HRdsea: num  198.5 181.7 192.9 0 1.5 ...</span>
+<span class="co">#&gt;  $ Lat   : num  45.9 45.9 45.6 42.7 42.6 ...</span>
+<span class="co">#&gt;  $ Lon   : num  17.2 16.8 17.2 18.1 18.3 ...</span>
+<span class="co">#&gt;  $ IDSTA : chr  "GL001" "GL002" "GL003" "GL004" ...</span></code></pre></div>
+<p>For the spatiotemporal data (MODIS LST time-series) we need to run overlay as in
+a spacetime cube. This means that we need to match points using <code>x,y,t</code>
+coordinates with grids covering the same <code>x,y,t</code> fields. To speed up spacetime overlay
+we use our custom function <code>extract_st</code>, which basically builds on top of the
+<code>terra</code> package. First, we need to define begin, end times for each GeoTIFF:</p>
+<div class="sourceCode" id="cb70"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://rspatial.org/terra">terra</a></span><span class="op">)</span>
+<span class="co">#&gt; terra version 0.8.11 (beta-release)</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; Attaching package: 'terra'</span>
+<span class="co">#&gt; The following object is masked from 'package:rgdal':</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt;     project</span>
+<span class="kw"><a href="https://rdrr.io/r/base/source.html">source</a></span><span class="op">(</span><span class="st">"mlst_functions.R"</span><span class="op">)</span>
+<span class="va">hrmeteo</span><span class="op">$</span><span class="va">meteo</span><span class="op">$</span><span class="va">x</span> <span class="op">=</span> <span class="fu">plyr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/plyr/man/join.html">join</a></span><span class="op">(</span><span class="va">hrmeteo</span><span class="op">$</span><span class="va">meteo</span>, <span class="va">hrmeteo</span><span class="op">$</span><span class="va">stations</span>, by<span class="op">=</span><span class="st">"IDSTA"</span><span class="op">)</span><span class="op">$</span><span class="va">X</span>
+<span class="va">hrmeteo</span><span class="op">$</span><span class="va">meteo</span><span class="op">$</span><span class="va">y</span> <span class="op">=</span> <span class="fu">plyr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/plyr/man/join.html">join</a></span><span class="op">(</span><span class="va">hrmeteo</span><span class="op">$</span><span class="va">meteo</span>, <span class="va">hrmeteo</span><span class="op">$</span><span class="va">stations</span>, by<span class="op">=</span><span class="st">"IDSTA"</span><span class="op">)</span><span class="op">$</span><span class="va">Y</span>
+<span class="co">## generate row ID:</span>
+<span class="va">hrmeteo</span><span class="op">$</span><span class="va">meteo</span><span class="op">$</span><span class="va">row.id</span> <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/pkg/terra/man/dimensions.html">nrow</a></span><span class="op">(</span><span class="va">hrmeteo</span><span class="op">$</span><span class="va">meteo</span><span class="op">)</span>
+<span class="va">hrmeteo</span><span class="op">$</span><span class="va">meteo</span><span class="op">$</span><span class="va">Date</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html">as.Date</a></span><span class="op">(</span><span class="va">hrmeteo</span><span class="op">$</span><span class="va">meteo</span><span class="op">$</span><span class="va">DATE</span>, format <span class="op">=</span> <span class="st">"%Y-%m-%d"</span><span class="op">)</span>
+<span class="co">## strip dates from filename:</span>
+<span class="va">begin.tif1.lst</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html">as.Date</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="st">"2006-"</span>, <span class="fu"><a href="https://rdrr.io/r/base/substr.html">substr</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/basename.html">basename</a></span><span class="op">(</span><span class="va">LST.listday</span><span class="op">)</span>, <span class="fl">9</span>, <span class="fl">10</span><span class="op">)</span>, 
+                                <span class="st">"-"</span>, <span class="fu"><a href="https://rdrr.io/r/base/substr.html">substr</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/basename.html">basename</a></span><span class="op">(</span><span class="va">LST.listday</span><span class="op">)</span>, <span class="fl">12</span>, <span class="fl">13</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">-</span><span class="fl">4</span>
+<span class="va">end.tif1.lst</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html">as.Date</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="st">"2006-"</span>, <span class="fu"><a href="https://rdrr.io/r/base/substr.html">substr</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/basename.html">basename</a></span><span class="op">(</span><span class="va">LST.listday</span><span class="op">)</span>, <span class="fl">9</span>, <span class="fl">10</span><span class="op">)</span>, 
+                              <span class="st">"-"</span>, <span class="fu"><a href="https://rdrr.io/r/base/substr.html">substr</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/basename.html">basename</a></span><span class="op">(</span><span class="va">LST.listday</span><span class="op">)</span>, <span class="fl">12</span>, <span class="fl">13</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">+</span><span class="fl">4</span></code></pre></div>
+<p>now that we know spacetime coordinates for both points and grids, we can run
+overlay in parallel to speed up computing:</p>
+<div class="sourceCode" id="cb71"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">mc.cores</span> <span class="op">=</span> <span class="fu">parallel</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/parallel/detectCores.html">detectCores</a></span><span class="op">(</span><span class="op">)</span>
+<span class="va">ov.pnts</span> <span class="op">&lt;-</span> <span class="fu">parallel</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/parallel/mclapply.html">mclapply</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/pkg/terra/man/dimensions.html">length</a></span><span class="op">(</span><span class="va">LST.listday</span><span class="op">)</span>, <span class="kw">function</span><span class="op">(</span><span class="va">i</span><span class="op">)</span><span class="op">{</span> 
+  <span class="fu">extract_st</span><span class="op">(</span>tif<span class="op">=</span><span class="va">LST.listday</span><span class="op">[</span><span class="va">i</span><span class="op">]</span>, <span class="va">hrmeteo</span><span class="op">$</span><span class="va">meteo</span>, date<span class="op">=</span><span class="st">"Date"</span>, 
+             crs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/sp/man/is.projected.html">proj4string</a></span><span class="op">(</span><span class="va">hrgrid1km</span><span class="op">)</span>,        
+             date.tif.begin<span class="op">=</span><span class="va">begin.tif1.lst</span><span class="op">[</span><span class="va">i</span><span class="op">]</span>, 
+             date.tif.end<span class="op">=</span><span class="va">end.tif1.lst</span><span class="op">[</span><span class="va">i</span><span class="op">]</span>, 
+             coords<span class="op">=</span><span class="fu"><a href="https://rdrr.io/pkg/terra/man/c.html">c</a></span><span class="op">(</span><span class="st">"x"</span>,<span class="st">"y"</span><span class="op">)</span>, variable.name<span class="op">=</span><span class="st">"LST.day"</span><span class="op">)</span> <span class="op">}</span>, 
+  mc.cores<span class="op">=</span><span class="va">mc.cores</span><span class="op">)</span>
+<span class="va">ov.pnts</span> <span class="op">=</span> <span class="va">ov.pnts</span><span class="op">[</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/lapply.html">sapply</a></span><span class="op">(</span><span class="va">ov.pnts</span>, <span class="va">is.null</span><span class="op">)</span><span class="op">]</span>
+<span class="va">ov.tifs1</span> <span class="op">=</span> <span class="fu">plyr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/plyr/man/join_all.html">join_all</a></span><span class="op">(</span><span class="va">ov.pnts</span>, by<span class="op">=</span><span class="st">"row.id"</span>, type<span class="op">=</span><span class="st">"full"</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/utils/str.html">str</a></span><span class="op">(</span><span class="va">ov.tifs1</span><span class="op">)</span>
+<span class="co">#&gt; 'data.frame':    44895 obs. of  2 variables:</span>
+<span class="co">#&gt;  $ LST.day: num  0 0 0 0 0 0 0 0 0 0 ...</span>
+<span class="co">#&gt;  $ row.id : int  1 2 3 4 5 366 367 368 369 370 ...</span>
+<span class="va">ov.tifs1</span><span class="op">$</span><span class="va">LST.day</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html">ifelse</a></span><span class="op">(</span><span class="va">ov.tifs1</span><span class="op">$</span><span class="va">LST.day</span> <span class="op">==</span> <span class="fl">0</span>, <span class="cn">NA</span>, <span class="va">ov.tifs1</span><span class="op">$</span><span class="va">LST.day</span><span class="op">)</span></code></pre></div>
+<p>In this case we also exclude the values of <code>LST.day</code> are equal to 0 as these
+are basically missing values in the GeoTIFFs. We repeat the same overlay operation
+for the night light images:</p>
+<div class="sourceCode" id="cb72"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">begin.tif2.lst</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html">as.Date</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="st">"2006-"</span>, <span class="fu"><a href="https://rdrr.io/r/base/substr.html">substr</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/basename.html">basename</a></span><span class="op">(</span><span class="va">LST.listnight</span><span class="op">)</span>, <span class="fl">9</span>, <span class="fl">10</span><span class="op">)</span>, 
+                                <span class="st">"-"</span>, <span class="fu"><a href="https://rdrr.io/r/base/substr.html">substr</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/basename.html">basename</a></span><span class="op">(</span><span class="va">LST.listnight</span><span class="op">)</span>, <span class="fl">12</span>, <span class="fl">13</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">-</span><span class="fl">4</span>
+<span class="va">end.tif2.lst</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html">as.Date</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="st">"2006-"</span>, <span class="fu"><a href="https://rdrr.io/r/base/substr.html">substr</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/basename.html">basename</a></span><span class="op">(</span><span class="va">LST.listnight</span><span class="op">)</span>, <span class="fl">9</span>, <span class="fl">10</span><span class="op">)</span>, 
+                              <span class="st">"-"</span>, <span class="fu"><a href="https://rdrr.io/r/base/substr.html">substr</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/basename.html">basename</a></span><span class="op">(</span><span class="va">LST.listnight</span><span class="op">)</span>, <span class="fl">12</span>, <span class="fl">13</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">+</span><span class="fl">4</span>
+<span class="va">ov.pnts</span> <span class="op">&lt;-</span> <span class="fu">parallel</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/parallel/mclapply.html">mclapply</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/pkg/terra/man/dimensions.html">length</a></span><span class="op">(</span><span class="va">LST.listnight</span><span class="op">)</span>, <span class="kw">function</span><span class="op">(</span><span class="va">i</span><span class="op">)</span><span class="op">{</span> 
+  <span class="fu">extract_st</span><span class="op">(</span>tif<span class="op">=</span><span class="va">LST.listnight</span><span class="op">[</span><span class="va">i</span><span class="op">]</span>, <span class="va">hrmeteo</span><span class="op">$</span><span class="va">meteo</span>, date<span class="op">=</span><span class="st">"Date"</span>, 
+             crs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/sp/man/is.projected.html">proj4string</a></span><span class="op">(</span><span class="va">hrgrid1km</span><span class="op">)</span>,        
+             date.tif.begin<span class="op">=</span><span class="va">begin.tif2.lst</span><span class="op">[</span><span class="va">i</span><span class="op">]</span>, 
+             date.tif.end<span class="op">=</span><span class="va">end.tif2.lst</span><span class="op">[</span><span class="va">i</span><span class="op">]</span>, 
+             coords<span class="op">=</span><span class="fu"><a href="https://rdrr.io/pkg/terra/man/c.html">c</a></span><span class="op">(</span><span class="st">"x"</span>,<span class="st">"y"</span><span class="op">)</span>, variable.name<span class="op">=</span><span class="st">"LST.night"</span><span class="op">)</span> <span class="op">}</span>, 
+  mc.cores<span class="op">=</span><span class="va">mc.cores</span><span class="op">)</span>
+<span class="va">ov.pnts</span> <span class="op">=</span> <span class="va">ov.pnts</span><span class="op">[</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/lapply.html">sapply</a></span><span class="op">(</span><span class="va">ov.pnts</span>, <span class="va">is.null</span><span class="op">)</span><span class="op">]</span>
+<span class="va">ov.tifs2</span> <span class="op">=</span> <span class="fu">plyr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/plyr/man/join_all.html">join_all</a></span><span class="op">(</span><span class="va">ov.pnts</span>, by<span class="op">=</span><span class="st">"row.id"</span>, type<span class="op">=</span><span class="st">"full"</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/utils/str.html">str</a></span><span class="op">(</span><span class="va">ov.tifs2</span><span class="op">)</span>
+<span class="co">#&gt; 'data.frame':    44895 obs. of  2 variables:</span>
+<span class="co">#&gt;  $ LST.night: num  13344 13344 13344 13344 13344 ...</span>
+<span class="co">#&gt;  $ row.id   : int  1 2 3 4 5 366 367 368 369 370 ...</span>
+<span class="va">ov.tifs2</span><span class="op">$</span><span class="va">LST.night</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html">ifelse</a></span><span class="op">(</span><span class="va">ov.tifs2</span><span class="op">$</span><span class="va">LST.night</span> <span class="op">==</span> <span class="fl">0</span>, <span class="cn">NA</span>, <span class="va">ov.tifs2</span><span class="op">$</span><span class="va">LST.night</span><span class="op">)</span></code></pre></div>
+<p>The result of spacetime overlay is a simple long table matching exactly the meteo-data table.
+We next bind results of overlay using static and dynamic covariates:</p>
+<div class="sourceCode" id="cb73"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">hrmeteo.rm</span> <span class="op">=</span> <span class="fu">plyr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/plyr/man/join_all.html">join_all</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">hrmeteo</span><span class="op">$</span><span class="va">meteo</span>, <span class="va">ov.tifs1</span>, <span class="va">ov.tifs2</span><span class="op">)</span><span class="op">)</span>
+<span class="co">#&gt; Joining by: row.id</span>
+<span class="co">#&gt; Joining by: row.id</span>
+<span class="va">hrmeteo.rm</span> <span class="op">=</span> <span class="fu">plyr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/plyr/man/join.html">join</a></span><span class="op">(</span><span class="va">hrmeteo.rm</span>, <span class="va">idsta.ov</span><span class="op">)</span>
+<span class="co">#&gt; Joining by: IDSTA</span></code></pre></div>
+<p>we also add the geometric component of temperature based on the sphere formulas:</p>
+<div class="sourceCode" id="cb74"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">hrmeteo.rm</span><span class="op">$</span><span class="va">temp.mean</span> <span class="op">&lt;-</span> <span class="fu">temp.from.geom</span><span class="op">(</span>fi<span class="op">=</span><span class="va">hrmeteo.rm</span><span class="op">$</span><span class="va">Lat</span>, 
+                   <span class="fu"><a href="https://rdrr.io/r/base/numeric.html">as.numeric</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/strptime.html">strftime</a></span><span class="op">(</span><span class="va">hrmeteo.rm</span><span class="op">$</span><span class="va">Date</span>, format <span class="op">=</span> <span class="st">"%j"</span><span class="op">)</span><span class="op">)</span>, 
+                   a<span class="op">=</span><span class="fl">37.03043</span>, b<span class="op">=</span><span class="op">-</span><span class="fl">15.43029</span>, elev<span class="op">=</span><span class="va">hrmeteo.rm</span><span class="op">$</span><span class="va">HRdem</span>, t.grad<span class="op">=</span><span class="fl">0.6</span><span class="op">)</span></code></pre></div>
+<p>We have now produced a <strong>spatiotemporal regression matrix</strong> that can be used to fit
+a prediction model for daily temperature. The model is of form:</p>
+<div class="sourceCode" id="cb75"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">fm.tmp</span> <span class="op">&lt;-</span> <span class="va">MDTEMP</span> <span class="op">~</span> <span class="va">temp.mean</span> <span class="op">+</span> <span class="va">LST.day</span> <span class="op">+</span> <span class="va">LST.night</span> <span class="op">+</span> <span class="va">HRdsea</span></code></pre></div>
+<p>We next fit an Ensemble ML using the same process described in the previous sections:</p>
+<div class="sourceCode" id="cb76"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://mlr.mlr-org.com">mlr</a></span><span class="op">)</span>
+<span class="co">#&gt; Loading required package: ParamHelpers</span>
+<span class="co">#&gt; 'mlr' is in maintenance mode since July 2019. Future development</span>
+<span class="co">#&gt; efforts will go into its successor 'mlr3' (&lt;https://mlr3.mlr-org.com&gt;).</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; Attaching package: 'mlr'</span>
+<span class="co">#&gt; The following object is masked from 'package:terra':</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt;     resample</span>
+<span class="va">lrn.rf</span> <span class="op">=</span> <span class="fu">mlr</span><span class="fu">::</span><span class="fu"><a href="https://mlr.mlr-org.com/reference/makeLearner.html">makeLearner</a></span><span class="op">(</span><span class="st">"regr.ranger"</span>, num.trees<span class="op">=</span><span class="fl">150</span>, importance<span class="op">=</span><span class="st">"impurity"</span>,
+                          num.threads <span class="op">=</span> <span class="fu">parallel</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/parallel/detectCores.html">detectCores</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span>
+<span class="va">lrns.st</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">lrn.rf</span>, <span class="fu">mlr</span><span class="fu">::</span><span class="fu"><a href="https://mlr.mlr-org.com/reference/makeLearner.html">makeLearner</a></span><span class="op">(</span><span class="st">"regr.nnet"</span><span class="op">)</span>, <span class="fu">mlr</span><span class="fu">::</span><span class="fu"><a href="https://mlr.mlr-org.com/reference/makeLearner.html">makeLearner</a></span><span class="op">(</span><span class="st">"regr.gamboost"</span><span class="op">)</span><span class="op">)</span>
+<span class="va">sel</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/complete.cases.html">complete.cases</a></span><span class="op">(</span><span class="va">hrmeteo.rm</span><span class="op">[</span>,<span class="fu"><a href="https://rdrr.io/r/base/allnames.html">all.vars</a></span><span class="op">(</span><span class="va">fm.tmp</span><span class="op">)</span><span class="op">]</span><span class="op">)</span>
+<span class="va">hrmeteo.rm</span> <span class="op">=</span> <span class="va">hrmeteo.rm</span><span class="op">[</span><span class="va">sel</span>,<span class="op">]</span>
+<span class="co">#summary(sel)</span>
+<span class="va">subs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html">runif</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/terra/man/dimensions.html">nrow</a></span><span class="op">(</span><span class="va">hrmeteo.rm</span><span class="op">)</span><span class="op">)</span><span class="op">&lt;</span><span class="fl">.2</span>
+<span class="va">tsk0.st</span> <span class="op">&lt;-</span> <span class="fu">mlr</span><span class="fu">::</span><span class="fu"><a href="https://mlr.mlr-org.com/reference/RegrTask.html">makeRegrTask</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">hrmeteo.rm</span><span class="op">[</span><span class="va">subs</span>,<span class="fu"><a href="https://rdrr.io/r/base/allnames.html">all.vars</a></span><span class="op">(</span><span class="va">fm.tmp</span><span class="op">)</span><span class="op">]</span>, 
+                             target <span class="op">=</span> <span class="st">"MDTEMP"</span>, blocking <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/terra/man/factors.html">as.factor</a></span><span class="op">(</span><span class="va">hrmeteo.rm</span><span class="op">$</span><span class="va">IDSTA</span><span class="op">[</span><span class="va">subs</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>
+<span class="va">tsk0.st</span>
+<span class="co">#&gt; Supervised task: hrmeteo.rm[subs, all.vars(fm.tmp)]</span>
+<span class="co">#&gt; Type: regr</span>
+<span class="co">#&gt; Target: MDTEMP</span>
+<span class="co">#&gt; Observations: 7573</span>
+<span class="co">#&gt; Features:</span>
+<span class="co">#&gt;    numerics     factors     ordered functionals </span>
+<span class="co">#&gt;           4           0           0           0 </span>
+<span class="co">#&gt; Missings: FALSE</span>
+<span class="co">#&gt; Has weights: FALSE</span>
+<span class="co">#&gt; Has blocking: TRUE</span>
+<span class="co">#&gt; Has coordinates: FALSE</span></code></pre></div>
+<p>Train model using a subset of points:</p>
+<div class="sourceCode" id="cb77"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">init.TMP</span> <span class="op">&lt;-</span> <span class="fu">mlr</span><span class="fu">::</span><span class="fu"><a href="https://mlr.mlr-org.com/reference/makeStackedLearner.html">makeStackedLearner</a></span><span class="op">(</span><span class="va">lrns.st</span>, method<span class="op">=</span><span class="st">"stack.cv"</span>, super.learner<span class="op">=</span><span class="st">"regr.lm"</span>, 
+                                    resampling<span class="op">=</span><span class="fu">mlr</span><span class="fu">::</span><span class="fu"><a href="https://mlr.mlr-org.com/reference/makeResampleDesc.html">makeResampleDesc</a></span><span class="op">(</span>method<span class="op">=</span><span class="st">"CV"</span>, blocking.cv<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span>
+<span class="fu">parallelMap</span><span class="fu">::</span><span class="fu"><a href="https://parallelmap.mlr-org.com/reference/parallelStart.html">parallelStartSocket</a></span><span class="op">(</span><span class="fu">parallel</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/parallel/detectCores.html">detectCores</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span>
+<span class="va">eml.TMP</span> <span class="op">=</span> <span class="fu"><a href="https://mlr.mlr-org.com/reference/train.html">train</a></span><span class="op">(</span><span class="va">init.TMP</span>, <span class="va">tsk0.st</span><span class="op">)</span>
+<span class="co">#&gt; # weights:  19</span>
+<span class="co">#&gt; initial  value 1752597.611462 </span>
+<span class="co">#&gt; final  value 503633.983959 </span>
+<span class="co">#&gt; converged</span>
+<span class="fu">parallelMap</span><span class="fu">::</span><span class="fu"><a href="https://parallelmap.mlr-org.com/reference/parallelStop.html">parallelStop</a></span><span class="op">(</span><span class="op">)</span></code></pre></div>
+<p>This shows that daily temperatures can be predicted with relatively high R-square,
+although the residual values are still significant (ranging from -1.8 to 1.8 degrees):</p>
+<div class="sourceCode" id="cb78"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">eml.TMP</span><span class="op">$</span><span class="va">learner.model</span><span class="op">$</span><span class="va">super.model</span><span class="op">$</span><span class="va">learner.model</span><span class="op">)</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; Call:</span>
+<span class="co">#&gt; stats::lm(formula = f, data = d)</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; Residuals:</span>
+<span class="co">#&gt;      Min       1Q   Median       3Q      Max </span>
+<span class="co">#&gt; -16.2439  -1.8106   0.0204   1.8004  14.9611 </span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; Coefficients:</span>
+<span class="co">#&gt;               Estimate Std. Error t value Pr(&gt;|t|)    </span>
+<span class="co">#&gt; (Intercept)   35.06219    8.10904   4.324 1.55e-05 ***</span>
+<span class="co">#&gt; regr.ranger    0.70575    0.02770  25.474  &lt; 2e-16 ***</span>
+<span class="co">#&gt; regr.nnet     -2.72276    0.62920  -4.327 1.53e-05 ***</span>
+<span class="co">#&gt; regr.gamboost  0.29540    0.02799  10.553  &lt; 2e-16 ***</span>
+<span class="co">#&gt; ---</span>
+<span class="co">#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; Residual standard error: 2.888 on 7569 degrees of freedom</span>
+<span class="co">#&gt; Multiple R-squared:  0.8747, Adjusted R-squared:  0.8746 </span>
+<span class="co">#&gt; F-statistic: 1.761e+04 on 3 and 7569 DF,  p-value: &lt; 2.2e-16</span></code></pre></div>
+<p>The variable importance analysis shows that the most important variable for predicting
+daily temperatures is, in fact, the night-time MODIS LST:</p>
+<div class="sourceCode" id="cb79"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="http://ggplot2.tidyverse.org">ggplot2</a></span><span class="op">)</span>
+<span class="va">xl</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/terra/man/as.data.frame.html">as.data.frame</a></span><span class="op">(</span><span class="fu">mlr</span><span class="fu">::</span><span class="fu"><a href="https://mlr.mlr-org.com/reference/getFeatureImportance.html">getFeatureImportance</a></span><span class="op">(</span><span class="va">eml.TMP</span><span class="op">[[</span><span class="st">"learner.model"</span><span class="op">]</span><span class="op">]</span><span class="op">[[</span><span class="st">"base.models"</span><span class="op">]</span><span class="op">]</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">)</span><span class="op">$</span><span class="va">res</span><span class="op">)</span>
+<span class="va">xl</span><span class="op">$</span><span class="va">relative_importance</span> <span class="op">=</span> <span class="fl">100</span><span class="op">*</span><span class="va">xl</span><span class="op">$</span><span class="va">importance</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">xl</span><span class="op">$</span><span class="va">importance</span><span class="op">)</span>
+<span class="va">xl</span> <span class="op">=</span> <span class="va">xl</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/order.html">order</a></span><span class="op">(</span><span class="va">xl</span><span class="op">$</span><span class="va">relative_importance</span>, decreasing <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,<span class="op">]</span>
+<span class="va">xl</span><span class="op">$</span><span class="va">variable</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/terra/man/c.html">c</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/pkg/terra/man/dimensions.html">length</a></span><span class="op">(</span><span class="va">xl</span><span class="op">$</span><span class="va">variable</span><span class="op">)</span><span class="op">)</span>, <span class="st">". "</span>, <span class="va">xl</span><span class="op">$</span><span class="va">variable</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/pkg/ggplot2/man/ggplot.html">ggplot</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">xl</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">4</span>,<span class="op">]</span>, <span class="fu"><a href="https://rdrr.io/pkg/ggplot2/man/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/reorder.factor.html">reorder</a></span><span class="op">(</span><span class="va">variable</span>, <span class="va">relative_importance</span><span class="op">)</span>, y <span class="op">=</span> <span class="va">relative_importance</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/ggplot2/man/geom_bar.html">geom_bar</a></span><span class="op">(</span>fill <span class="op">=</span> <span class="st">"steelblue"</span>,
+           stat <span class="op">=</span> <span class="st">"identity"</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/ggplot2/man/coord_flip.html">coord_flip</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/ggplot2/man/labs.html">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Variable importance"</span>,
+       x <span class="op">=</span> <span class="cn">NULL</span>,
+       y <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/ggplot2/man/ggtheme.html">theme_bw</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/pkg/ggplot2/man/theme.html">theme</a></span><span class="op">(</span>text <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/ggplot2/man/element.html">element_text</a></span><span class="op">(</span>size<span class="op">=</span><span class="fl">15</span><span class="op">)</span><span class="op">)</span></code></pre></div>
+<div class="figure" style="text-align: center">
+<span id="fig:var-imptemp"></span>
+<img src="spatiotemporal-interpolation_files/figure-html/var-imptemp-1.png" alt="Variable importance for modeling spacetime daily temperatures." width="90%"><p class="caption">
+Figure 4.2: Variable importance for modeling spacetime daily temperatures.
+</p>
+</div>
+<p>We can use the <strong>fitted spacetime EML model</strong> to generate predictions e.g. for
+four consecutive days in August. First, we import MODIS LST for month of interest:</p>
+<div class="sourceCode" id="cb80"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">hrpred1km</span> <span class="op">=</span> <span class="va">hrgrid1km</span>
+<span class="va">sel.tifs1</span> <span class="op">=</span> <span class="va">LST.listday</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/grep.html">grep</a></span><span class="op">(</span><span class="st">"_08_"</span>, <span class="va">LST.listday</span><span class="op">)</span><span class="op">]</span>
+<span class="va">sel.tifs2</span> <span class="op">=</span> <span class="va">LST.listnight</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/grep.html">grep</a></span><span class="op">(</span><span class="st">"_08_"</span>, <span class="va">LST.listnight</span><span class="op">)</span><span class="op">]</span>
+<span class="co">## read to R in parallel</span>
+<span class="va">x1</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/terra/man/as.data.frame.html">as.data.frame</a></span><span class="op">(</span> <span class="fu">parallel</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/parallel/mclapply.html">mclapply</a></span><span class="op">(</span><span class="va">sel.tifs1</span>, 
+      <span class="kw">function</span><span class="op">(</span><span class="va">i</span><span class="op">)</span><span class="op">{</span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="http://rgdal.r-forge.r-project.org/reference/readGDAL.html">readGDAL</a></span><span class="op">(</span><span class="va">i</span><span class="op">)</span><span class="op">$</span><span class="va">band1</span>; <span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html">ifelse</a></span><span class="op">(</span><span class="va">x</span><span class="op">&lt;</span><span class="fl">1</span>, <span class="cn">NA</span>, <span class="va">x</span><span class="op">)</span>; <span class="kw"><a href="https://rdrr.io/r/base/function.html">return</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">}</span>, 
+                                       mc.cores <span class="op">=</span> <span class="va">mc.cores</span><span class="op">)</span><span class="op">)</span>
+<span class="va">x2</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/terra/man/as.data.frame.html">as.data.frame</a></span><span class="op">(</span> <span class="fu">parallel</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/parallel/mclapply.html">mclapply</a></span><span class="op">(</span><span class="va">sel.tifs2</span>, 
+      <span class="kw">function</span><span class="op">(</span><span class="va">i</span><span class="op">)</span><span class="op">{</span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="http://rgdal.r-forge.r-project.org/reference/readGDAL.html">readGDAL</a></span><span class="op">(</span><span class="va">i</span><span class="op">)</span><span class="op">$</span><span class="va">band1</span>; <span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html">ifelse</a></span><span class="op">(</span><span class="va">x</span><span class="op">&lt;</span><span class="fl">1</span>, <span class="cn">NA</span>, <span class="va">x</span><span class="op">)</span>; <span class="kw"><a href="https://rdrr.io/r/base/function.html">return</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">}</span>, 
+                                       mc.cores <span class="op">=</span> <span class="va">mc.cores</span><span class="op">)</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/pkg/terra/man/names.html">names</a></span><span class="op">(</span><span class="va">x1</span><span class="op">)</span>  <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/basename.html">basename</a></span><span class="op">(</span><span class="va">sel.tifs1</span><span class="op">)</span>; <span class="fu"><a href="https://rdrr.io/pkg/terra/man/names.html">names</a></span><span class="op">(</span><span class="va">x2</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/basename.html">basename</a></span><span class="op">(</span><span class="va">sel.tifs2</span><span class="op">)</span></code></pre></div>
+<p>Second, we interpolate values between 8–day periods and fill gaps in EO data
+using simple linear interpolation (MODIS images are available only every 8 days):</p>
+<div class="sourceCode" id="cb81"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">dates.lst</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html">as.Date</a></span><span class="op">(</span><span class="st">"2006-08-13"</span><span class="op">)</span><span class="op">+</span><span class="fl">1</span><span class="op">:</span><span class="fl">8</span>
+<span class="va">in.dates</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/terra/man/c.html">c</a></span><span class="op">(</span><span class="st">"2006-08-05"</span>, <span class="st">"2006-08-13"</span>, <span class="st">"2006-08-21"</span>, <span class="st">"2006-08-29"</span><span class="op">)</span>
+<span class="va">in.days</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html">as.numeric</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/strptime.html">strftime</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/as.Date.html">as.Date</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/terra/man/c.html">c</a></span><span class="op">(</span><span class="va">in.dates</span><span class="op">)</span><span class="op">)</span>, format <span class="op">=</span> <span class="st">"%j"</span><span class="op">)</span><span class="op">)</span>
+<span class="co">## interpolate values for missing dates in spacetime</span>
+<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">parallel</span><span class="op">)</span>
+<span class="va">cl</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/parallel/makeCluster.html">makeCluster</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/parallel/detectCores.html">detectCores</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/parallel/clusterApply.html">clusterExport</a></span><span class="op">(</span><span class="va">cl</span>, <span class="fu"><a href="https://rdrr.io/pkg/terra/man/c.html">c</a></span><span class="op">(</span><span class="st">"in.days"</span>, <span class="st">"dates.lst"</span><span class="op">)</span><span class="op">)</span>
+<span class="va">t1s</span> <span class="op">=</span> <span class="fu">parallel</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/parallel/clusterApply.html">parApply</a></span><span class="op">(</span><span class="va">cl</span>, <span class="va">x1</span>, <span class="fl">1</span>, 
+      <span class="kw">function</span><span class="op">(</span><span class="va">y</span><span class="op">)</span> <span class="op">{</span> <span class="kw"><a href="https://rdrr.io/r/base/try.html">try</a></span><span class="op">(</span> <span class="fu"><a href="https://rdrr.io/r/stats/approxfun.html">approx</a></span><span class="op">(</span><span class="va">in.days</span>, <span class="fu"><a href="https://rdrr.io/pkg/terra/man/coerce.html">as.vector</a></span><span class="op">(</span><span class="va">y</span><span class="op">)</span>, xout<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/numeric.html">as.numeric</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/strptime.html">strftime</a></span><span class="op">(</span><span class="va">dates.lst</span>, format <span class="op">=</span> <span class="st">"%j"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">$</span><span class="va">y</span> <span class="op">)</span> <span class="op">}</span><span class="op">)</span>
+<span class="va">t2s</span> <span class="op">=</span> <span class="fu">parallel</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/parallel/clusterApply.html">parApply</a></span><span class="op">(</span><span class="va">cl</span>, <span class="va">x2</span>, <span class="fl">1</span>, 
+      <span class="kw">function</span><span class="op">(</span><span class="va">y</span><span class="op">)</span> <span class="op">{</span> <span class="kw"><a href="https://rdrr.io/r/base/try.html">try</a></span><span class="op">(</span> <span class="fu"><a href="https://rdrr.io/r/stats/approxfun.html">approx</a></span><span class="op">(</span><span class="va">in.days</span>, <span class="fu"><a href="https://rdrr.io/pkg/terra/man/coerce.html">as.vector</a></span><span class="op">(</span><span class="va">y</span><span class="op">)</span>, xout<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/numeric.html">as.numeric</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/strptime.html">strftime</a></span><span class="op">(</span><span class="va">dates.lst</span>, format <span class="op">=</span> <span class="st">"%j"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">$</span><span class="va">y</span> <span class="op">)</span> <span class="op">}</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/parallel/makeCluster.html">stopCluster</a></span><span class="op">(</span><span class="va">cl</span><span class="op">)</span>
+<span class="co">## remove missing pixels</span>
+<span class="va">x.t1s</span> <span class="op">=</span> <span class="fu">parallel</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/parallel/mclapply.html">mclapply</a></span><span class="op">(</span><span class="va">t1s</span>, <span class="va">length</span>, mc.cores <span class="op">=</span> <span class="va">mc.cores</span><span class="op">)</span>
+<span class="va">t1s</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/which.html">which</a></span><span class="op">(</span><span class="op">!</span><span class="va">x.t1s</span><span class="op">==</span><span class="fl">8</span><span class="op">)</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/terra/man/rep.html">rep</a></span><span class="op">(</span><span class="cn">NA</span>, <span class="fl">8</span><span class="op">)</span><span class="op">)</span>
+<span class="va">t1s</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/do.call.html">do.call</a></span><span class="op">(</span><span class="va">rbind.data.frame</span>, <span class="va">t1s</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/pkg/terra/man/names.html">names</a></span><span class="op">(</span><span class="va">t1s</span><span class="op">)</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="st">"LST.day_"</span>, <span class="va">dates.lst</span><span class="op">)</span>
+<span class="va">x.t2s</span> <span class="op">=</span> <span class="fu">parallel</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/parallel/mclapply.html">mclapply</a></span><span class="op">(</span><span class="va">t2s</span>, <span class="va">length</span>, mc.cores <span class="op">=</span> <span class="va">mc.cores</span><span class="op">)</span>
+<span class="va">t2s</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/which.html">which</a></span><span class="op">(</span><span class="op">!</span><span class="va">x.t2s</span><span class="op">==</span><span class="fl">8</span><span class="op">)</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/terra/man/rep.html">rep</a></span><span class="op">(</span><span class="cn">NA</span>, <span class="fl">8</span><span class="op">)</span><span class="op">)</span>
+<span class="va">t2s</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/do.call.html">do.call</a></span><span class="op">(</span><span class="va">rbind.data.frame</span>, <span class="va">t2s</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/pkg/terra/man/names.html">names</a></span><span class="op">(</span><span class="va">t2s</span><span class="op">)</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="st">"LST.night_"</span>, <span class="va">dates.lst</span><span class="op">)</span></code></pre></div>
+<p>Now we can make predictions for the target days in August 2006 by using (we run
+this operation in a loop to avoid RAM overload):</p>
+<div class="sourceCode" id="cb82"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="kw">for</span><span class="op">(</span><span class="va">j</span> <span class="kw">in</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste</a></span><span class="op">(</span><span class="va">dates.lst</span><span class="op">)</span><span class="op">)</span><span class="op">{</span>
+  <span class="va">out.tif</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="st">"output/MDTEMP_"</span>, <span class="va">j</span>, <span class="st">".tif"</span><span class="op">)</span>
+  <span class="kw">if</span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/files.html">file.exists</a></span><span class="op">(</span><span class="va">out.tif</span><span class="op">)</span><span class="op">)</span><span class="op">{</span>
+    <span class="va">hrpred1km</span><span class="op">@</span><span class="va">data</span><span class="op">[</span>,<span class="st">"LST.day"</span><span class="op">]</span> <span class="op">=</span> <span class="va">t1s</span><span class="op">[</span>,<span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="st">"LST.day_"</span>, <span class="va">j</span><span class="op">)</span><span class="op">]</span>
+    <span class="va">hrpred1km</span><span class="op">@</span><span class="va">data</span><span class="op">[</span>,<span class="st">"LST.night"</span><span class="op">]</span> <span class="op">=</span> <span class="va">t2s</span><span class="op">[</span>,<span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="st">"LST.night_"</span>, <span class="va">j</span><span class="op">)</span><span class="op">]</span>
+    <span class="va">hrpred1km</span><span class="op">$</span><span class="va">temp.mean</span> <span class="op">=</span> <span class="fu">temp.from.geom</span><span class="op">(</span>fi<span class="op">=</span><span class="va">hrpred1km</span><span class="op">$</span><span class="va">Lat</span>, 
+                     <span class="fu"><a href="https://rdrr.io/r/base/numeric.html">as.numeric</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/strptime.html">strftime</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/as.Date.html">as.Date</a></span><span class="op">(</span><span class="va">j</span><span class="op">)</span>, format <span class="op">=</span> <span class="st">"%j"</span><span class="op">)</span><span class="op">)</span>, 
+                     a<span class="op">=</span><span class="fl">37.03043</span>, b<span class="op">=</span><span class="op">-</span><span class="fl">15.43029</span>, elev<span class="op">=</span><span class="va">hrpred1km</span><span class="op">$</span><span class="va">HRdem</span>, t.grad<span class="op">=</span><span class="fl">0.6</span><span class="op">)</span>
+    <span class="va">sel.pix</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/complete.cases.html">complete.cases</a></span><span class="op">(</span><span class="va">hrpred1km</span><span class="op">@</span><span class="va">data</span><span class="op">[</span>,<span class="va">eml.TMP</span><span class="op">$</span><span class="va">features</span><span class="op">]</span><span class="op">)</span>
+    <span class="va">out</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/terra/man/predict.html">predict</a></span><span class="op">(</span><span class="va">eml.TMP</span>, newdata<span class="op">=</span><span class="va">hrpred1km</span><span class="op">@</span><span class="va">data</span><span class="op">[</span><span class="va">sel.pix</span>,<span class="va">eml.TMP</span><span class="op">$</span><span class="va">features</span><span class="op">]</span><span class="op">)</span>
+    <span class="va">hrpred1km</span><span class="op">@</span><span class="va">data</span><span class="op">[</span>,<span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="st">"MDTEMP_"</span>, <span class="va">j</span><span class="op">)</span><span class="op">]</span> <span class="op">=</span> <span class="cn">NA</span>
+    <span class="va">hrpred1km</span><span class="op">@</span><span class="va">data</span><span class="op">[</span><span class="va">sel.pix</span>, <span class="fu"><a href="https://rdrr.io/r/base/make.names.html">make.names</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="st">"MDTEMP_"</span>, <span class="va">j</span><span class="op">)</span><span class="op">)</span><span class="op">]</span> <span class="op">=</span> <span class="va">out</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">response</span> <span class="op">*</span> <span class="fl">10</span>
+    <span class="fu"><a href="http://rgdal.r-forge.r-project.org/reference/readGDAL.html">writeGDAL</a></span><span class="op">(</span><span class="va">hrpred1km</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/make.names.html">make.names</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="st">"MDTEMP_"</span>, <span class="va">j</span><span class="op">)</span><span class="op">)</span><span class="op">]</span>, <span class="va">out.tif</span>, mvFlag <span class="op">=</span> <span class="op">-</span><span class="fl">32768</span>,
+              type <span class="op">=</span> <span class="st">"Int16"</span>, options <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/terra/man/c.html">c</a></span><span class="op">(</span><span class="st">"COMPRESS=DEFLATE"</span><span class="op">)</span><span class="op">)</span>
+  <span class="op">}</span> <span class="kw">else</span> <span class="op">{</span>
+    <span class="va">hrpred1km</span><span class="op">@</span><span class="va">data</span><span class="op">[</span>,<span class="fu"><a href="https://rdrr.io/r/base/make.names.html">make.names</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="st">"MDTEMP_"</span>, <span class="va">j</span><span class="op">)</span><span class="op">)</span><span class="op">]</span> <span class="op">=</span> <span class="fu"><a href="http://rgdal.r-forge.r-project.org/reference/readGDAL.html">readGDAL</a></span><span class="op">(</span><span class="va">out.tif</span><span class="op">)</span><span class="op">$</span><span class="va">band1</span>
+  <span class="op">}</span>
+<span class="op">}</span>
+<span class="co">#&gt; output/MDTEMP_2006-08-14.tif has GDAL driver GTiff </span>
+<span class="co">#&gt; and has 487 rows and 490 columns</span>
+<span class="co">#&gt; output/MDTEMP_2006-08-15.tif has GDAL driver GTiff </span>
+<span class="co">#&gt; and has 487 rows and 490 columns</span>
+<span class="co">#&gt; output/MDTEMP_2006-08-16.tif has GDAL driver GTiff </span>
+<span class="co">#&gt; and has 487 rows and 490 columns</span>
+<span class="co">#&gt; output/MDTEMP_2006-08-17.tif has GDAL driver GTiff </span>
+<span class="co">#&gt; and has 487 rows and 490 columns</span>
+<span class="co">#&gt; output/MDTEMP_2006-08-18.tif has GDAL driver GTiff </span>
+<span class="co">#&gt; and has 487 rows and 490 columns</span>
+<span class="co">#&gt; output/MDTEMP_2006-08-19.tif has GDAL driver GTiff </span>
+<span class="co">#&gt; and has 487 rows and 490 columns</span>
+<span class="co">#&gt; output/MDTEMP_2006-08-20.tif has GDAL driver GTiff </span>
+<span class="co">#&gt; and has 487 rows and 490 columns</span>
+<span class="co">#&gt; output/MDTEMP_2006-08-21.tif has GDAL driver GTiff </span>
+<span class="co">#&gt; and has 487 rows and 490 columns</span></code></pre></div>
+<p>To plot these predictions we can either put predictions in the <code>spacetime</code> package
+class (see <a href="https://cran.r-project.org/web/packages/gstat/vignettes/spatio-temporal-kriging.pdf">gstat tutorial</a>), or simply plot them using <code>sp</code> package:</p>
+<div class="sourceCode" id="cb83"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">st.pts</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="st">"sp.points"</span>, <span class="va">idsta.pnts</span>, pch <span class="op">=</span> <span class="st">"+"</span>, col<span class="op">=</span><span class="st">"black"</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/pkg/sp/man/spplot.html">spplot</a></span><span class="op">(</span><span class="va">hrpred1km</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/make.names.html">make.names</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="st">"MDTEMP_"</span>, <span class="va">dates.lst</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/pkg/terra/man/c.html">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">4</span>,<span class="fl">8</span><span class="op">)</span><span class="op">]</span><span class="op">)</span><span class="op">)</span><span class="op">]</span>, 
+       col.regions<span class="op">=</span><span class="fu">plotKML</span><span class="fu">::</span><span class="va"><a href="https://rdrr.io/pkg/plotKML/man/SAGA_pal.html">R_pal</a></span><span class="op">[[</span><span class="st">"rainbow_75"</span><span class="op">]</span><span class="op">]</span><span class="op">[</span><span class="fl">4</span><span class="op">:</span><span class="fl">20</span><span class="op">]</span>,
+       at <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="fl">143</span>, <span class="fl">239</span>, length.out<span class="op">=</span><span class="fl">17</span><span class="op">)</span>,
+       sp.layout <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">st.pts</span><span class="op">)</span>,
+       main<span class="op">=</span><span class="st">"Prediction daily temperature"</span><span class="op">)</span>
+<span class="co">#dev.off()</span></code></pre></div>
+<div class="figure" style="text-align: center">
+<span id="fig:st-plottemp"></span>
+<img src="spatiotemporal-interpolation_files/figure-html/st-plottemp-1.png" alt="Predictions spacetime daily temperature for August 2006." width="100%"><p class="caption">
+Figure 4.3: Predictions spacetime daily temperature for August 2006.
+</p>
+</div>
+<p>In summary, this example shows how to fit spatiotemporal EML with using
+also seasonality component together with the EO data. It can hence
+be considered a <em>complete framework</em> for spatiotemporal interpolation as both static,
+dynamic covariates and latitude / elevation are used for model training.</p>
+</div>
+<div id="spatiotemporal-distribution-of-fagus-sylvatica" class="section level2" number="4.2">
+<h2>
+<span class="header-section-number">4.2</span> Spatiotemporal distribution of Fagus sylvatica<a class="anchor" aria-label="anchor" href="#spatiotemporal-distribution-of-fagus-sylvatica"><i class="fas fa-link"></i></a>
+</h2>
+<p>In the next example we show how to fit a spatiotemporal model
+using biological data: occurrences of <a href="https://www.gbif.org/species/2882316"><em>Fagus
+sylvatica</em></a> over Europe. This is
+the domain of <strong>Species Distribution modeling</strong>, except in this case we
+model distribution of target species also in spacetime. The training (point) data has
+been compiled for the purpose of the OpenDataScience.eu project, then
+cleaned and overlaid vs time-series of <a href="https://gitlab.com/geoharmonizer_inea/eumap">Landsat GLAD</a> images and climatic
+variables <span class="citation">(<a href="references.html#ref-Bonannella2022" role="doc-biblioref">Bonannella et al., 2022?</a>; <a href="references.html#ref-witjes2021spatiotemporal" role="doc-biblioref">Witjes et al., 2022?</a>)</span>.
+For more details about the data refer also to the <a href="https://gitlab.com/geoharmonizer_inea/eumap">eumap repository</a>.</p>
+<p>We can load a snapshot of data by using:</p>
+<div class="sourceCode" id="cb84"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="http://r-datatable.com">data.table</a></span><span class="op">)</span>
+<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org">dplyr</a></span><span class="op">)</span>
+<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://mlr.mlr-org.com">mlr</a></span><span class="op">)</span>
+<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/edzer/sp/">sp</a></span><span class="op">)</span>
+<span class="va">fs.rm</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html">readRDS</a></span><span class="op">(</span><span class="st">'input/fagus_sylvatica_st.rds'</span><span class="op">)</span>
+<span class="va">occ.pnts</span> <span class="op">=</span> <span class="va">fs.rm</span><span class="op">[</span>,<span class="fu"><a href="https://rdrr.io/pkg/terra/man/c.html">c</a></span><span class="op">(</span><span class="st">"Atlas_class"</span>,<span class="st">"easting"</span>,<span class="st">"northing"</span><span class="op">)</span><span class="op">]</span>
+<span class="fu"><a href="https://rdrr.io/pkg/sp/man/coordinates.html">coordinates</a></span><span class="op">(</span><span class="va">occ.pnts</span><span class="op">)</span> <span class="op">=</span> <span class="op">~</span> <span class="va">easting</span> <span class="op">+</span> <span class="va">northing</span>
+<span class="fu"><a href="https://rdrr.io/pkg/sp/man/is.projected.html">proj4string</a></span><span class="op">(</span><span class="va">occ.pnts</span><span class="op">)</span> <span class="op">=</span> <span class="st">"+init=epsg:3035"</span>
+<span class="va">occ.pnts</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/sp/man/spTransform.html">spTransform</a></span><span class="op">(</span><span class="va">occ.pnts</span>, <span class="fu"><a href="https://rdrr.io/pkg/sp/man/CRS-class.html">CRS</a></span><span class="op">(</span><span class="st">"+init=epsg:4326"</span><span class="op">)</span><span class="op">)</span></code></pre></div>
+<p>This is a subset of a <a href="https://doi.org/10.5281/zenodo.5818021">larger
+dataset</a> that
+has been used to produce predictions of distribution of key forest tree
+species for Europe (you can browse the data via <a href="https://maps.opendatascience.eu" class="uri">https://maps.opendatascience.eu</a>).
+The first columns of this dataset show:</p>
+<div class="sourceCode" id="cb85"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/pkg/terra/man/headtail.html">head</a></span><span class="op">(</span><span class="va">fs.rm</span><span class="op">[</span>,<span class="fl">1</span><span class="op">:</span><span class="fl">10</span><span class="op">]</span><span class="op">)</span>
+<span class="co">#&gt;        id year postprocess Tile_ID easting northing Atlas_class lc1</span>
+<span class="co">#&gt; 1  217127 2015   spacetime    4579 2925585  1639819           0    </span>
+<span class="co">#&gt; 2 1078455 2007   spacetime   12496 3551500  2886500           1    </span>
+<span class="co">#&gt; 3  332623 2012      yearly    8806 5650000  2286000           0 D20</span>
+<span class="co">#&gt; 4  488689 2018      yearly   14583 4116000  3230000           0 B16</span>
+<span class="co">#&gt; 5 2977316 2009   spacetime   23273 5376500  4601500           0    </span>
+<span class="co">#&gt; 6  649000 2002   spacetime    8163 3286500  2211500           1    </span>
+<span class="co">#&gt;   Abies_alba_distr.tiff Abies_spp._distr.tiff</span>
+<span class="co">#&gt; 1                     0                     0</span>
+<span class="co">#&gt; 2                   100                     0</span>
+<span class="co">#&gt; 3                     0                     0</span>
+<span class="co">#&gt; 4                   100                     0</span>
+<span class="co">#&gt; 5                     0                     0</span>
+<span class="co">#&gt; 6                     0                     0</span></code></pre></div>
+<p>The header columns are:</p>
+<ul>
+<li>
+<code>id</code>: is the unique ID of each point;<br>
+</li>
+<li>
+<code>year</code>: is the year of obsevation;<br>
+</li>
+<li>
+<code>postprocess</code>: column can have value yearly or spacetime to identify
+if the temporal reference of an observation comes from the original
+dataset or is the result of post-processing (yearly for originals,
+spacetime for post-processed points);<br>
+</li>
+<li>
+<code>Tile_ID</code>: is as extracted from the 30-km tiling system;<br>
+</li>
+<li>
+<code>easting</code>: is the easting coordinate of the observation point;<br>
+</li>
+<li>
+<code>northing</code>: is the northing coordinate of the observation point;<br>
+</li>
+<li>
+<code>Atlas_class</code>: contains name of the tree species or NULL if it’s an
+absence point coming from LUCAS;<br>
+</li>
+<li>
+<code>lc1</code>: contains original LUCAS land cover classes or NULL if it’s a
+presence point;</li>
+</ul>
+<p>Other columns are the EO and ecological covariates that we use for
+modeling distribution of <a href="https://www.gbif.org/species/2882316"><em>Fagus sylvatica</em></a>. We can plot distribution of points over EU using:</p>
+<div class="sourceCode" id="cb86"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/ropenscilabs/rnaturalearth">rnaturalearth</a></span><span class="op">)</span>
+<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://rspatial.org/raster">raster</a></span><span class="op">)</span>
+<span class="va">europe</span> <span class="op">&lt;-</span> <span class="fu">rnaturalearth</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/rnaturalearth/man/ne_countries.html">ne_countries</a></span><span class="op">(</span>scale<span class="op">=</span><span class="fl">10</span>, continent <span class="op">=</span> <span class="st">'europe'</span><span class="op">)</span>
+<span class="va">europe</span> <span class="op">&lt;-</span> <span class="fu">raster</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/raster/man/crop.html">crop</a></span><span class="op">(</span><span class="va">europe</span>, <span class="fu"><a href="https://rdrr.io/pkg/raster/man/extent.html">extent</a></span><span class="op">(</span><span class="op">-</span><span class="fl">24.8</span>,<span class="fl">35.2</span>,<span class="fl">31</span>,<span class="fl">68.5</span><span class="op">)</span><span class="op">)</span>
+<span class="va">op</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/graphics/par.html">par</a></span><span class="op">(</span>mar<span class="op">=</span><span class="fu"><a href="https://rdrr.io/pkg/terra/man/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">0</span>,<span class="fl">0</span>,<span class="fl">0</span><span class="op">)</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/pkg/raster/man/plot.html">plot</a></span><span class="op">(</span><span class="va">europe</span>, col<span class="op">=</span><span class="st">"lightgrey"</span>, border<span class="op">=</span><span class="st">"darkgrey"</span>, axes<span class="op">=</span><span class="cn">FALSE</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/graphics/points.html">points</a></span><span class="op">(</span><span class="va">occ.pnts</span><span class="op">[</span><span class="va">occ.pnts</span><span class="op">$</span><span class="va">Atlas_class</span><span class="op">==</span><span class="fl">1</span>,<span class="op">]</span>, pch<span class="op">=</span><span class="st">"+"</span>, cex<span class="op">=</span><span class="fl">.8</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/graphics/par.html">par</a></span><span class="op">(</span><span class="va">op</span><span class="op">)</span></code></pre></div>
+<div class="figure" style="text-align: center">
+<span id="fig:map-fs"></span>
+<img src="spatiotemporal-interpolation_files/figure-html/map-fs-1.png" alt="Distribution of occurrence locations for Fagus sylvatica. Each training points is also referrenced in time and hence can be used to run spacetime overlay." width="100%"><p class="caption">
+Figure 4.4: Distribution of occurrence locations for Fagus sylvatica. Each training points is also referrenced in time and hence can be used to run spacetime overlay.
+</p>
+</div>
+<p>As in previous examples, we first define the target model formula. We
+remove from model all other columns that are not used for prediction:</p>
+<div class="sourceCode" id="cb87"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">covs</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/grep.html">grep</a></span><span class="op">(</span><span class="st">"id|year|postprocess|Tile_ID|easting|northing|Atlas_class|lc1"</span>, 
+          <span class="fu"><a href="https://rdrr.io/r/base/colnames.html">colnames</a></span><span class="op">(</span><span class="va">fs.rm</span><span class="op">)</span>, value <span class="op">=</span> <span class="cn">TRUE</span>, invert <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>
+<span class="va">fm.fs</span> <span class="op">=</span> <span class="fu">stats</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/stats/formula.html">as.formula</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste</a></span><span class="op">(</span><span class="st">"Atlas_class ~ "</span>, <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste</a></span><span class="op">(</span><span class="va">covs</span>, collapse<span class="op">=</span><span class="st">"+"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
+<span class="va">fs.rm</span><span class="op">$</span><span class="va">Atlas_class</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html">factor</a></span><span class="op">(</span><span class="va">fs.rm</span><span class="op">$</span><span class="va">Atlas_class</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/base/allnames.html">all.vars</a></span><span class="op">(</span><span class="va">fm.fs</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">5</span><span class="op">]</span>
+<span class="co">#&gt; [1] "Atlas_class"                    "Abies_alba_distr.tiff"         </span>
+<span class="co">#&gt; [3] "Abies_spp._distr.tiff"          "Acer_campestre_distr.tiff"     </span>
+<span class="co">#&gt; [5] "Acer_pseudoplatanus_distr.tiff"</span></code></pre></div>
+<p>To speed-up fitting of the models we have prepared two functions that wrap all modeling steps. First step
+consists of fine-tuning the base learners:</p>
+<div class="sourceCode" id="cb88"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/source.html">source</a></span><span class="op">(</span><span class="st">"mlst_functions.R"</span><span class="op">)</span>
+<span class="va">fs.rm0</span> <span class="op">=</span> <span class="va">fs.rm</span> <span class="op"><a href="https://rdrr.io/pkg/magrittr/man/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/sample_n.html">sample_n</a></span><span class="op">(</span><span class="fl">5000</span><span class="op">)</span>
+<span class="va">tnd.ml</span> <span class="op">=</span> <span class="fu">tune_learners</span><span class="op">(</span>data <span class="op">=</span> <span class="va">fs.rm0</span>, formula <span class="op">=</span> <span class="va">fm.fs</span>, blocking <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html">factor</a></span><span class="op">(</span><span class="va">fs.rm</span><span class="op">$</span><span class="va">Tile_ID</span><span class="op">)</span><span class="op">)</span></code></pre></div>
+<p>This function runs hyperparameter optimization on binary classification models (<code>classif.ranger</code>, <code>classif.xgboost</code>, <code>classif.glmnet</code>) which will be later used to create an ensemble model.
+The intermediate models (fine-tuned RF and XGboost) are written to local folder <code>output</code> as RDS files.
+The output of the function is a RDS file including all the fine-tuned models and the formula.</p>
+<p>The second step is the fitting of the ensemble model based on stacked regularization:</p>
+<div class="sourceCode" id="cb89"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">eml.fs</span> <span class="op">=</span> <span class="fu">train_sp_eml</span><span class="op">(</span>data <span class="op">=</span> <span class="va">fs.rm0</span>, tune_result <span class="op">=</span> <span class="va">tnd.ml</span>, blocking <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/raster/man/factor.html">as.factor</a></span><span class="op">(</span><span class="va">fs.rm</span><span class="op">$</span><span class="va">Tile_ID</span><span class="op">)</span><span class="op">)</span></code></pre></div>
+<p>The function fits separately each of the previously used classification models: each algorithm
+will classify independently the probability of any training point being classified <code>0</code>
+(not-occurring) or <code>1</code> (occurring). The probability outputs of each model are then used as training dataset
+for the meta-learner. We use a GLM model with binomial link function (logistic regression):</p>
+<div class="sourceCode" id="cb90"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="co">#eml.fs = readRDS("output/eml_model.rds")</span>
+<span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">eml.fs</span><span class="op">$</span><span class="va">learner.model</span><span class="op">$</span><span class="va">super.model</span><span class="op">$</span><span class="va">learner.model</span><span class="op">)</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; Call:</span>
+<span class="co">#&gt; stats::glm(formula = f, family = "binomial", data = getTaskData(.task, </span>
+<span class="co">#&gt;     .subset), weights = .weights, model = FALSE)</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; Deviance Residuals: </span>
+<span class="co">#&gt;     Min       1Q   Median       3Q      Max  </span>
+<span class="co">#&gt; -3.0986  -0.1150  -0.1123  -0.1122   3.1439  </span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; Coefficients:</span>
+<span class="co">#&gt;                 Estimate Std. Error z value Pr(&gt;|z|)    </span>
+<span class="co">#&gt; (Intercept)      -5.0655     0.1776 -28.527  &lt; 2e-16 ***</span>
+<span class="co">#&gt; classif.ranger    3.7088     0.6548   5.664 1.48e-08 ***</span>
+<span class="co">#&gt; classif.xgboost   3.3720     0.5377   6.272 3.57e-10 ***</span>
+<span class="co">#&gt; classif.glmnet    2.7881     0.2986   9.337  &lt; 2e-16 ***</span>
+<span class="co">#&gt; ---</span>
+<span class="co">#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; (Dispersion parameter for binomial family taken to be 1)</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt;     Null deviance: 5314.27  on 4999  degrees of freedom</span>
+<span class="co">#&gt; Residual deviance:  729.32  on 4996  degrees of freedom</span>
+<span class="co">#&gt; AIC: 737.32</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; Number of Fisher Scoring iterations: 7</span></code></pre></div>
+<p>The variable importance analysis (RF component) shows that the most
+important covariates for mapping distribution of Fagus sylvatica are
+landsat images (which is expected considering the high spatial resolution)
+and the spatial distribution of other tree species (tree species commonly found
+together with Fagus sylvatica in the field):</p>
+<div class="sourceCode" id="cb91"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="http://ggplot2.tidyverse.org">ggplot2</a></span><span class="op">)</span>
+<span class="va">xl</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/raster/man/as.data.frame.html">as.data.frame</a></span><span class="op">(</span><span class="fu">mlr</span><span class="fu">::</span><span class="fu"><a href="https://mlr.mlr-org.com/reference/getFeatureImportance.html">getFeatureImportance</a></span><span class="op">(</span><span class="va">eml.fs</span><span class="op">[[</span><span class="st">"learner.model"</span><span class="op">]</span><span class="op">]</span><span class="op">[[</span><span class="st">"base.models"</span><span class="op">]</span><span class="op">]</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">)</span><span class="op">$</span><span class="va">res</span><span class="op">)</span>
+<span class="va">xl</span><span class="op">$</span><span class="va">relative_importance</span> <span class="op">=</span> <span class="fl">100</span><span class="op">*</span><span class="va">xl</span><span class="op">$</span><span class="va">importance</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">xl</span><span class="op">$</span><span class="va">importance</span><span class="op">)</span>
+<span class="va">xl</span> <span class="op">=</span> <span class="va">xl</span><span class="op">[</span><span class="fu"><a href="https://Rdatatable.gitlab.io/data.table/reference/setorder.html">order</a></span><span class="op">(</span><span class="va">xl</span><span class="op">$</span><span class="va">relative_importance</span>, decreasing <span class="op">=</span> <span class="cn">T</span><span class="op">)</span>,<span class="op">]</span>
+<span class="va">xl</span><span class="op">$</span><span class="va">variable</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/terra/man/c.html">c</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">238</span><span class="op">)</span>, <span class="st">". "</span>, <span class="va">xl</span><span class="op">$</span><span class="va">variable</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/pkg/ggplot2/man/ggplot.html">ggplot</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">xl</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">20</span>,<span class="op">]</span>, <span class="fu"><a href="https://rdrr.io/pkg/ggplot2/man/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/reorder.factor.html">reorder</a></span><span class="op">(</span><span class="va">variable</span>, <span class="va">relative_importance</span><span class="op">)</span>, y <span class="op">=</span> <span class="va">relative_importance</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/ggplot2/man/geom_bar.html">geom_bar</a></span><span class="op">(</span>fill <span class="op">=</span> <span class="st">"steelblue"</span>,
+           stat <span class="op">=</span> <span class="st">"identity"</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/ggplot2/man/coord_flip.html">coord_flip</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/ggplot2/man/labs.html">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Variable importance"</span>,
+       x <span class="op">=</span> <span class="cn">NULL</span>,
+       y <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/ggplot2/man/ggtheme.html">theme_bw</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/pkg/ggplot2/man/theme.html">theme</a></span><span class="op">(</span>text <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/ggplot2/man/element.html">element_text</a></span><span class="op">(</span>size<span class="op">=</span><span class="fl">10</span><span class="op">)</span><span class="op">)</span></code></pre></div>
+<div class="figure" style="text-align: center">
+<span id="fig:varimp-st"></span>
+<img src="spatiotemporal-interpolation_files/figure-html/varimp-st-1.png" alt="Variable importance for spatiotemporal model used to predict distribution of Fagus sylvatica." width="90%"><p class="caption">
+Figure 4.5: Variable importance for spatiotemporal model used to predict distribution of Fagus sylvatica.
+</p>
+</div>
+<p>To produce spacetime predictions for some tiles (30-m spatial
+resolution) we can run:</p>
+<div class="sourceCode" id="cb92"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">m1</span> <span class="op">=</span> <span class="fu">predict_tiles</span><span class="op">(</span>input <span class="op">=</span> <span class="st">"9690.2012"</span>,  model <span class="op">=</span> <span class="va">eml.fs</span><span class="op">)</span>
+<span class="va">m2</span> <span class="op">=</span> <span class="fu">predict_tiles</span><span class="op">(</span>input <span class="op">=</span> <span class="st">"9690.2016"</span>,  model <span class="op">=</span> <span class="va">eml.fs</span><span class="op">)</span>
+<span class="va">m3</span> <span class="op">=</span> <span class="fu">predict_tiles</span><span class="op">(</span>input <span class="op">=</span> <span class="st">"9690.2020"</span>,  model <span class="op">=</span> <span class="va">eml.fs</span><span class="op">)</span>
+<span class="va">m1</span><span class="op">$</span><span class="va">Prob.2012</span> <span class="op">=</span> <span class="va">m1</span><span class="op">$</span><span class="va">Prob</span>
+<span class="va">m1</span><span class="op">$</span><span class="va">Prob.2016</span> <span class="op">=</span> <span class="va">m2</span><span class="op">$</span><span class="va">Prob</span>
+<span class="va">m1</span><span class="op">$</span><span class="va">Prob.2020</span> <span class="op">=</span> <span class="va">m3</span><span class="op">$</span><span class="va">Prob</span></code></pre></div>
+<p>We can compare predictions of the probability of occurrence of the
+target species for two years next to each other by using:</p>
+<div class="sourceCode" id="cb93"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">pts</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="st">"sp.points"</span>, <span class="fu"><a href="https://rdrr.io/pkg/sp/man/spTransform.html">spTransform</a></span><span class="op">(</span><span class="va">occ.pnts</span><span class="op">[</span><span class="va">occ.pnts</span><span class="op">$</span><span class="va">Atlas_class</span><span class="op">==</span><span class="fl">1</span>,<span class="op">]</span>, <span class="fu"><a href="https://rdrr.io/pkg/sp/man/CRS-class.html">CRS</a></span><span class="op">(</span><span class="st">"+init=epsg:3035"</span><span class="op">)</span><span class="op">)</span>, 
+           pch <span class="op">=</span> <span class="st">"+"</span>, col<span class="op">=</span><span class="st">"black"</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/pkg/raster/man/spplot.html">spplot</a></span><span class="op">(</span><span class="va">m1</span><span class="op">[</span>,<span class="fu"><a href="https://rdrr.io/pkg/terra/man/c.html">c</a></span><span class="op">(</span><span class="st">"Prob.2012"</span>,<span class="st">"Prob.2016"</span>,<span class="st">"Prob.2020"</span><span class="op">)</span><span class="op">]</span>, names.attr <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/terra/man/c.html">c</a></span><span class="op">(</span><span class="st">"Prob.2010-2014"</span>, <span class="st">"Prob.2014-2018"</span>, <span class="st">"Prob.2018-2020"</span><span class="op">)</span>, col.regions<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/rev.html">rev</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/sp/man/bpy.colors.html">bpy.colors</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span>,
+  sp.layout <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">pts</span><span class="op">)</span>,
+  main<span class="op">=</span><span class="st">"Realized distribution of Fagus sylvatica"</span><span class="op">)</span></code></pre></div>
+<p>In this case there seems to be no drastic changes in the distribution of
+the target species through time, which is also expected because forest species distribution
+change on a scale of 50 to 100 year and not on a scale of few years.
+Some changes in distribution of the species, however, can be detected nevertheless.
+These can be due to abrupt events such as pest-pandemics, fires, floods or landslides
+or clear cutting of forests of course.</p>
+<p>We can also plot the images using the <code>plotKML</code> package so that we can open and
+visualize predictions also in Google Earth or similar:</p>
+<div class="sourceCode" id="cb94"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/Envirometrix/plotKML">plotKML</a></span><span class="op">)</span>
+<span class="kw">for</span><span class="op">(</span><span class="va">j</span> <span class="kw">in</span> <span class="fu"><a href="https://rdrr.io/pkg/terra/man/c.html">c</a></span><span class="op">(</span><span class="fl">2012</span>,<span class="fl">2016</span>,<span class="fl">2020</span><span class="op">)</span><span class="op">)</span><span class="op">{</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/plotKML/man/kml.html">kml</a></span><span class="op">(</span><span class="va">m1</span>, colour<span class="op">=</span><span class="va">m1</span><span class="op">@</span><span class="va">data</span><span class="op">[</span>,<span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="st">"Prob."</span>, <span class="va">j</span><span class="op">)</span><span class="op">]</span>, file.name<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="st">"prob."</span>, <span class="va">j</span>, <span class="st">".kml"</span><span class="op">)</span>,
+      raster_name <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="st">"prob."</span>, <span class="va">j</span>, <span class="st">".png"</span><span class="op">)</span>,
+      colour_scale <span class="op">=</span> <span class="va">SAGA_pal</span><span class="op">[[</span><span class="st">"SG_COLORS_YELLOW_BLUE"</span><span class="op">]</span><span class="op">]</span>, 
+      z.lim<span class="op">=</span><span class="fu"><a href="https://rdrr.io/pkg/terra/man/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">100</span><span class="op">)</span>,
+      TimeSpan.begin <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html">as.Date</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="va">j</span>, <span class="st">"-01-01"</span><span class="op">)</span><span class="op">)</span>, TimeSpan.end <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html">as.Date</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="va">j</span>, <span class="st">"-12-31"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
+<span class="op">}</span></code></pre></div>
+<p>In this case we attach to each prediction also the <code>TimeSpan.begin</code> and <code>TimeSpan.end</code>
+which means that Google Earth will recognize the temporal reference of the predictions.
+Opening predictions in Google Earth allows us to do some interpretation of produced maps and also
+analyze how much are the changes in vegetation cover connected with relief,
+proximity to urban areas, possible fire / flood events and similar.</p>
+<div class="figure" style="text-align: center">
+<span id="fig:fagus-ge"></span>
+<img src="img/Fig_google_earth_prob_ts.png" alt="Spacetime predictions of distribution of Fagus Sylvatica visualized as time-series data in Google Earth." width="100%"><p class="caption">
+Figure 4.6: Spacetime predictions of distribution of Fagus Sylvatica visualized as time-series data in Google Earth.
+</p>
+</div>
+<p>We can check how the ensemble model performs in the classification task compared to the
+component models by running a resampling operation for each learner and the meta-learner.
+In this example we use a 5-fold spatial cross validation repeated 5 times. We first create new learners
+and assign the hyperparameters obtained from the fine-tuning operation:</p>
+<div class="sourceCode" id="cb95"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">learners</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="fu"><a href="https://mlr.mlr-org.com/reference/makeLearner.html">makeLearner</a></span><span class="op">(</span><span class="st">"classif.ranger"</span>, predict.type <span class="op">=</span> <span class="st">"prob"</span>, num.trees <span class="op">=</span> <span class="fl">85</span><span class="op">)</span>,
+                <span class="fu"><a href="https://mlr.mlr-org.com/reference/makeLearner.html">makeLearner</a></span><span class="op">(</span><span class="st">"classif.xgboost"</span>, predict.type <span class="op">=</span> <span class="st">"prob"</span><span class="op">)</span>,
+                <span class="fu"><a href="https://mlr.mlr-org.com/reference/makeLearner.html">makeLearner</a></span><span class="op">(</span><span class="st">"classif.glmnet"</span>, predict.type <span class="op">=</span> <span class="st">"prob"</span><span class="op">)</span><span class="op">)</span>
+<span class="va">learners</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span> <span class="op">=</span> <span class="fu">mlr</span><span class="fu">::</span><span class="fu"><a href="https://mlr.mlr-org.com/reference/setHyperPars.html">setHyperPars</a></span><span class="op">(</span><span class="va">learners</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span>, par.vals <span class="op">=</span> <span class="fu">mlr</span><span class="fu">::</span><span class="fu"><a href="https://mlr.mlr-org.com/reference/getHyperPars.html">getHyperPars</a></span><span class="op">(</span><span class="va">tnd.ml</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">learner</span><span class="op">)</span><span class="op">)</span>
+<span class="va">learners</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span> <span class="op">=</span> <span class="fu">mlr</span><span class="fu">::</span><span class="fu"><a href="https://mlr.mlr-org.com/reference/setHyperPars.html">setHyperPars</a></span><span class="op">(</span><span class="va">learners</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span>, par.vals <span class="op">=</span> <span class="fu">mlr</span><span class="fu">::</span><span class="fu"><a href="https://mlr.mlr-org.com/reference/getHyperPars.html">getHyperPars</a></span><span class="op">(</span><span class="va">tnd.ml</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">learner</span><span class="op">)</span><span class="op">)</span>
+<span class="va">learners</span><span class="op">[[</span><span class="fl">3</span><span class="op">]</span><span class="op">]</span> <span class="op">=</span> <span class="fu">mlr</span><span class="fu">::</span><span class="fu"><a href="https://mlr.mlr-org.com/reference/setHyperPars.html">setHyperPars</a></span><span class="op">(</span><span class="va">learners</span><span class="op">[[</span><span class="fl">3</span><span class="op">]</span><span class="op">]</span>, par.vals <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>s <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html">min</a></span><span class="op">(</span><span class="va">tnd.ml</span><span class="op">[[</span><span class="fl">3</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">learner.model</span><span class="op">$</span><span class="va">lambda</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></code></pre></div>
+<p>Then we create the classification task (previously included in the functions), select which
+metric we want to evaluate our models on and resampling strategy. We are using logarithmic loss as
+performance metric for this example. After that, everything is set for the resampling operation, which
+we run in parallel:</p>
+<pre><code>#&gt; Starting parallelization in mode=socket with cpus=32.
+#&gt; Exporting objects to slaves for mode socket: .mlr.slave.options
+#&gt; Resampling: repeated cross-validation
+#&gt; Measures:             logloss
+#&gt; Mapping in parallel: mode = socket; level = mlr.resample; cpus = 32; elements = 25.
+#&gt; 
+#&gt; Aggregated Result: logloss.test.mean=0.1131968
+#&gt; 
+#&gt; Exporting objects to slaves for mode socket: .mlr.slave.options
+#&gt; Resampling: repeated cross-validation
+#&gt; Measures:             logloss
+#&gt; Mapping in parallel: mode = socket; level = mlr.resample; cpus = 32; elements = 25.
+#&gt; 
+#&gt; Aggregated Result: logloss.test.mean=0.0818324
+#&gt; 
+#&gt; Exporting objects to slaves for mode socket: .mlr.slave.options
+#&gt; Resampling: repeated cross-validation
+#&gt; Measures:             logloss
+#&gt; Mapping in parallel: mode = socket; level = mlr.resample; cpus = 32; elements = 25.
+#&gt; 
+#&gt; Aggregated Result: logloss.test.mean=0.1695897
+#&gt; </code></pre>
+<p>For the meta-learner, we access the predicted probabilities of the component models stored inside
+the ensemble model and use them as training data for the meta-learner in the resampling task. We
+need to create an additional task:</p>
+<pre><code>#&gt; Exporting objects to slaves for mode socket: .mlr.slave.options
+#&gt; Resampling: repeated cross-validation
+#&gt; Measures:             logloss
+#&gt; Mapping in parallel: mode = socket; level = mlr.resample; cpus = 32; elements = 25.
+#&gt; 
+#&gt; Aggregated Result: logloss.test.mean=0.0743475
+#&gt; 
+#&gt; Stopped parallelization. All cleaned up.</code></pre>
+<p>Logloss is a robust metric when assessing performances of classification algorithms in the
+probability space. However, it is less intuitive to represent. To better compare performances across
+models, we standardize the logloss values according to the following equation:</p>
+<p><span class="math inline">\(R^2_\text{logloss} = 1 -\frac{Logloss_\text{m}}{Logloss_\text{r}}\)</span></p>
+<p>Where <span class="math inline">\(Logloss_\text{m}\)</span> is the logloss value of the model and <span class="math inline">\(Logloss_\text{r}\)</span> is
+the logloss value of a model that performs no better than a random guess. We use the value of
+<span class="math inline">\(Logloss_\text{r}\)</span> as a baseline for predictive performances. Values of <span class="math inline">\(R^2_\text{logloss}\)</span> close to <code>1</code>
+indicate high predictive performances, while values close to <code>0</code> indicate poor predictive performances:</p>
+<pre><code>#&gt;        RF       XGB       GLM       EML 
+#&gt; 0.7887610 0.8472908 0.6835250 0.8612585</code></pre>
+<p>From this example, we can see that the ensemble model outperforms, although slightly, all
+the other models. It is also interesting to notice how Random forest is the best component
+model if we look at the ensemble model coefficients, but in terms of performances Xgboost
+is actually the closest to the ensemble.</p>
+</div>
+<div id="summary-notes" class="section level2" number="4.3">
+<h2>
+<span class="header-section-number">4.3</span> Summary notes<a class="anchor" aria-label="anchor" href="#summary-notes"><i class="fas fa-link"></i></a>
+</h2>
+<p>In this tutorial we have reviewed some aspects of spatial and
+spatiotemporal data and demonstrated how to use ML, specifically
+Ensemble ML, to train spatiotemporal models and produce time-series of
+predictions. We have also shown, using some synthetic and real-life datasets, how
+incorrectly setting up training and cross-validation can lead to
+over-fitting problems. This was done to help users realize that Machine Learning,
+however trivial it might seem, is not a click-a-button process and solid knowledge
+and understanding of advanced statistics (regression, hypothesis testing,
+sampling and resampling, probability theory) is still required.</p>
+<p>For spatiotemporal models, we recommend combining covariates that
+can represent both long-term or accumulated effects of climate, together with
+covariates that can represent daily to monthly oscillation of variables such as soil
+moisture, temperatures and similar. During the design of the modeling system,
+we highly recommend <strong>trying to understand ecology and processes behind
+variable of interest</strong> first, then designing the modeling system to best reflect expert
+knowledge. The example with RF over-fitting data in <span class="citation">Gasch et al. (<a href="references.html#ref-gasch2015spatio" role="doc-biblioref">2015</a>)</span> shows how in-depth
+understanding of the problem can help design modeling framework and prevent
+from over-fitting problems and similar. <span class="citation">Witjes et al. (<a href="references.html#ref-witjes2021spatiotemporal" role="doc-biblioref">2022?</a>)</span> and <span class="citation">Bonannella et al. (<a href="references.html#ref-Bonannella2022" role="doc-biblioref">2022?</a>)</span> describe a more comprehensive
+framework for spatiotemporal ML which can even be run on large datasets.</p>
+<p>Where time-series EO data exists, these can be also incorporated into the
+mapping algorithm as shown with three case studies. For spacetime overlays we
+recommend using Cloud-Optimized GeoTIFFs and the <code>terra</code> package <span class="citation">(<a href="references.html#ref-hijmans2019spatial" role="doc-biblioref">Hijmans, 2019</a>)</span> which helps speed-up overlays. Other options for efficient overlay are the <code>stars</code> and <code>gdalcubes</code> package <span class="citation">(<a href="references.html#ref-appel2019demand" role="doc-biblioref">Appel &amp; Pebesma, 2019</a>)</span>.</p>
+<p>Spatiotemporal datasets can be at the order of magnitude larger, hence
+it is important, when implementing analysis of spatiotemporal data, to
+consider <strong>computing optimization</strong>, which typically implies:</p>
+<ul>
+<li>Running operations in parallel;</li>
+<li>Separating fine-tuning and parameter optimization (best to run on
+subset and save computing time) from predictions,</li>
+<li>Using tiling systems to run overlay, predictions and visualizations,</li>
+</ul>
+<p>Finally, we recommend following these generic steps to fit spatiotemporal models:</p>
+<ol start="0" style="list-style-type: decimal">
+<li>Define target of interest and design the modeling framework by understanding
+ecology and processes behind variable of interest.<br>
+</li>
+<li>Prepare training (points) data and a data cube with all covariates
+referenced in spacetime.<br>
+</li>
+<li>Overlay points in spacetime, create a spatiotemporal
+regression- or classification-matrix.<br>
+</li>
+<li>Add seasonal components, fine-tune initial model, reduce complexity
+as much as possible, and produce production-ready spatiotemporal prediction model
+(usually using Ensemble Machine Learning).<br>
+</li>
+<li>Run mapping accuracy assessment and determine prediction uncertainty
+including the per pixel uncertainty.<br>
+</li>
+<li>Generate predictions in spacetime — create time-series of
+predictions.<br>
+</li>
+<li>(optional) Run change-detection / trend analysis and try to detect
+main drivers of positive / negative trends <span class="citation">(<a href="references.html#ref-witjes2021spatiotemporal" role="doc-biblioref">Witjes et al., 2022?</a>)</span>.<br>
+</li>
+<li>Deploy predictions as Cloud-Optimized GeoTIFF and produce the final
+report with mapping accuracy, variable importance.</li>
+</ol>
+<p>Ensemble ML framework we used here clearly offers many benefits, but it also comes
+at a cost of at the order of magnitude higher computational load. Also
+interpretation of such models can be a cumbersome as there a multiple
+learners plus a meta-learner, so it often becomes difficult to
+track-back individual relationship between variables. To help increase
+confidence in the produced models, we recommend studying the <a href="https://christophm.github.io/interpretable-ml-book/">Interpretable Machine
+Learning</a> methods
+<span class="citation">(<a href="references.html#ref-molnar2020interpretable" role="doc-biblioref">Molnar, 2020</a>)</span>, running additional model diagnostics, and
+intensively plotting data in space and spacetime and feature space.</p>
+<p>Note that the <code>mlr</code> package is discontinued, so some of the examples
+above might become unstable with time. You are advised instead to use
+the new <a href="https://mlr3.mlr-org.com/">mlr3 package</a>.</p>
+
+</div>
+</div>
+  <div class="chapter-nav">
+<div class="prev"><a href="spatial-interpolation-in-3d-using-ensemble-ml.html"><span class="header-section-number">3</span> Spatial interpolation in 3D using Ensemble ML</a></div>
+<div class="next"><a href="spatiotemporal-machine-learning-for-species-distribution-modeling.html"><span class="header-section-number">5</span> Spatiotemporal Machine Learning for Species Distribution Modeling</a></div>
+</div></main><div class="col-md-3 col-lg-2 d-none d-md-block sidebar sidebar-chapter">
+    <nav id="toc" data-toggle="toc" aria-label="On this page"><h2>On this page</h2>
+      <ul class="nav navbar-nav">
+<li><a class="nav-link" href="#spatiotemporal-ml"><span class="header-section-number">4</span> Spatiotemporal interpolation using Ensemble ML</a></li>
+<li><a class="nav-link" href="#spatiotemporal-interpolation-of-daily-temperatures"><span class="header-section-number">4.1</span> Spatiotemporal interpolation of daily temperatures</a></li>
+<li><a class="nav-link" href="#spatiotemporal-distribution-of-fagus-sylvatica"><span class="header-section-number">4.2</span> Spatiotemporal distribution of Fagus sylvatica</a></li>
+<li><a class="nav-link" href="#summary-notes"><span class="header-section-number">4.3</span> Summary notes</a></li>
+</ul>
+
+      <div class="book-extra">
+        <ul class="list-unstyled">
+<li><a id="book-source" href="https://github.com/OpenGeoHub/spatial-prediction-eml/blob/master/spatiotemporal-interpolation.Rmd">View source <i class="fab fa-github"></i></a></li>
+          <li><a id="book-edit" href="https://github.com/OpenGeoHub/spatial-prediction-eml/edit/master/spatiotemporal-interpolation.Rmd">Edit this page <i class="fab fa-github"></i></a></li>
+        </ul>
+</div>
+    </nav>
+</div>
+
+</div>
+</div> <!-- .container -->
+
+<footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
+
+  <div class="col-12 col-md-6 mt-3">
+    <p>"<strong>Spatial and spatiotemporal interpolation using Ensemble Machine Learning</strong>" was written by Tom Hengl, Leandro Parente and Carmelo Bonannella. </p>
+  </div>
+
+  <div class="col-12 col-md-6 mt-3">
+    <p>This book was built by the <a class="text-light" href="https://bookdown.org">bookdown</a> R package.</p>
+  </div>
+
+</div></div>
+</footer><!-- dynamically load mathjax for compatibility with self-contained --><script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    var src = "true";
+    if (src === "" || src === "true") src = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML";
+    if (location.protocol !== "file:")
+      if (/^https?:/.test(src))
+        src = src.replace(/^https?:/, '');
+    script.src = src;
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+</body>
+</html>

@@ -31,6 +31,7 @@ fig:fagus-ge
 fig:google-vis
 fig:pseudo-absences
 fig:pnts-eu
+fig:qgis-cogs
 fig:qgis-vis
 fig:decomposition-signal
 fig:map-oc250m
@@ -60,7 +61,7 @@ spatial-interpolation-in-3d-using-ensemble-ml
 mapping-concentrations-of-geochemical-elements
 predictions-in-3d
 advantages-and-limitations-of-running-3d-predictive-mapping
-spatiotemporal-interpolation-using-ensemble-ml
+spatiotemporal-ml
 spatiotemporal-interpolation-of-daily-temperatures
 spatiotemporal-distribution-of-fagus-sylvatica
 summary-notes
