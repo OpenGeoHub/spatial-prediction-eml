@@ -33,6 +33,7 @@ fig:pseudo-absences
 fig:pnts-eu
 fig:qgis-cogs
 fig:qgis-vis
+fig:betas-map
 fig:decomposition-signal
 fig:map-oc250m
 fig:map-oc100m

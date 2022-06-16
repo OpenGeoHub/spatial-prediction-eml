@@ -422,7 +422,7 @@ Figure 5.5: Spatiotemporal visualization of the predicted occurrence probability
 if some parts of Europe are showing higher increase in mosquito density. Example with predictions for Spain:</p>
 <div class="sourceCode" id="cb111"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/Envirometrix/plotKML">plotKML</a></span><span class="op">)</span>; <span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://rspatial.org/raster">raster</a></span><span class="op">)</span>
-<span class="va">es.tifs</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.files.html">list.files</a></span><span class="op">(</span><span class="st">"./output/spain1km"</span>, <span class="fu"><a href="https://rdrr.io/r/utils/glob2rx.html">glob2rx</a></span><span class="op">(</span><span class="st">"*_M_*.tif"</span><span class="op">)</span>, full.names <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>
+<span class="va">es.tifs</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.files.html">list.files</a></span><span class="op">(</span><span class="st">"./output/spain1km"</span>, <span class="fu"><a href="https://rdrr.io/r/utils/glob2rx.html">glob2rx</a></span><span class="op">(</span><span class="st">"aedes.albopictus_M_*.tif"</span><span class="op">)</span>, full.names <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>
 <span class="va">spain1km</span> <span class="op">=</span> <span class="fu">raster</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/raster/man/brick.html">brick</a></span><span class="op">(</span><span class="fu">raster</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/raster/man/stack.html">stack</a></span><span class="op">(</span><span class="va">es.tifs</span><span class="op">)</span><span class="op">)</span>
 <span class="co">#spplot(spain1km[[c(1,22)]], col.regions=SAGA_pal[[10]])</span></code></pre></div>
 <div class="sourceCode" id="cb112"><pre class="downlit sourceCode r">
@@ -433,6 +433,34 @@ if some parts of Europe are showing higher increase in mosquito density. Example
 <span class="fu"><a href="https://rdrr.io/pkg/raster/man/plot.html">plot</a></span><span class="op">(</span><span class="va">trendmap</span><span class="op">[[</span><span class="st">"SlopeSEG1"</span><span class="op">]</span><span class="op">]</span>, 
      col<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/rev.html">rev</a></span><span class="op">(</span><span class="va">SAGA_pal</span><span class="op">[[</span><span class="st">"SG_COLORS_GREEN_GREY_RED"</span><span class="op">]</span><span class="op">]</span><span class="op">)</span>, 
      zlim<span class="op">=</span><span class="fu"><a href="https://rdrr.io/pkg/terra/man/c.html">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">1.5</span>,<span class="fl">1.5</span><span class="op">)</span>, main<span class="op">=</span><span class="st">"Slope SEG1"</span><span class="op">)</span></code></pre></div>
+<p>Alternatively, we can also derive beta coefficient using parallelization and <code>lm</code> function.
+This basically fits model for every time-series of pixels and returns a vector.</p>
+<div class="sourceCode" id="cb113"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">xs</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/methods/as.html">as</a></span><span class="op">(</span><span class="va">spain1km</span>, <span class="st">"SpatialGridDataFrame"</span><span class="op">)</span>
+<span class="va">in.years</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html">as.numeric</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/substr.html">substr</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/lapply.html">sapply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/basename.html">basename</a></span><span class="op">(</span><span class="va">es.tifs</span><span class="op">)</span>, <span class="kw">function</span><span class="op">(</span><span class="va">i</span><span class="op">)</span><span class="op">{</span><span class="fu"><a href="https://Rdatatable.gitlab.io/data.table/reference/tstrsplit.html">strsplit</a></span><span class="op">(</span><span class="va">i</span>, <span class="st">"_"</span><span class="op">)</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">[</span><span class="fl">3</span><span class="op">]</span><span class="op">}</span><span class="op">)</span>, <span class="fl">1</span>, <span class="fl">4</span><span class="op">)</span><span class="op">)</span>
+<span class="va">cl</span> <span class="op">&lt;-</span> <span class="fu">parallel</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/parallel/makeCluster.html">makeCluster</a></span><span class="op">(</span><span class="fu">parallel</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/parallel/detectCores.html">detectCores</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span>
+<span class="fu">parallel</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/parallel/clusterApply.html">clusterExport</a></span><span class="op">(</span><span class="va">cl</span>, <span class="fu"><a href="https://rdrr.io/pkg/terra/man/c.html">c</a></span><span class="op">(</span><span class="st">"in.years"</span><span class="op">)</span><span class="op">)</span>
+<span class="co">## select ONLY pixels that change in time</span>
+<span class="va">sd.pix</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/which.html">which</a></span><span class="op">(</span><span class="op">!</span><span class="fu">parallel</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/parallel/clusterApply.html">parApply</a></span><span class="op">(</span><span class="va">cl</span>, <span class="va">xs</span><span class="op">@</span><span class="va">data</span>, <span class="fl">1</span>, <span class="va">sd</span>, na.rm<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span><span class="op">==</span><span class="fl">0</span><span class="op">)</span>
+<span class="co">## derive beta per pixel:</span>
+<span class="co">## Because probs are binary variable we use logit transformation</span>
+<span class="va">betas</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/unlist.html">unlist</a></span><span class="op">(</span><span class="fu">parallel</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/parallel/clusterApply.html">parApply</a></span><span class="op">(</span><span class="va">cl</span>, <span class="va">xs</span><span class="op">@</span><span class="va">data</span><span class="op">[</span><span class="va">sd.pix</span>,<span class="op">]</span>, <span class="fl">1</span>, <span class="kw">function</span><span class="op">(</span><span class="va">i</span><span class="op">)</span> <span class="op">{</span> 
+  <span class="kw"><a href="https://rdrr.io/r/base/try.html">try</a></span><span class="op">(</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span> <span class="fu"><a href="https://rdrr.io/r/stats/coef.html">coef</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/lm.html">lm</a></span><span class="op">(</span><span class="va">y</span><span class="op">~</span><span class="va">x</span>, <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span>x<span class="op">=</span><span class="va">in.years</span>, 
+    y<span class="op">=</span><span class="fu">boot</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/boot/man/logit.html">logit</a></span><span class="op">(</span><span class="fu"><a href="https://Rdatatable.gitlab.io/data.table/reference/fifelse.html">ifelse</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/raster/man/as.matrix.html">as.vector</a></span><span class="op">(</span><span class="va">i</span><span class="op">)</span><span class="op">&lt;=</span><span class="fl">0</span>, <span class="fl">0.1</span>, <span class="fu"><a href="https://Rdatatable.gitlab.io/data.table/reference/fifelse.html">ifelse</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/raster/man/as.matrix.html">as.vector</a></span><span class="op">(</span><span class="va">i</span><span class="op">)</span><span class="op">&gt;=</span><span class="fl">100</span>, <span class="fl">99.9</span>, <span class="fu"><a href="https://rdrr.io/pkg/raster/man/as.matrix.html">as.vector</a></span><span class="op">(</span><span class="va">i</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">/</span><span class="fl">100</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span> <span class="op">*</span><span class="fl">1000</span> <span class="op">)</span> 
+    <span class="op">)</span> <span class="op">}</span><span class="op">)</span><span class="op">)</span>
+<span class="co">## write to GeoTIF</span>
+<span class="va">spain.trend</span> <span class="op">=</span> <span class="va">xs</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>
+<span class="va">spain.trend</span><span class="op">@</span><span class="va">data</span><span class="op">[</span>,<span class="fl">1</span><span class="op">]</span> <span class="op">=</span> <span class="fl">0</span>
+<span class="va">spain.trend</span><span class="op">@</span><span class="va">data</span><span class="op">[</span><span class="va">sd.pix</span>,<span class="fl">1</span><span class="op">]</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html">as.numeric</a></span><span class="op">(</span><span class="va">betas</span><span class="op">)</span>
+<span class="fu">rgdal</span><span class="fu">::</span><span class="fu"><a href="http://rgdal.r-forge.r-project.org/reference/readGDAL.html">writeGDAL</a></span><span class="op">(</span><span class="va">spain.trend</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, <span class="st">"./output/spain_trend_aedes_1km.tif"</span>, type<span class="op">=</span><span class="st">"Int16"</span>, 
+          mvFlag<span class="op">=</span><span class="op">-</span><span class="fl">32768</span>, options<span class="op">=</span><span class="fu"><a href="https://rdrr.io/pkg/terra/man/c.html">c</a></span><span class="op">(</span><span class="st">"COMPRESS=DEFLATE"</span><span class="op">)</span><span class="op">)</span>
+<span class="fu">parallel</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/parallel/makeCluster.html">stopCluster</a></span><span class="op">(</span><span class="va">cl</span><span class="op">)</span></code></pre></div>
+<div class="figure" style="text-align: center">
+<span id="fig:betas-map"></span>
+<img src="img/spain_eades_trend.map.png" alt="Trend map for mosquito distribution through time. Red color indicates increase in occurrence probability, blue color decrease." width="90%"><p class="caption">
+Figure 5.6: Trend map for mosquito distribution through time. Red color indicates increase in occurrence probability, blue color decrease.
+</p>
+</div>
 </div>
 <div id="summary" class="section level2" number="5.6">
 <h2>
@@ -453,10 +481,15 @@ would have probably shown that probability of occurrence is increasing significa
 This does not necessarily has to match reality on the ground. Just because there
 are more records of the mosquito species for more recent years, that does not mean
 that the mosquito has appeared in recent years. In fact, if we would use Year as a covariate
-with this data, we would most likely introduce a bias in predictions.</p>
-<p>The simple alternative to derive (kernel) density maps of mosquitos for Europe would be to use the <code><a href="https://tilmandavies.github.io/sparr/reference/spattemp.density.html">sparr::spattemp.density</a></code>
-function:</p>
-<div class="sourceCode" id="cb113"><pre class="downlit sourceCode r">
+with this data, we would most likely introduce a bias in predictions <span class="citation">(<a href="references.html#ref-syfert2013effects" role="doc-biblioref">Syfert, Smith, &amp; Coomes, 2013</a>)</span>.</p>
+<p>GBIF data is of course of limited use for SDM and comes with often misssing meta-information
+and has, of course, huge gaps <span class="citation">(<a href="references.html#ref-Marcer2022" role="doc-biblioref">Marcer et al., n.d.</a>; <a href="references.html#ref-syfert2013effects" role="doc-biblioref">Syfert et al., 2013</a>)</span>. This does not means that also the
+analysis in this tutorial is flawed or should not be considered as trust-worthy;
+it only means that running any spatial analysis on GBIF data should be done with
+care and aiming at correct interpretation.</p>
+<p>The simple alternative to derive (kernel) density maps of mosquitos for Europe
+would be to use the <code><a href="https://tilmandavies.github.io/sparr/reference/spattemp.density.html">sparr::spattemp.density</a></code> function:</p>
+<div class="sourceCode" id="cb114"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">st.f</span> <span class="op">=</span> <span class="va">occ</span><span class="op">[</span>,<span class="fu"><a href="https://rdrr.io/pkg/terra/man/c.html">c</a></span><span class="op">(</span><span class="st">"decimalLongitude"</span>,<span class="st">"decimalLatitude"</span>,<span class="st">"Date"</span>,<span class="st">"individualCount"</span><span class="op">)</span><span class="op">]</span>
 <span class="va">st.f</span><span class="op">$</span><span class="va">individualCount</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html">as.numeric</a></span><span class="op">(</span><span class="fu"><a href="https://Rdatatable.gitlab.io/data.table/reference/fifelse.html">ifelse</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="va">st.f</span><span class="op">$</span><span class="va">individualCount</span><span class="op">)</span>, <span class="fl">1</span>, <span class="va">st.f</span><span class="op">$</span><span class="va">individualCount</span><span class="op">)</span><span class="op">)</span>
 <span class="fu"><a href="https://rdrr.io/pkg/raster/man/xyFromCell.html">coordinates</a></span><span class="op">(</span><span class="va">st.f</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/terra/man/c.html">c</a></span><span class="op">(</span><span class="st">"decimalLongitude"</span>, <span class="st">"decimalLatitude"</span><span class="op">)</span>
@@ -489,17 +522,18 @@ sampled occurrences of the phenomena are available.
 If this is not the case, the function <code><a href="https://tilmandavies.github.io/sparr/reference/spattemp.density.html">sparr::spattemp.density</a></code> would also probably produce a biased
 estimate of the distribution of mosquitos through time.</p>
 <p>Ensemble Machine Learning we used to generate predictions helps produce unbiased estimate of
-mosquito occurrences over Europe for a time-series of years. The disadvantages of the using
+mosquito occurrences over Europe for a time-series of years. The disadvantages of using
 spatiotemporal ML are:</p>
 <ul>
 <li>We are correlating the Earth Observation data with mosquito density, but mosquitos
 are dynamic and can not be sensed / seen from space, at least not at 1km resolution;
-we have to rely on correlation with environmental factors;<br>
+we have to rely on correlation with environmental factors and this can explain only smaller part of variation;<br>
 </li>
-<li>We assume that the training points are representative for various environmental conditions, while in practice less
-training data is available for physically distant areas e.g. mountains (hence these training data can be considered to be <strong>censored</strong>);</li>
-<li>Predictions produced in this example come with relatively high errors in extrapolation areas, so the predictions should be
-used with care;</li>
+<li>We assume that the GBIF training points are representative for various environmental
+conditions, while in practice less training data is available for physically distant
+areas e.g. mountains (hence these training data can be considered to be <strong>censored</strong>);</li>
+<li>Predictions produced in this example come with relatively high errors in extrapolation
+areas, so the predictions should be used together with the uncertainty maps;</li>
 </ul>
 </div>
 <div id="acknowledgments" class="section level2" number="5.7">

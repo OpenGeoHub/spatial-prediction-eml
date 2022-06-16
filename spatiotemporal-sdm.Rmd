@@ -290,9 +290,9 @@ knitr::include_graphics("./img/tiger_mosquito_europe_2000_2021_probs.gif")
 we can also derive beta coefficient per pixel using the [greenbrown package](https://greenbrown.r-forge.r-project.org/) to see 
 if some parts of Europe are showing higher increase in mosquito density. Example with predictions for Spain:
 
-```{r}
+```{r, eval=FALSE}
 library(plotKML); library(raster)
-es.tifs = list.files("./output/spain1km", glob2rx("*_M_*.tif"), full.names = TRUE)
+es.tifs = list.files("./output/spain1km", glob2rx("aedes.albopictus_M_*.tif"), full.names = TRUE)
 spain1km = raster::brick(raster::stack(es.tifs))
 #spplot(spain1km[[c(1,22)]], col.regions=SAGA_pal[[10]])
 ```
@@ -306,6 +306,36 @@ plot(trendmap[["SlopeSEG1"]],
      col=rev(SAGA_pal[["SG_COLORS_GREEN_GREY_RED"]]), 
      zlim=c(-1.5,1.5), main="Slope SEG1")
 ```
+
+Alternatively, we can also derive beta coefficient using parallelization and `lm` function. 
+This basically fits model for every time-series of pixels and returns a vector.
+
+```{r, eval=FALSE}
+xs = as(spain1km, "SpatialGridDataFrame")
+in.years = as.numeric(substr(sapply(basename(es.tifs), function(i){strsplit(i, "_")[[1]][3]}), 1, 4))
+cl <- parallel::makeCluster(parallel::detectCores())
+parallel::clusterExport(cl, c("in.years"))
+## select ONLY pixels that change in time
+sd.pix = which(!parallel::parApply(cl, xs@data, 1, sd, na.rm=TRUE)==0)
+## derive beta per pixel:
+## Because probs are binary variable we use logit transformation
+betas = unlist(parallel::parApply(cl, xs@data[sd.pix,], 1, function(i) { 
+  try( round( coef(lm(y~x, data.frame(x=in.years, 
+    y=boot::logit(ifelse(as.vector(i)<=0, 0.1, ifelse(as.vector(i)>=100, 99.9, as.vector(i)))/100))))[2] *1000 ) 
+    ) }))
+## write to GeoTIF
+spain.trend = xs[1]
+spain.trend@data[,1] = 0
+spain.trend@data[sd.pix,1] = as.numeric(betas)
+rgdal::writeGDAL(spain.trend[1], "./output/spain_trend_aedes_1km.tif", type="Int16", 
+          mvFlag=-32768, options=c("COMPRESS=DEFLATE"))
+parallel::stopCluster(cl)
+```
+
+```{r betas-map, echo=FALSE, fig.width=6, fig.cap="Trend map for mosquito distribution through time. Red color indicates increase in occurrence probability, blue color decrease.", out.width="90%"}
+knitr::include_graphics("./img/spain_eades_trend.map.png")
+```
+
 
 ## Summary
 
@@ -325,10 +355,16 @@ would have probably shown that probability of occurrence is increasing significa
 This does not necessarily has to match reality on the ground. Just because there 
 are more records of the mosquito species for more recent years, that does not mean 
 that the mosquito has appeared in recent years. In fact, if we would use Year as a covariate 
-with this data, we would most likely introduce a bias in predictions.
+with this data, we would most likely introduce a bias in predictions [@syfert2013effects].
 
-The simple alternative to derive (kernel) density maps of mosquitos for Europe would be to use the `sparr::spattemp.density` 
-function:
+GBIF data is of course of limited use for SDM and comes with often misssing meta-information 
+and has, of course, huge gaps [@syfert2013effects; @Marcer2022]. This does not means that also the 
+analysis in this tutorial is flawed or should not be considered as trust-worthy; 
+it only means that running any spatial analysis on GBIF data should be done with 
+care and aiming at correct interpretation.
+
+The simple alternative to derive (kernel) density maps of mosquitos for Europe 
+would be to use the `sparr::spattemp.density` function:
 
 ```{r, eval=FALSE}
 st.f = occ[,c("decimalLongitude","decimalLatitude","Date","individualCount")]
@@ -366,16 +402,17 @@ If this is not the case, the function `sparr::spattemp.density` would also proba
 estimate of the distribution of mosquitos through time.
 
 Ensemble Machine Learning we used to generate predictions helps produce unbiased estimate of 
-mosquito occurrences over Europe for a time-series of years. The disadvantages of the using 
+mosquito occurrences over Europe for a time-series of years. The disadvantages of using 
 spatiotemporal ML are:
 
 - We are correlating the Earth Observation data with mosquito density, but mosquitos 
 are dynamic and can not be sensed / seen from space, at least not at 1km resolution; 
-we have to rely on correlation with environmental factors;  
-- We assume that the training points are representative for various environmental conditions, while in practice less 
-training data is available for physically distant areas e.g. mountains (hence these training data can be considered to be **censored**);
-- Predictions produced in this example come with relatively high errors in extrapolation areas, so the predictions should be 
-used with care;
+we have to rely on correlation with environmental factors and this can explain only smaller part of variation;  
+- We assume that the GBIF training points are representative for various environmental 
+conditions, while in practice less training data is available for physically distant 
+areas e.g. mountains (hence these training data can be considered to be **censored**);
+- Predictions produced in this example come with relatively high errors in extrapolation 
+areas, so the predictions should be used together with the uncertainty maps;
 
 ## Acknowledgments
 
