@@ -82,7 +82,7 @@ To visualize the mosquito point data over Europe we can use e.g.:
 ```{r, eval=FALSE}
 library(spacetime)
 library(plotKML)
-sp_ST <- STIDF(SpatialPoints(occ[,c("decimalLongitude", "decimalLatitude")], proj4string = "EPSG:4326"), 
+sp_ST <- STIDF(SpatialPoints(occ[,c("decimalLongitude", "decimalLatitude")], proj4string = CRS("EPSG:4326")), 
                occ$Date, data.frame(individualCount=occ$individualCount))
 data(SAGA_pal)
 ## plot in Google Earth:
@@ -101,7 +101,8 @@ more records in GBIF coming from the last 5 years.
 
 ## Generating pseudo-absence data
 
-Pseudo-absence points can be generated in several ways [@Iturbide2015].  
+Pseudo-absence points can be generated in several ways, but most commonly by using 
+occurrence-only models, expert knowledge and/or geosurveys [@lobo2010uncertain; @Iturbide2015].  
 To generate pseudo-absence data we can use the [maxlike](https://github.com/rbchan/maxlike) package. First, we need 
 to prepare enough ecological information that can help us map habitat of the species 
 using all records for Europe. In the local folder we can find:
@@ -203,6 +204,22 @@ is documented in:
 ```{r}
 cov.lst = read.csv("./input/mood_layers1km.csv")
 str(cov.lst)
+```
+
+To connect to the layers and extract values at point locations we can use:
+
+```{r}
+library(terra)
+tif = paste0("/vsicurl/", cov.lst$filename[2])
+r = rast(tif)
+r
+```
+
+To get values of pixels at some location we can fetch values without downloading 
+the complete rasters e.g.:
+
+```{r}
+terra::extract(r, data.frame(x=3828332, y=2315068))
 ```
 
 ```{r qgis-cogs, echo=FALSE, fig.width=6, fig.cap="Opening Cloud-Optimized GeoTIFF layers in QGIS. The total size of layers exceeds 30GB so it is more efficient to access data using the COG-architecture and S3 services.", out.width="90%"}
