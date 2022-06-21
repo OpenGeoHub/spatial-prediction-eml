@@ -115,8 +115,7 @@ fs.selector = fs(
   "genetic_search", 
   popSize = length(feat.names), 
   elitism = round(length(feat.names) * 0.8), 
-  mutationChance = 0.1,
-  verbose = TRUE
+  mutationChance = 0.1
 )
 
 result = train_mlr3_model(
@@ -125,7 +124,6 @@ result = train_mlr3_model(
   learner = stacked.learner,
   measure=msr('classif.logloss'),
   fs.selector = fs.selector,
-  fs.selector = fs("genetic_search", popSize = length(feat.names), elitism = round(length(feat.names) * 0.8), mutationChance = 0.1),
   fs.resampling = rsmp("cv", folds = 5),
   fs.terminator = trm("run_time", secs = 120),
   fs.learner = fs.learner,
