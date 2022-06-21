@@ -4,13 +4,13 @@
 
 #setwd('/home/leandro/Code/spatial-prediction-eml/')
 
-ls <- c("dplyr", "mlr3", "mlr3learners", "mlr3pipelines", "mlr3filters", 
+ls <- c("dplyr", "mlr3", "mlr3learners", "mlr3pipelines", "mlr3filters", "genalg", 
         "mlr3extralearners", "mlr3fselect", "mlr3misc", "paradox", 
         "mlr3tuning", "paradox", "igraph")
 new.packages <- ls[!(ls %in% installed.packages()[,"Package"])]
 if(length(new.packages)) install.packages(new.packages)
 lapply(ls, require, character.only = TRUE)
-
+remotes::install_github("mlr-org/mlr3extralearners")
 source('./mlr3_functions.R')
 
 #######################################################
