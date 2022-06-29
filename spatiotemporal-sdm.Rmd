@@ -5,9 +5,10 @@ status("drafting")
 ```
 
 ```{r, include=FALSE, message=FALSE, results='hide'}
+devtools::install_github("talegari/solitude")
 ls <- c("rgdal", "raster", "plotKML", "ranger", "mlr", "rgbif", "terra",
         "randomForestSRC", "glmnet", "matrixStats", "landmap", "yardstick", "maxlike", 
-        "hexbin", "parallelMap", "Metrics", "fastSave", "devtools")
+        "hexbin", "parallelMap", "Metrics", "fastSave", "devtools", "solitude")
 new.packages <- ls[!(ls %in% installed.packages()[,"Package"])]
 if(length(new.packages)) install.packages(new.packages)
 lapply(ls, require, character.only = TRUE)
@@ -119,7 +120,7 @@ Temperatures](https://doi.org/10.5281/zenodo.1420114) for months 1, 3, 6 and 9,
 We can load the stack of rasters into R and use principal components to reduce 
 overlap between different layers:
 
-```{r, eval=FALSE}
+```{r}
 #gc()
 g4km = raster::stack(eco.tifs)
 g4km = as(g4km, "SpatialGridDataFrame")
@@ -134,6 +135,14 @@ g4km.spc = landmap::spc(g4km)
 
 Next, we can fit a `maxlike` model for occurrence probability using presence only data, 
 and predict values at all locations:
+
+```{r}
+occ.sp = occ[,c("decimalLongitude","decimalLatitude","Year","olc_c")]
+occ.sp = occ.sp[!duplicated(occ.sp$olc_c),]
+coordinates(occ.sp) <- c("decimalLongitude", "decimalLatitude")
+proj4string(occ.sp) <- CRS("+init=epsg:4326")
+occ.sp <- spTransform(occ.sp, "EPSG:3035")
+```
 
 ```{r, eval=FALSE}
 #gc()
@@ -193,6 +202,51 @@ In the case of the GBIF data two possible target variables could be used:
 
 We focus further on modeling the 0/1 states and predicting probabilities. This 
 puts this ML exercises into the category of ML for classification.
+
+## Modeling occurrence-only records using Random Forest
+
+Thanks to the package `solitude` it is possible to predict probability of distribution 
+of species by using the occurrence-only data. The method is explained in detail in 
+@liu2012isolation. Solitude builts on top of `ranger` package hence it is suitable 
+also for larger datasets. To fit the model we do not need to specify any target 
+column but we ONLY specify a matrix of covariates at occurrence locations:
+
+```{r}
+library(solitude)
+occ.ov = sp::over(occ.sp, g4km.spc@predicted[1:12])
+occ.ov = occ.ov[complete.cases(occ.ov),]
+#head(occ.ov)
+iso = isolationForest$new()
+iso$fit(dataset = occ.ov)
+```
+
+The fitted model shows:
+
+```{r}
+iso$forest
+```
+
+These numbers are somewhat difficult to interpret with R-square being close to 0.
+We can produce predictions of the anomaly scores (the likelihood that a point is an outlier) 
+for every location based on the fitted model using:
+
+```{r, eval=FALSE}
+pred.iso = iso$predict(data=g4km.spc@predicted@data[,1:12])
+g4km$anomaly_score = pred.iso$anomaly_score*100
+rgdal::writeGDAL(g4km["anomaly_score"], "./output/aedes_anomaly_score_4km.tif", type="Int16", 
+          mvFlag=-32768, options=c("COMPRESS=DEFLATE"))
+```
+
+this gives the following output:
+
+```{r solitude-eu, echo=FALSE, fig.width=6, fig.cap="Predicted anomaly score based on the solitude package for the Tiger mosquito. Red values indicate low anomaly.", out.width="80%"}
+knitr::include_graphics("./img/Fig_solitude_anomaly_tiger_mosquito_preview.jpg")
+```
+
+In general there seems to be a large difference in the outputs (spatial patterns) of `maxlike` and `solitude`, 
+nevertheless `solitude` also predicts that the temperature regime seem to be the most 
+limiting factor for the Tiger mosquito. The package `solitude` by default only returns 
+anomaly scores, which are abstract and should not be interpreted as probability of occurrence at all.
 
 ## Modeling distribution of mosquitos through time
 

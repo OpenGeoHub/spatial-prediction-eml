@@ -31,6 +31,7 @@ fig:fagus-ge
 fig:google-vis
 fig:pseudo-absences
 fig:pnts-eu
+fig:solitude-eu
 fig:qgis-cogs
 fig:qgis-vis
 fig:betas-map
@@ -70,6 +71,7 @@ spatiotemporal-machine-learning-for-species-distribution-modeling
 species-distribution-modeling
 tiger-mosquito-over-europe
 generating-pseudo-absence-data
+modeling-occurrence-only-records-using-random-forest
 modeling-distribution-of-mosquitos-through-time
 generating-the-trend-maps
 summary

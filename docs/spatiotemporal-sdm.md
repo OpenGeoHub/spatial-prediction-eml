@@ -151,10 +151,20 @@ g4km = g4km[cc.4km,]
 ## 2.2M pixels
 #plot(g4km[14])
 g4km.spc = landmap::spc(g4km)
+#> Converting covariates to principal components...
 ```
 
 Next, we can fit a `maxlike` model for occurrence probability using presence only data, 
 and predict values at all locations:
+
+
+```r
+occ.sp = occ[,c("decimalLongitude","decimalLatitude","Year","olc_c")]
+occ.sp = occ.sp[!duplicated(occ.sp$olc_c),]
+coordinates(occ.sp) <- c("decimalLongitude", "decimalLatitude")
+proj4string(occ.sp) <- CRS("+init=epsg:4326")
+occ.sp <- spTransform(occ.sp, "EPSG:3035")
+```
 
 
 ```r
@@ -217,6 +227,77 @@ In the case of the GBIF data two possible target variables could be used:
 
 We focus further on modeling the 0/1 states and predicting probabilities. This 
 puts this ML exercises into the category of ML for classification.
+
+## Modeling occurrence-only records using Random Forest
+
+Thanks to the package `solitude` it is possible to predict probability of distribution 
+of species by using the occurrence-only data. The method is explained in detail in 
+@liu2012isolation. Solitude builts on top of `ranger` package hence it is suitable 
+also for larger datasets. To fit the model we do not need to specify any target 
+column but we ONLY specify a matrix of covariates at occurrence locations:
+
+
+```r
+library(solitude)
+occ.ov = sp::over(occ.sp, g4km.spc@predicted[1:12])
+occ.ov = occ.ov[complete.cases(occ.ov),]
+#head(occ.ov)
+iso = isolationForest$new()
+iso$fit(dataset = occ.ov)
+#> INFO  [12:21:46.404] dataset has duplicated rows 
+#> INFO  [12:21:46.455] Building Isolation Forest ...  
+#> INFO  [12:21:46.549] done 
+#> INFO  [12:21:46.553] Computing depth of terminal nodes ...  
+#> INFO  [12:21:47.162] done 
+#> INFO  [12:21:47.436] Completed growing isolation forest
+```
+
+The fitted model shows:
+
+
+```r
+iso$forest
+#> Ranger result
+#> 
+#> Call:
+#>  ranger::ranger(x = dataset, y = yy, mtry = ncol(dataset) - 1L,      min.node.size = 1L, splitrule = "extratrees", num.random.splits = 1L,      num.trees = self$num_trees, replace = self$replace, sample.fraction = private$sample_fraction,      respect.unordered.factors = self$respect_unordered_factors,      num.threads = self$nproc, seed = self$seed, max.depth = self$max_depth) 
+#> 
+#> Type:                             Regression 
+#> Number of trees:                  100 
+#> Sample size:                      9253 
+#> Number of independent variables:  12 
+#> Mtry:                             11 
+#> Target node size:                 1 
+#> Variable importance mode:         none 
+#> Splitrule:                        extratrees 
+#> Number of random splits:          1 
+#> OOB prediction error (MSE):       7183789 
+#> R squared (OOB):                  -0.006752571
+```
+
+These numbers are somewhat difficult to interpret with R-square being close to 0.
+We can produce predictions of the anomaly scores (the likelihood that a point is an outlier) 
+for every location based on the fitted model using:
+
+
+```r
+pred.iso = iso$predict(data=g4km.spc@predicted@data[,1:12])
+g4km$anomaly_score = pred.iso$anomaly_score*100
+rgdal::writeGDAL(g4km["anomaly_score"], "./output/aedes_anomaly_score_4km.tif", type="Int16", 
+          mvFlag=-32768, options=c("COMPRESS=DEFLATE"))
+```
+
+this gives the following output:
+
+<div class="figure" style="text-align: center">
+<img src="./img/Fig_solitude_anomaly_tiger_mosquito_preview.jpg" alt="Predicted anomaly score based on the solitude package for the Tiger mosquito. Red values indicate low anomaly." width="80%" />
+<p class="caption">(\#fig:solitude-eu)Predicted anomaly score based on the solitude package for the Tiger mosquito. Red values indicate low anomaly.</p>
+</div>
+
+In general there seems to be a large difference in the outputs (spatial patterns) of `maxlike` and `solitude`, 
+nevertheless `solitude` also predicts that the temperature regime seem to be the most 
+limiting factor for the Tiger mosquito. The package `solitude` by default only returns 
+anomaly scores, which are abstract and should not be interpreted as probability of occurrence at all.
 
 ## Modeling distribution of mosquitos through time
 
