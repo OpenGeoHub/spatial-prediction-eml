@@ -137,7 +137,7 @@ A local copy of the occurrences for Europe can be loaded by using:</p>
 <span class="co">#&gt;  $ decimalLatitude              : num  42 43.3 45.8 38.1 42.1 ...</span>
 <span class="co">#&gt;  $ Year                         : int  2021 2021 2021 2021 2020 2020 2020 2020 2020 2020 ...</span>
 <span class="co">#&gt;  $ olc_c                        : chr  "8FH5X6G4+VF3" "8CMX8M42+Q8G" "8FQ6QVW7+M8J" "8CCX49J3+95Q" ...</span></code></pre></div>
-<p>To visualize the mosquito point data over Europe we can use e.g.:</p>
+<p>To <a href="https://datastudio.google.com/reporting/ae84bde2-a200-4254-bdd0-017f08a8baa7">visualize the mosquito point data</a> over Europe we can use e.g.:</p>
 <div class="sourceCode" id="cb100"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="http://github.com/edzer/spacetime">spacetime</a></span><span class="op">)</span>
 <span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/Envirometrix/plotKML">plotKML</a></span><span class="op">)</span>
@@ -228,17 +228,17 @@ and predict values at all locations:</p>
 Figure 5.2: Predicted probability of occurence for Tiger mosquito based on the maxent analysis. Darker-green areas indicated close to 100% probability of occurrence.
 </p>
 </div>
-<p>The maxlike occurrence probability map indicates that the Tiger
+<p>The <code>maxlike</code> occurrence probability map indicates that the Tiger
 mosquito seems to prefer coastal areas and is probably limited by the winter temperatures.
 The minimum temperature for survival of the mosquito adults is about 3–4 C degrees,
 for mosquito eggs minimum temperature is lower but still should be above -4 degrees <span class="citation">(<a href="references.html#ref-da2021will" role="doc-biblioref">Da Re, Montecino-Latorre, et al., 2021</a>)</span>.
 Note for habitat suitability analysis one could also use the <a href="https://github.com/johnbaums/rmaxent">maxent algorithm</a>
 or do analysis in both maxlike and maxent and then produce an ensemble estimate.</p>
 <p>Next, we can generate a reasonable number of pseudo-absences (as a rule of thumb,
-number of the generated pseudo-absences should not exceed 10 to 20% of the actual
+number of the generated pseudo-absences should not exceed 10% to 20% of the actual
 number of occurrence points):</p>
 <div class="sourceCode" id="cb105"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">max.ml.p</span> <span class="op">=</span> <span class="fu">rgdal</span><span class="fu">::</span><span class="fu"><a href="http://rgdal.r-forge.r-project.org/reference/readGDAL.html">writeGDAL</a></span><span class="op">(</span><span class="st">"./output/occ.prob_aedes_albopictus.tif"</span><span class="op">)</span>
+<code class="sourceCode R"><span class="va">max.ml.p</span> <span class="op">=</span> <span class="fu">rgdal</span><span class="fu">::</span><span class="fu"><a href="http://rgdal.r-forge.r-project.org/reference/readGDAL.html">readGDAL</a></span><span class="op">(</span><span class="st">"./output/occ.prob_aedes_albopictus.tif"</span><span class="op">)</span>
 <span class="co">## insert 0 values for all occurrences before the date:</span>
 <span class="va">max.ml.p</span><span class="op">$</span><span class="va">absence</span> <span class="op">=</span> <span class="fu"><a href="https://Rdatatable.gitlab.io/data.table/reference/fifelse.html">ifelse</a></span><span class="op">(</span><span class="va">max.ml.p</span><span class="op">$</span><span class="va">band1</span><span class="op">==</span><span class="fl">100</span>, <span class="fl">1</span>, <span class="cn">NA</span><span class="op">)</span>
 <span class="va">dens.var</span> <span class="op">&lt;-</span> <span class="fu">spatstat.geom</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/spatstat.geom/man/as.im.html">as.im</a></span><span class="op">(</span><span class="fu">sp</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/sp/man/image.html">as.image.SpatialGridDataFrame</a></span><span class="op">(</span><span class="va">max.ml.p</span><span class="op">[</span><span class="st">"absence"</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>
@@ -270,7 +270,7 @@ puts this ML exercises into the category of ML for classification.</p>
 </h2>
 <p>Thanks to the package <code>solitude</code> it is possible to predict probability of distribution
 of species by using the occurrence-only data. The method is explained in detail in
-<span class="citation">Liu, Ting, &amp; Zhou (<a href="references.html#ref-liu2012isolation" role="doc-biblioref">2012</a>)</span>. Solitude builts on top of <code>ranger</code> package hence it is suitable
+<span class="citation">Liu, Ting, &amp; Zhou (<a href="references.html#ref-liu2012isolation" role="doc-biblioref">2012</a>)</span> and <span class="citation">Hariri, Kind, &amp; Brunner (<a href="references.html#ref-hariri2019extended" role="doc-biblioref">2019</a>)</span>. Solitude builds on top of the <code>ranger</code> package hence it is suitable
 also for larger datasets. To fit the model we do not need to specify any target
 column but we ONLY specify a matrix of covariates at occurrence locations:</p>
 <div class="sourceCode" id="cb106"><pre class="downlit sourceCode r">
@@ -280,12 +280,12 @@ column but we ONLY specify a matrix of covariates at occurrence locations:</p>
 <span class="co">#head(occ.ov)</span>
 <span class="va">iso</span> <span class="op">=</span> <span class="va"><a href="https://rdrr.io/pkg/solitude/man/isolationForest.html">isolationForest</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="op">)</span>
 <span class="va">iso</span><span class="op">$</span><span class="fu">fit</span><span class="op">(</span>dataset <span class="op">=</span> <span class="va">occ.ov</span><span class="op">)</span>
-<span class="co">#&gt; INFO  [12:21:46.404] dataset has duplicated rows </span>
-<span class="co">#&gt; INFO  [12:21:46.455] Building Isolation Forest ...  </span>
-<span class="co">#&gt; INFO  [12:21:46.549] done </span>
-<span class="co">#&gt; INFO  [12:21:46.553] Computing depth of terminal nodes ...  </span>
-<span class="co">#&gt; INFO  [12:21:47.162] done </span>
-<span class="co">#&gt; INFO  [12:21:47.436] Completed growing isolation forest</span></code></pre></div>
+<span class="co">#&gt; INFO  [14:12:05.666] dataset has duplicated rows </span>
+<span class="co">#&gt; INFO  [14:12:05.716] Building Isolation Forest ...  </span>
+<span class="co">#&gt; INFO  [14:12:05.812] done </span>
+<span class="co">#&gt; INFO  [14:12:05.815] Computing depth of terminal nodes ...  </span>
+<span class="co">#&gt; INFO  [14:12:06.424] done </span>
+<span class="co">#&gt; INFO  [14:12:06.696] Completed growing isolation forest</span></code></pre></div>
 <p>The fitted model shows:</p>
 <div class="sourceCode" id="cb107"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">iso</span><span class="op">$</span><span class="va">forest</span>
@@ -321,8 +321,9 @@ Figure 5.4: Predicted anomaly score based on the solitude package for the Tiger 
 </p>
 </div>
 <p>In general there seems to be a large difference in the outputs (spatial patterns) of <code>maxlike</code> and <code>solitude</code>,
-nevertheless <code>solitude</code> also predicts that the temperature regime seem to be the most
-limiting factor for the Tiger mosquito. The package <code>solitude</code> by default only returns
+nevertheless the predictions seem to show overall similar patterns: both <code>maxlike</code> and
+<code>solitude</code> predict that the temperature regime seem to be the most
+limiting factor for the Tiger mosquito. Note, however, that <code>solitude</code> by default only returns
 anomaly scores, which are abstract and should not be interpreted as probability of occurrence at all.</p>
 </div>
 <div id="modeling-distribution-of-mosquitos-through-time" class="section level2" number="5.5">
@@ -572,7 +573,7 @@ Figure 5.7: Trend map for mosquito distribution through time. Red color indicate
 <p>In this chapter we demonstrate how to use occurrence-only records to map distribution of target species in spacetime.
 We again use Ensemble Machine Learning on training data overlaid in spacetime vs time-series
 of Night Light, vegetation, climatic images (years 2000–2021). The training data is
-limited to occurrence-only records and these are neither based on probability sampling
+limited to <a href="https://datastudio.google.com/reporting/ae84bde2-a200-4254-bdd0-017f08a8baa7">occurrence-only records</a> and these are neither based on probability sampling
 nor a consistent in time. Probably more suited training data set would have been if for example
 meteorological stations across EU have recorded daily records of mosquito occurrence (0/1).
 Having a systematic records at dense and well distributed locations across Europe would be

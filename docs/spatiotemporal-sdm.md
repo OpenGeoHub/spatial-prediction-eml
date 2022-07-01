@@ -80,7 +80,7 @@ str(occ)
 #>  $ olc_c                        : chr  "8FH5X6G4+VF3" "8CMX8M42+Q8G" "8FQ6QVW7+M8J" "8CCX49J3+95Q" ...
 ```
 
-To visualize the mosquito point data over Europe we can use e.g.:
+To [visualize the mosquito point data](https://datastudio.google.com/reporting/ae84bde2-a200-4254-bdd0-017f08a8baa7) over Europe we can use e.g.:
 
 
 ```r
@@ -102,7 +102,7 @@ This shows that mosquito seems to be concentrated in the southern Europe,
 primarily along coast-line, although some adults have been spotted also in the 
 Northern Europe. Note also that the mosquito seems to be continuously spreading 
 across Europe, however, we are not sure if this is also just because there are 
-more records in GBIF coming from the last 5 years.
+more records in GBIF coming from the last 5 years. 
 
 ## Generating pseudo-absence data
 
@@ -187,7 +187,7 @@ The resulting maps produced using maxlike are shown below.
 <p class="caption">(\#fig:pseudo-absences)Predicted probability of occurence for Tiger mosquito based on the maxent analysis. Darker-green areas indicated close to 100% probability of occurrence.</p>
 </div>
 
-The maxlike occurrence probability map indicates that the Tiger 
+The `maxlike` occurrence probability map indicates that the Tiger 
 mosquito seems to prefer coastal areas and is probably limited by the winter temperatures. 
 The minimum temperature for survival of the mosquito adults is about 3–4 C degrees, 
 for mosquito eggs minimum temperature is lower but still should be above -4 degrees [@da2021will].
@@ -195,12 +195,12 @@ Note for habitat suitability analysis one could also use the [maxent algorithm](
 or do analysis in both maxlike and maxent and then produce an ensemble estimate.
 
 Next, we can generate a reasonable number of pseudo-absences (as a rule of thumb, 
-number of the generated pseudo-absences should not exceed 10 to 20% of the actual 
+number of the generated pseudo-absences should not exceed 10% to 20% of the actual 
 number of occurrence points):
 
 
 ```r
-max.ml.p = rgdal::writeGDAL("./output/occ.prob_aedes_albopictus.tif")
+max.ml.p = rgdal::readGDAL("./output/occ.prob_aedes_albopictus.tif")
 ## insert 0 values for all occurrences before the date:
 max.ml.p$absence = ifelse(max.ml.p$band1==100, 1, NA)
 dens.var <- spatstat.geom::as.im(sp::as.image.SpatialGridDataFrame(max.ml.p["absence"]))
@@ -232,7 +232,7 @@ puts this ML exercises into the category of ML for classification.
 
 Thanks to the package `solitude` it is possible to predict probability of distribution 
 of species by using the occurrence-only data. The method is explained in detail in 
-@liu2012isolation. Solitude builts on top of `ranger` package hence it is suitable 
+@liu2012isolation and @hariri2019extended. Solitude builds on top of the `ranger` package hence it is suitable 
 also for larger datasets. To fit the model we do not need to specify any target 
 column but we ONLY specify a matrix of covariates at occurrence locations:
 
@@ -244,12 +244,12 @@ occ.ov = occ.ov[complete.cases(occ.ov),]
 #head(occ.ov)
 iso = isolationForest$new()
 iso$fit(dataset = occ.ov)
-#> INFO  [12:21:46.404] dataset has duplicated rows 
-#> INFO  [12:21:46.455] Building Isolation Forest ...  
-#> INFO  [12:21:46.549] done 
-#> INFO  [12:21:46.553] Computing depth of terminal nodes ...  
-#> INFO  [12:21:47.162] done 
-#> INFO  [12:21:47.436] Completed growing isolation forest
+#> INFO  [14:12:05.666] dataset has duplicated rows 
+#> INFO  [14:12:05.716] Building Isolation Forest ...  
+#> INFO  [14:12:05.812] done 
+#> INFO  [14:12:05.815] Computing depth of terminal nodes ...  
+#> INFO  [14:12:06.424] done 
+#> INFO  [14:12:06.696] Completed growing isolation forest
 ```
 
 The fitted model shows:
@@ -295,8 +295,9 @@ this gives the following output:
 </div>
 
 In general there seems to be a large difference in the outputs (spatial patterns) of `maxlike` and `solitude`, 
-nevertheless `solitude` also predicts that the temperature regime seem to be the most 
-limiting factor for the Tiger mosquito. The package `solitude` by default only returns 
+nevertheless the predictions seem to show overall similar patterns: both `maxlike` and 
+`solitude` predict that the temperature regime seem to be the most 
+limiting factor for the Tiger mosquito. Note, however, that `solitude` by default only returns 
 anomaly scores, which are abstract and should not be interpreted as probability of occurrence at all.
 
 ## Modeling distribution of mosquitos through time
@@ -573,7 +574,7 @@ parallel::stopCluster(cl)
 In this chapter we demonstrate how to use occurrence-only records to map distribution of target species in spacetime.
 We again use Ensemble Machine Learning on training data overlaid in spacetime vs time-series 
 of Night Light, vegetation, climatic images (years 2000–2021). The training data is 
-limited to occurrence-only records and these are neither based on probability sampling 
+limited to [occurrence-only records](https://datastudio.google.com/reporting/ae84bde2-a200-4254-bdd0-017f08a8baa7) and these are neither based on probability sampling 
 nor a consistent in time. Probably more suited training data set would have been if for example 
 meteorological stations across EU have recorded daily records of mosquito occurrence (0/1).
 Having a systematic records at dense and well distributed locations across Europe would be 
