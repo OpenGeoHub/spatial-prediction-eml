@@ -192,11 +192,6 @@ seem to be soil depth (`hnz_depth`), soil type maps, annual day time temperature
 
 ```r
 library(ggplot2)
-#> 
-#> Attaching package: 'ggplot2'
-#> The following object is masked from 'package:latticeExtra':
-#> 
-#>     layer
 xl.pb <- as.data.frame(mlr::getFeatureImportance(eml.pb[["learner.model"]][["base.models"]][[1]])$res)
 xl.pb$relative_importance = 100*xl.pb$importance/sum(xl.pb$importance)
 xl.pb = xl.pb[order(xl.pb$relative_importance, decreasing = T),]
@@ -277,6 +272,210 @@ Based on these results, it can be said that in general:
 3. Soil depth for some geochemical elements comes as the overall most important 
    covariate hence mapping soil variables in 3D is fully justified;
 
+## Modeling multiple geochemicals using a single ML model
+
+The package **randomForestSRC** [@Ishwaran2021] provides functionality to run so-called 
+[“Multivariate Outcomes”](https://www.randomforestsrc.org/articles/getstarted.html#multivariate-outcomes) which means that one can fit a model with multivariate outcomes. 
+In the case of geochemical data, usually multitude of geochemicals (50+) are analyzed in lab, so that 
+it seems more practical to fit a single model to predict p+ target variables (outcomes) all at once. 
+
+In the case of `ds801` dataset we can first specify number of target variables that we would like to map:
+
+
+```r
+tvs = c("as_ppm", "al_pct", "cd_ppm", "cr_ppm", "cu_ppm", "fe_pct",
+        "mo_ppm", "ni_ppm", "se_ppm", "th_ppm", "zn_ppm", "pb_ppm")
+## number of missing values per variable:
+sapply(tvs, function(i){sum(is.na(ds801[,i]))})
+#> as_ppm al_pct cd_ppm cr_ppm cu_ppm fe_pct mo_ppm ni_ppm se_ppm th_ppm zn_ppm 
+#>    198      4   4290     41     23     24     32     43   6906     19     31 
+#> pb_ppm 
+#>     11
+```
+
+These variables are obviously highly cross-correlated and their multiliearity could be reduced:
+
+<div class="figure" style="text-align: center">
+<img src="spatial-3D_files/figure-html/corPlot-1.png" alt="Correlation matrics for a selection of geochemicals. Number indicates correlation coefficient (0 to 100%). All variables seem to be positively correlated." width="100%" />
+<p class="caption">(\#fig:corPlot)Correlation matrics for a selection of geochemicals. Number indicates correlation coefficient (0 to 100%). All variables seem to be positively correlated.</p>
+</div>
+
+Here especially `zn`, `cu`, `fe`, `al` and `ni` seem to be highly cross-correlated. 
+Converting them to Principal Components is a logical step to reduce overlap in data. 
+Before transferring the original values to Principal Components we can also filter out 
+all missing values by replacing them with a mean value (for scaled variable this is 0):
+
+
+```r
+ds801.x[is.na(ds801.x)] <- 0
+ds801.xd <- as.data.frame(ds801.x)
+pcs.ds801 <- stats::prcomp(x = ds801.xd)
+```
+
+<div class="figure" style="text-align: center">
+<img src="spatial-3D_files/figure-html/biplot-1.png" alt="Results of PCA in a biplot." width="90%" />
+<p class="caption">(\#fig:biplot)Results of PCA in a biplot.</p>
+</div>
+
+We also recommend converting all log-normal or percent variables using `log1p` and/or logit transformation 
+to: (1) produce close-to-normal distribution and (2) avoid producting predictions beyond the physical range of data 
+(e.g. negative values or values >100%).
+
+First 6 components explain majority of variance in data, but it appears that to be on a safe-side, 
+we can model up to PC11:
+
+
+```r
+summary(pcs.ds801)
+#> Importance of components:
+#>                           PC1    PC2     PC3     PC4     PC5     PC6     PC7
+#> Standard deviation     2.4221 1.1343 0.98982 0.79734 0.74930 0.67263 0.63508
+#> Proportion of Variance 0.5244 0.1150 0.08759 0.05684 0.05019 0.04045 0.03606
+#> Cumulative Proportion  0.5244 0.6395 0.72706 0.78390 0.83409 0.87454 0.91060
+#>                            PC8     PC9    PC10    PC11    PC12
+#> Standard deviation     0.58353 0.50063 0.41659 0.37258 0.31070
+#> Proportion of Variance 0.03044 0.02241 0.01551 0.01241 0.00863
+#> Cumulative Proportion  0.94104 0.96344 0.97896 0.99137 1.00000
+```
+
+As a rule of thumb, we advise to focus on components that explain >95% of variance in the data; 
+to be certain one can also use >99% as the threshold.
+
+Note the steps we have taken so far include: (1) we first transform the target variables to achieve close to normal-distribution, 
+(2) we scale all numbers to have 0 = mean and 1 = standard deviation, (3) we replace missing value with the 
+mean value (0 in this case), (4) we derive Principle Components with all data so nothing is lost.
+
+Next, we can fit a model using the randomForestSRC package and all PCs expect for the last PC (which is 
+usually pure noise):
+
+
+```r
+nComp = 11; Ntree = 85
+xdta = ds801[,pr.vars]
+ydta = pcs.ds801$x[,1:nComp]
+tfm = get.mv.formula(colnames(ydta))
+m.s1 = randomForestSRC::rfsrc(tfm, data.frame(ydta, xdta), 
+                              importance=TRUE, ntree = Ntree)
+print(m.s1, outcome.target = "PC1")
+#>                          Sample size: 14275
+#>                      Number of trees: 85
+#>            Forest terminal node size: 5
+#>        Average no. of terminal nodes: 1885.718
+#> No. of variables tried at each split: 63
+#>               Total no. of variables: 188
+#>               Total no. of responses: 11
+#>          User has requested response: PC1
+#>        Resampling used to grow trees: swor
+#>     Resample size used to grow trees: 9022
+#>                             Analysis: mRF-R
+#>                               Family: regr+
+#>                       Splitting rule: mv.mse *random*
+#>        Number of random split points: 10
+#>                 % variance explained: 74.26
+#>                           Error rate: 1.51
+```
+
+This basically fits a multivariate RF of form `rfsrc(Multivar(y1, y2, ..., yd) ~ . , my.data, ...)`. 
+The resulting model show that the models explain significant part of variance. As expected the significance of the model 
+is usually the highest for the higher level components (PC1, PC2), then it gradually drops. 
+
+We can access the variable importance of each individual model by using:
+
+
+```r
+vmp <- as.data.frame(get.mv.vimp(m.s1))["PC1"]
+vmp$relative_importance = 100*vmp$PC1/sum(vmp$PC1)
+vmp = vmp[order(vmp$relative_importance, decreasing = TRUE),]
+vmp$variable = paste0(c(1:nrow(vmp)), ". ", row.names(vmp))
+ggplot(data = vmp[1:20,], aes(x = reorder(variable, relative_importance), y = relative_importance)) +
+  geom_bar(fill = "steelblue",
+           stat = "identity") +
+  coord_flip() +
+  labs(title = "Variable importance",
+       x = NULL,
+       y = NULL) +
+  theme_bw() + theme(text = element_text(size=15))
+```
+
+<div class="figure" style="text-align: center">
+<img src="spatial-3D_files/figure-html/varimp-pc1-1.png" alt="Variable importance for 3D prediction model for PC1." width="90%" />
+<p class="caption">(\#fig:varimp-pc1)Variable importance for 3D prediction model for PC1.</p>
+</div>
+
+To generate predictions for different depths and for different PCs, we can run loop 
+the `predict.rfsrc` function:
+
+
+```r
+for(j in 1:11){
+ for(k in c(5, 30, 60)){
+  out.tif = paste0("./output/pc", j, "_", k, "cm_1km.tif")
+  if(!file.exists(out.tif)){
+    g1km$hzn_depth = k
+    sel.na = complete.cases(g1km)
+    newdata = g1km[sel.na, pr.vars]
+    pred = predict(m.s1, m.target = paste0("PC", j), newdata=newdata)
+    g1km.sp = SpatialPixelsDataFrame(as.matrix(g1km[sel.na,c("x","y")]), 
+                data=data.frame(pred$regrOutput[[paste0("PC", j)]][[1]]), 
+                proj4string=CRS("EPSG:5070"))
+    g1km.sp$pred = g1km.sp@data[,1]*100
+    rgdal::writeGDAL(g1km.sp["pred"], out.tif, type="Int16", mvFlag=-32768, options=c("COMPRESS=DEFLATE"))
+    #gc()
+  }
+ }
+}
+```
+
+This gives predictions (in the scaled space) for each of the original target variables and for all depths. 
+Note that, because the randomForestSRC package [uses by default all cores](https://www.randomforestsrc.org/articles/parallel.html) to run model training and prediction, 
+there is no need to specify any further parallelization i.e. it is fine to run processing in a loop.
+
+After we generate predictions, we can (1) first [back-transform values to original scale](https://stats.stackexchange.com/questions/229092/how-to-reverse-pca-and-reconstruct-original-variables-from-several-principal-com) using the PCA model eigenvectors, (2) scale-back from log-transformation. 
+For example the predictions for top-soil, we first load all predicted PC's:
+
+
+```r
+ls.5cm = list.files('./output', pattern=glob2rx("^pc*_5cm_1km.tif$"), full.names = TRUE)
+pred.tops = raster::stack(ls.5cm)
+pred.tops = as(pred.tops, "SpatialGridDataFrame")
+```
+
+next, we back-transform values to original scale by using:
+
+
+```r
+Xhat = as.matrix(pred.tops@data[,paste0("pc", 1:nComp, "_5cm_1km")]/100) %*% t(pcs.ds801$rotation[,1:nComp])
+## scale-back to the original mean / stdev:
+Xhat.s = sweep(Xhat %*% diag(attr(ds801.x, 'scaled:scale')), 2, attr(ds801.x, 'scaled:center'), "+")
+Xhat.s = as.data.frame(expm1( Xhat.s ))
+names(Xhat.s) = tvs
+```
+
+We can plot two predictions of `Pb` (using EML produced in the previous example; and using PCA analysis) next to each other:
+
+
+```r
+pred.tops$Pb_5cm_1km.PCA = log1p(Xhat.s[,"pb_ppm"])
+pred.tops$Pb_5cm_1km.EML = log1p(readGDAL("./output/pb_ppm_5cm_1km.tif")$band1)
+#> ./output/pb_ppm_5cm_1km.tif has GDAL driver GTiff 
+#> and has 342 rows and 378 columns
+spplot(pred.tops[c("Pb_5cm_1km.EML", "Pb_5cm_1km.PCA")])
+```
+
+<div class="figure" style="text-align: center">
+<img src="spatial-3D_files/figure-html/pca-pred-1.png" alt="Predicted Pb concentration using ensemble ML (left) vs using the decomposition-composition PCA method (right)." width="100%" />
+<p class="caption">(\#fig:pca-pred)Predicted Pb concentration using ensemble ML (left) vs using the decomposition-composition PCA method (right).</p>
+</div>
+
+This shows that the predictions are quite similar, except the PCA-method somewhat smooths out some very 
+high values. 
+
+By combining PCA analysis and predictive mapping (we refer to this method as the **Decomposition-composition PCA method**) 
+one integrates modeling of multiple cross-correlated variables and multicolinearity reduction. 
+As a rule of thumb one can model only PCs that explain up to 99% of variance in data, this way modeling 
+effort can be significantly reduced (e.g. for 50+ target variables one could model all target variables 
+only a dozen of PCs). A disadvantage of the Decomposition-composition PCA method is that interpretation of 
+scaled values is somewhat more complex, certainly more abstract.
 
 ## Advantages and limitations of running 3D predictive mapping
 

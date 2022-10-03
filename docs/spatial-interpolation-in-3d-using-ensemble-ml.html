@@ -224,11 +224,6 @@ Figure 3.3: Accuracy plot for Pb concentration in soil fitted using Ensemble ML.
 seem to be soil depth (<code>hnz_depth</code>), soil type maps, annual day time temperature and travel time to cities:</p>
 <div class="sourceCode" id="cb62"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="http://ggplot2.tidyverse.org">ggplot2</a></span><span class="op">)</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; Attaching package: 'ggplot2'</span>
-<span class="co">#&gt; The following object is masked from 'package:latticeExtra':</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt;     layer</span>
 <span class="va">xl.pb</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/raster/man/as.data.frame.html">as.data.frame</a></span><span class="op">(</span><span class="fu">mlr</span><span class="fu">::</span><span class="fu"><a href="https://mlr.mlr-org.com/reference/getFeatureImportance.html">getFeatureImportance</a></span><span class="op">(</span><span class="va">eml.pb</span><span class="op">[[</span><span class="st">"learner.model"</span><span class="op">]</span><span class="op">]</span><span class="op">[[</span><span class="st">"base.models"</span><span class="op">]</span><span class="op">]</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">)</span><span class="op">$</span><span class="va">res</span><span class="op">)</span>
 <span class="va">xl.pb</span><span class="op">$</span><span class="va">relative_importance</span> <span class="op">=</span> <span class="fl">100</span><span class="op">*</span><span class="va">xl.pb</span><span class="op">$</span><span class="va">importance</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">xl.pb</span><span class="op">$</span><span class="va">importance</span><span class="op">)</span>
 <span class="va">xl.pb</span> <span class="op">=</span> <span class="va">xl.pb</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/order.html">order</a></span><span class="op">(</span><span class="va">xl.pb</span><span class="op">$</span><span class="va">relative_importance</span>, decreasing <span class="op">=</span> <span class="cn">T</span><span class="op">)</span>,<span class="op">]</span>
@@ -303,9 +298,176 @@ metals and this relationship if log-log linear;<br>
 covariate hence mapping soil variables in 3D is fully justified;</li>
 </ol>
 </div>
-<div id="advantages-and-limitations-of-running-3d-predictive-mapping" class="section level2" number="3.3">
+<div id="modeling-multiple-geochemicals-using-a-single-ml-model" class="section level2" number="3.3">
 <h2>
-<span class="header-section-number">3.3</span> Advantages and limitations of running 3D predictive mapping<a class="anchor" aria-label="anchor" href="#advantages-and-limitations-of-running-3d-predictive-mapping"><i class="fas fa-link"></i></a>
+<span class="header-section-number">3.3</span> Modeling multiple geochemicals using a single ML model<a class="anchor" aria-label="anchor" href="#modeling-multiple-geochemicals-using-a-single-ml-model"><i class="fas fa-link"></i></a>
+</h2>
+<p>The package <strong>randomForestSRC</strong> <span class="citation">(<a href="references.html#ref-Ishwaran2021" role="doc-biblioref">Ishwaran &amp; Kogalur, 2022</a>)</span> provides functionality to run so-called
+<a href="https://www.randomforestsrc.org/articles/getstarted.html#multivariate-outcomes">“Multivariate Outcomes”</a> which means that one can fit a model with multivariate outcomes.
+In the case of geochemical data, usually multitude of geochemicals (50+) are analyzed in lab, so that
+it seems more practical to fit a single model to predict p+ target variables (outcomes) all at once.</p>
+<p>In the case of <code>ds801</code> dataset we can first specify number of target variables that we would like to map:</p>
+<div class="sourceCode" id="cb66"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">tvs</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"as_ppm"</span>, <span class="st">"al_pct"</span>, <span class="st">"cd_ppm"</span>, <span class="st">"cr_ppm"</span>, <span class="st">"cu_ppm"</span>, <span class="st">"fe_pct"</span>,
+        <span class="st">"mo_ppm"</span>, <span class="st">"ni_ppm"</span>, <span class="st">"se_ppm"</span>, <span class="st">"th_ppm"</span>, <span class="st">"zn_ppm"</span>, <span class="st">"pb_ppm"</span><span class="op">)</span>
+<span class="co">## number of missing values per variable:</span>
+<span class="fu"><a href="https://rdrr.io/r/base/lapply.html">sapply</a></span><span class="op">(</span><span class="va">tvs</span>, <span class="kw">function</span><span class="op">(</span><span class="va">i</span><span class="op">)</span><span class="op">{</span><span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="va">ds801</span><span class="op">[</span>,<span class="va">i</span><span class="op">]</span><span class="op">)</span><span class="op">)</span><span class="op">}</span><span class="op">)</span>
+<span class="co">#&gt; as_ppm al_pct cd_ppm cr_ppm cu_ppm fe_pct mo_ppm ni_ppm se_ppm th_ppm zn_ppm </span>
+<span class="co">#&gt;    198      4   4290     41     23     24     32     43   6906     19     31 </span>
+<span class="co">#&gt; pb_ppm </span>
+<span class="co">#&gt;     11</span></code></pre></div>
+<p>These variables are obviously highly cross-correlated and their multiliearity could be reduced:</p>
+<div class="figure" style="text-align: center">
+<span id="fig:corPlot"></span>
+<img src="spatial-3D_files/figure-html/corPlot-1.png" alt="Correlation matrics for a selection of geochemicals. Number indicates correlation coefficient (0 to 100%). All variables seem to be positively correlated." width="100%"><p class="caption">
+Figure 3.7: Correlation matrics for a selection of geochemicals. Number indicates correlation coefficient (0 to 100%). All variables seem to be positively correlated.
+</p>
+</div>
+<p>Here especially <code>zn</code>, <code>cu</code>, <code>fe</code>, <code>al</code> and <code>ni</code> seem to be highly cross-correlated.
+Converting them to Principal Components is a logical step to reduce overlap in data.
+Before transferring the original values to Principal Components we can also filter out
+all missing values by replacing them with a mean value (for scaled variable this is 0):</p>
+<div class="sourceCode" id="cb67"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">ds801.x</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="va">ds801.x</span><span class="op">)</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fl">0</span>
+<span class="va">ds801.xd</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/raster/man/as.data.frame.html">as.data.frame</a></span><span class="op">(</span><span class="va">ds801.x</span><span class="op">)</span>
+<span class="va">pcs.ds801</span> <span class="op">&lt;-</span> <span class="fu">stats</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/stats/prcomp.html">prcomp</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">ds801.xd</span><span class="op">)</span></code></pre></div>
+<div class="figure" style="text-align: center">
+<span id="fig:biplot"></span>
+<img src="spatial-3D_files/figure-html/biplot-1.png" alt="Results of PCA in a biplot." width="90%"><p class="caption">
+Figure 3.8: Results of PCA in a biplot.
+</p>
+</div>
+<p>We also recommend converting all log-normal or percent variables using <code>log1p</code> and/or logit transformation
+to: (1) produce close-to-normal distribution and (2) avoid producting predictions beyond the physical range of data
+(e.g. negative values or values &gt;100%).</p>
+<p>First 6 components explain majority of variance in data, but it appears that to be on a safe-side,
+we can model up to PC11:</p>
+<div class="sourceCode" id="cb68"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">pcs.ds801</span><span class="op">)</span>
+<span class="co">#&gt; Importance of components:</span>
+<span class="co">#&gt;                           PC1    PC2     PC3     PC4     PC5     PC6     PC7</span>
+<span class="co">#&gt; Standard deviation     2.4221 1.1343 0.98982 0.79734 0.74930 0.67263 0.63508</span>
+<span class="co">#&gt; Proportion of Variance 0.5244 0.1150 0.08759 0.05684 0.05019 0.04045 0.03606</span>
+<span class="co">#&gt; Cumulative Proportion  0.5244 0.6395 0.72706 0.78390 0.83409 0.87454 0.91060</span>
+<span class="co">#&gt;                            PC8     PC9    PC10    PC11    PC12</span>
+<span class="co">#&gt; Standard deviation     0.58353 0.50063 0.41659 0.37258 0.31070</span>
+<span class="co">#&gt; Proportion of Variance 0.03044 0.02241 0.01551 0.01241 0.00863</span>
+<span class="co">#&gt; Cumulative Proportion  0.94104 0.96344 0.97896 0.99137 1.00000</span></code></pre></div>
+<p>As a rule of thumb, we advise to focus on components that explain &gt;95% of variance in the data;
+to be certain one can also use &gt;99% as the threshold.</p>
+<p>Note the steps we have taken so far include: (1) we first transform the target variables to achieve close to normal-distribution,
+(2) we scale all numbers to have 0 = mean and 1 = standard deviation, (3) we replace missing value with the
+mean value (0 in this case), (4) we derive Principle Components with all data so nothing is lost.</p>
+<p>Next, we can fit a model using the randomForestSRC package and all PCs expect for the last PC (which is
+usually pure noise):</p>
+<div class="sourceCode" id="cb69"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">nComp</span> <span class="op">=</span> <span class="fl">11</span>; <span class="va">Ntree</span> <span class="op">=</span> <span class="fl">85</span>
+<span class="va">xdta</span> <span class="op">=</span> <span class="va">ds801</span><span class="op">[</span>,<span class="va">pr.vars</span><span class="op">]</span>
+<span class="va">ydta</span> <span class="op">=</span> <span class="va">pcs.ds801</span><span class="op">$</span><span class="va">x</span><span class="op">[</span>,<span class="fl">1</span><span class="op">:</span><span class="va">nComp</span><span class="op">]</span>
+<span class="va">tfm</span> <span class="op">=</span> <span class="fu">get.mv.formula</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html">colnames</a></span><span class="op">(</span><span class="va">ydta</span><span class="op">)</span><span class="op">)</span>
+<span class="va">m.s1</span> <span class="op">=</span> <span class="fu">randomForestSRC</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/randomForestSRC/man/rfsrc.html">rfsrc</a></span><span class="op">(</span><span class="va">tfm</span>, <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span><span class="va">ydta</span>, <span class="va">xdta</span><span class="op">)</span>, 
+                              importance<span class="op">=</span><span class="cn">TRUE</span>, ntree <span class="op">=</span> <span class="va">Ntree</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/base/print.html">print</a></span><span class="op">(</span><span class="va">m.s1</span>, outcome.target <span class="op">=</span> <span class="st">"PC1"</span><span class="op">)</span>
+<span class="co">#&gt;                          Sample size: 14275</span>
+<span class="co">#&gt;                      Number of trees: 85</span>
+<span class="co">#&gt;            Forest terminal node size: 5</span>
+<span class="co">#&gt;        Average no. of terminal nodes: 1885.718</span>
+<span class="co">#&gt; No. of variables tried at each split: 63</span>
+<span class="co">#&gt;               Total no. of variables: 188</span>
+<span class="co">#&gt;               Total no. of responses: 11</span>
+<span class="co">#&gt;          User has requested response: PC1</span>
+<span class="co">#&gt;        Resampling used to grow trees: swor</span>
+<span class="co">#&gt;     Resample size used to grow trees: 9022</span>
+<span class="co">#&gt;                             Analysis: mRF-R</span>
+<span class="co">#&gt;                               Family: regr+</span>
+<span class="co">#&gt;                       Splitting rule: mv.mse *random*</span>
+<span class="co">#&gt;        Number of random split points: 10</span>
+<span class="co">#&gt;                 % variance explained: 74.26</span>
+<span class="co">#&gt;                           Error rate: 1.51</span></code></pre></div>
+<p>This basically fits a multivariate RF of form <code>rfsrc(Multivar(y1, y2, ..., yd) ~ . , my.data, ...)</code>.
+The resulting model show that the models explain significant part of variance. As expected the significance of the model
+is usually the highest for the higher level components (PC1, PC2), then it gradually drops.</p>
+<p>We can access the variable importance of each individual model by using:</p>
+<div class="sourceCode" id="cb70"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">vmp</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/raster/man/as.data.frame.html">as.data.frame</a></span><span class="op">(</span><span class="fu">get.mv.vimp</span><span class="op">(</span><span class="va">m.s1</span><span class="op">)</span><span class="op">)</span><span class="op">[</span><span class="st">"PC1"</span><span class="op">]</span>
+<span class="va">vmp</span><span class="op">$</span><span class="va">relative_importance</span> <span class="op">=</span> <span class="fl">100</span><span class="op">*</span><span class="va">vmp</span><span class="op">$</span><span class="va">PC1</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">vmp</span><span class="op">$</span><span class="va">PC1</span><span class="op">)</span>
+<span class="va">vmp</span> <span class="op">=</span> <span class="va">vmp</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/order.html">order</a></span><span class="op">(</span><span class="va">vmp</span><span class="op">$</span><span class="va">relative_importance</span>, decreasing <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,<span class="op">]</span>
+<span class="va">vmp</span><span class="op">$</span><span class="va">variable</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/pkg/raster/man/ncell.html">nrow</a></span><span class="op">(</span><span class="va">vmp</span><span class="op">)</span><span class="op">)</span>, <span class="st">". "</span>, <span class="fu"><a href="https://rdrr.io/r/base/row.names.html">row.names</a></span><span class="op">(</span><span class="va">vmp</span><span class="op">)</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/pkg/ggplot2/man/ggplot.html">ggplot</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">vmp</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">20</span>,<span class="op">]</span>, <span class="fu"><a href="https://rdrr.io/pkg/ggplot2/man/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/reorder.factor.html">reorder</a></span><span class="op">(</span><span class="va">variable</span>, <span class="va">relative_importance</span><span class="op">)</span>, y <span class="op">=</span> <span class="va">relative_importance</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/ggplot2/man/geom_bar.html">geom_bar</a></span><span class="op">(</span>fill <span class="op">=</span> <span class="st">"steelblue"</span>,
+           stat <span class="op">=</span> <span class="st">"identity"</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/ggplot2/man/coord_flip.html">coord_flip</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/ggplot2/man/labs.html">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Variable importance"</span>,
+       x <span class="op">=</span> <span class="cn">NULL</span>,
+       y <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/ggplot2/man/ggtheme.html">theme_bw</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/pkg/ggplot2/man/theme.html">theme</a></span><span class="op">(</span>text <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/ggplot2/man/element.html">element_text</a></span><span class="op">(</span>size<span class="op">=</span><span class="fl">15</span><span class="op">)</span><span class="op">)</span></code></pre></div>
+<div class="figure" style="text-align: center">
+<span id="fig:varimp-pc1"></span>
+<img src="spatial-3D_files/figure-html/varimp-pc1-1.png" alt="Variable importance for 3D prediction model for PC1." width="90%"><p class="caption">
+Figure 3.9: Variable importance for 3D prediction model for PC1.
+</p>
+</div>
+<p>To generate predictions for different depths and for different PCs, we can run loop
+the <code>predict.rfsrc</code> function:</p>
+<div class="sourceCode" id="cb71"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="kw">for</span><span class="op">(</span><span class="va">j</span> <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fl">11</span><span class="op">)</span><span class="op">{</span>
+ <span class="kw">for</span><span class="op">(</span><span class="va">k</span> <span class="kw">in</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">5</span>, <span class="fl">30</span>, <span class="fl">60</span><span class="op">)</span><span class="op">)</span><span class="op">{</span>
+  <span class="va">out.tif</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="st">"./output/pc"</span>, <span class="va">j</span>, <span class="st">"_"</span>, <span class="va">k</span>, <span class="st">"cm_1km.tif"</span><span class="op">)</span>
+  <span class="kw">if</span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/files.html">file.exists</a></span><span class="op">(</span><span class="va">out.tif</span><span class="op">)</span><span class="op">)</span><span class="op">{</span>
+    <span class="va">g1km</span><span class="op">$</span><span class="va">hzn_depth</span> <span class="op">=</span> <span class="va">k</span>
+    <span class="va">sel.na</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/complete.cases.html">complete.cases</a></span><span class="op">(</span><span class="va">g1km</span><span class="op">)</span>
+    <span class="va">newdata</span> <span class="op">=</span> <span class="va">g1km</span><span class="op">[</span><span class="va">sel.na</span>, <span class="va">pr.vars</span><span class="op">]</span>
+    <span class="va">pred</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/raster/man/predict.html">predict</a></span><span class="op">(</span><span class="va">m.s1</span>, m.target <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="st">"PC"</span>, <span class="va">j</span><span class="op">)</span>, newdata<span class="op">=</span><span class="va">newdata</span><span class="op">)</span>
+    <span class="va">g1km.sp</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/sp/man/SpatialGridDataFrame.html">SpatialPixelsDataFrame</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/raster/man/as.matrix.html">as.matrix</a></span><span class="op">(</span><span class="va">g1km</span><span class="op">[</span><span class="va">sel.na</span>,<span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"x"</span>,<span class="st">"y"</span><span class="op">)</span><span class="op">]</span><span class="op">)</span>, 
+                data<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span><span class="va">pred</span><span class="op">$</span><span class="va">regrOutput</span><span class="op">[[</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="st">"PC"</span>, <span class="va">j</span><span class="op">)</span><span class="op">]</span><span class="op">]</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">)</span>, 
+                proj4string<span class="op">=</span><span class="fu"><a href="http://rgdal.r-forge.r-project.org/reference/CRS-class.html">CRS</a></span><span class="op">(</span><span class="st">"EPSG:5070"</span><span class="op">)</span><span class="op">)</span>
+    <span class="va">g1km.sp</span><span class="op">$</span><span class="va">pred</span> <span class="op">=</span> <span class="va">g1km.sp</span><span class="op">@</span><span class="va">data</span><span class="op">[</span>,<span class="fl">1</span><span class="op">]</span><span class="op">*</span><span class="fl">100</span>
+    <span class="fu">rgdal</span><span class="fu">::</span><span class="fu"><a href="http://rgdal.r-forge.r-project.org/reference/readGDAL.html">writeGDAL</a></span><span class="op">(</span><span class="va">g1km.sp</span><span class="op">[</span><span class="st">"pred"</span><span class="op">]</span>, <span class="va">out.tif</span>, type<span class="op">=</span><span class="st">"Int16"</span>, mvFlag<span class="op">=</span><span class="op">-</span><span class="fl">32768</span>, options<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"COMPRESS=DEFLATE"</span><span class="op">)</span><span class="op">)</span>
+    <span class="co">#gc()</span>
+  <span class="op">}</span>
+ <span class="op">}</span>
+<span class="op">}</span></code></pre></div>
+<p>This gives predictions (in the scaled space) for each of the original target variables and for all depths.
+Note that, because the randomForestSRC package <a href="https://www.randomforestsrc.org/articles/parallel.html">uses by default all cores</a> to run model training and prediction,
+there is no need to specify any further parallelization i.e. it is fine to run processing in a loop.</p>
+<p>After we generate predictions, we can (1) first <a href="https://stats.stackexchange.com/questions/229092/how-to-reverse-pca-and-reconstruct-original-variables-from-several-principal-com">back-transform values to original scale</a> using the PCA model eigenvectors, (2) scale-back from log-transformation.
+For example the predictions for top-soil, we first load all predicted PC’s:</p>
+<div class="sourceCode" id="cb72"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">ls.5cm</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.files.html">list.files</a></span><span class="op">(</span><span class="st">'./output'</span>, pattern<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/utils/glob2rx.html">glob2rx</a></span><span class="op">(</span><span class="st">"^pc*_5cm_1km.tif$"</span><span class="op">)</span>, full.names <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>
+<span class="va">pred.tops</span> <span class="op">=</span> <span class="fu">raster</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/raster/man/stack.html">stack</a></span><span class="op">(</span><span class="va">ls.5cm</span><span class="op">)</span>
+<span class="va">pred.tops</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/methods/as.html">as</a></span><span class="op">(</span><span class="va">pred.tops</span>, <span class="st">"SpatialGridDataFrame"</span><span class="op">)</span></code></pre></div>
+<p>next, we back-transform values to original scale by using:</p>
+<div class="sourceCode" id="cb73"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">Xhat</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/raster/man/as.matrix.html">as.matrix</a></span><span class="op">(</span><span class="va">pred.tops</span><span class="op">@</span><span class="va">data</span><span class="op">[</span>,<span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="st">"pc"</span>, <span class="fl">1</span><span class="op">:</span><span class="va">nComp</span>, <span class="st">"_5cm_1km"</span><span class="op">)</span><span class="op">]</span><span class="op">/</span><span class="fl">100</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/pkg/Matrix/man/matrix-products.html">%*%</a></span> <span class="fu"><a href="https://rdrr.io/pkg/raster/man/transpose.html">t</a></span><span class="op">(</span><span class="va">pcs.ds801</span><span class="op">$</span><span class="va">rotation</span><span class="op">[</span>,<span class="fl">1</span><span class="op">:</span><span class="va">nComp</span><span class="op">]</span><span class="op">)</span>
+<span class="co">## scale-back to the original mean / stdev:</span>
+<span class="va">Xhat.s</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sweep.html">sweep</a></span><span class="op">(</span><span class="va">Xhat</span> <span class="op"><a href="https://rdrr.io/pkg/Matrix/man/matrix-products.html">%*%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/diag.html">diag</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/attr.html">attr</a></span><span class="op">(</span><span class="va">ds801.x</span>, <span class="st">'scaled:scale'</span><span class="op">)</span><span class="op">)</span>, <span class="fl">2</span>, <span class="fu"><a href="https://rdrr.io/r/base/attr.html">attr</a></span><span class="op">(</span><span class="va">ds801.x</span>, <span class="st">'scaled:center'</span><span class="op">)</span>, <span class="st">"+"</span><span class="op">)</span>
+<span class="va">Xhat.s</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/raster/man/as.data.frame.html">as.data.frame</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html">expm1</a></span><span class="op">(</span> <span class="va">Xhat.s</span> <span class="op">)</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/pkg/raster/man/names.html">names</a></span><span class="op">(</span><span class="va">Xhat.s</span><span class="op">)</span> <span class="op">=</span> <span class="va">tvs</span></code></pre></div>
+<p>We can plot two predictions of <code>Pb</code> (using EML produced in the previous example; and using PCA analysis) next to each other:</p>
+<div class="sourceCode" id="cb74"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">pred.tops</span><span class="op">$</span><span class="va">Pb_5cm_1km.PCA</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html">log1p</a></span><span class="op">(</span><span class="va">Xhat.s</span><span class="op">[</span>,<span class="st">"pb_ppm"</span><span class="op">]</span><span class="op">)</span>
+<span class="va">pred.tops</span><span class="op">$</span><span class="va">Pb_5cm_1km.EML</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html">log1p</a></span><span class="op">(</span><span class="fu"><a href="http://rgdal.r-forge.r-project.org/reference/readGDAL.html">readGDAL</a></span><span class="op">(</span><span class="st">"./output/pb_ppm_5cm_1km.tif"</span><span class="op">)</span><span class="op">$</span><span class="va">band1</span><span class="op">)</span>
+<span class="co">#&gt; ./output/pb_ppm_5cm_1km.tif has GDAL driver GTiff </span>
+<span class="co">#&gt; and has 342 rows and 378 columns</span>
+<span class="fu"><a href="https://rdrr.io/pkg/raster/man/spplot.html">spplot</a></span><span class="op">(</span><span class="va">pred.tops</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"Pb_5cm_1km.EML"</span>, <span class="st">"Pb_5cm_1km.PCA"</span><span class="op">)</span><span class="op">]</span><span class="op">)</span></code></pre></div>
+<div class="figure" style="text-align: center">
+<span id="fig:pca-pred"></span>
+<img src="spatial-3D_files/figure-html/pca-pred-1.png" alt="Predicted Pb concentration using ensemble ML (left) vs using the decomposition-composition PCA method (right)." width="100%"><p class="caption">
+Figure 3.10: Predicted Pb concentration using ensemble ML (left) vs using the decomposition-composition PCA method (right).
+</p>
+</div>
+<p>This shows that the predictions are quite similar, except the PCA-method somewhat smooths out some very
+high values.</p>
+<p>By combining PCA analysis and predictive mapping (we refer to this method as the <strong>Decomposition-composition PCA method</strong>)
+one integrates modeling of multiple cross-correlated variables and multicolinearity reduction.
+As a rule of thumb one can model only PCs that explain up to 99% of variance in data, this way modeling
+effort can be significantly reduced (e.g. for 50+ target variables one could model all target variables
+only a dozen of PCs). A disadvantage of the Decomposition-composition PCA method is that interpretation of
+scaled values is somewhat more complex, certainly more abstract.</p>
+</div>
+<div id="advantages-and-limitations-of-running-3d-predictive-mapping" class="section level2" number="3.4">
+<h2>
+<span class="header-section-number">3.4</span> Advantages and limitations of running 3D predictive mapping<a class="anchor" aria-label="anchor" href="#advantages-and-limitations-of-running-3d-predictive-mapping"><i class="fas fa-link"></i></a>
 </h2>
 <p>In summary 3D soil mapping is relatively straight forward to implement especially
 for mapping soil variables from soil profiles (multiple samples per soil layer).
@@ -336,7 +498,8 @@ convert modeling from 3D to 2D.</p>
 <li><a class="nav-link" href="#spatial-interpolation-in-3d-using-ensemble-ml"><span class="header-section-number">3</span> Spatial interpolation in 3D using Ensemble ML</a></li>
 <li><a class="nav-link" href="#mapping-concentrations-of-geochemical-elements"><span class="header-section-number">3.1</span> Mapping concentrations of geochemical elements</a></li>
 <li><a class="nav-link" href="#predictions-in-3d"><span class="header-section-number">3.2</span> Predictions in 3D</a></li>
-<li><a class="nav-link" href="#advantages-and-limitations-of-running-3d-predictive-mapping"><span class="header-section-number">3.3</span> Advantages and limitations of running 3D predictive mapping</a></li>
+<li><a class="nav-link" href="#modeling-multiple-geochemicals-using-a-single-ml-model"><span class="header-section-number">3.3</span> Modeling multiple geochemicals using a single ML model</a></li>
+<li><a class="nav-link" href="#advantages-and-limitations-of-running-3d-predictive-mapping"><span class="header-section-number">3.4</span> Advantages and limitations of running 3D predictive mapping</a></li>
 </ul>
 
       <div class="book-extra">

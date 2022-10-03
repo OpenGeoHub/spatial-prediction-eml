@@ -22,6 +22,10 @@ fig:ac-pb1
 fig:varimp-pb
 fig:cor-cities
 fig:pred-pb1
+fig:corPlot
+fig:biplot
+fig:varimp-pc1
+fig:pca-pred
 fig:croatia-meteo
 fig:var-imptemp
 fig:st-plottemp
@@ -62,6 +66,7 @@ classification-accuracy
 spatial-interpolation-in-3d-using-ensemble-ml
 mapping-concentrations-of-geochemical-elements
 predictions-in-3d
+modeling-multiple-geochemicals-using-a-single-ml-model
 advantages-and-limitations-of-running-3d-predictive-mapping
 spatiotemporal-ml
 spatiotemporal-interpolation-of-daily-temperatures
