@@ -26,6 +26,7 @@ fig:corPlot
 fig:biplot
 fig:varimp-pc1
 fig:pca-pred
+fig:nohi-pred
 fig:croatia-meteo
 fig:var-imptemp
 fig:st-plottemp
@@ -67,6 +68,8 @@ spatial-interpolation-in-3d-using-ensemble-ml
 mapping-concentrations-of-geochemical-elements
 predictions-in-3d
 modeling-multiple-geochemicals-using-a-single-ml-model
+predicting-geochemicals-using-decomposition-composition-method
+predicting-geochemicals-assuming-no-human-influence
 advantages-and-limitations-of-running-3d-predictive-mapping
 spatiotemporal-ml
 spatiotemporal-interpolation-of-daily-temperatures

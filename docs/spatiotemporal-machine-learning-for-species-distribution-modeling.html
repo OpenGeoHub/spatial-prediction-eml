@@ -123,7 +123,7 @@ invasive species <span class="citation">(<a href="references.html#ref-da2021dyna
 <p>We can obtain occurrences of the <em>Aedes albopictus</em> by either using the <code><a href="https://docs.ropensci.org/rgbif/reference/occ_data.html">rgbif::occ_data</a></code>
 function, or by downloading the CSV file from the <a href="https://www.gbif.org/species/1651430">GBIF website</a>.
 A local copy of the occurrences for Europe can be loaded by using:</p>
-<div class="sourceCode" id="cb108"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb112"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co">## occ = rgbif::occ_data(taxonKey=1651430, hasCoordinate = TRUE, year = '2000,2022')</span>
 <span class="va">occ</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html">readRDS</a></span><span class="op">(</span><span class="st">"./input/gbif_aedes_albopictus_mood.rds"</span><span class="op">)</span>
 <span class="fu"><a href="https://rdrr.io/r/utils/str.html">str</a></span><span class="op">(</span><span class="va">occ</span><span class="op">)</span>
@@ -138,7 +138,7 @@ A local copy of the occurrences for Europe can be loaded by using:</p>
 <span class="co">#&gt;  $ Year                         : int  2021 2021 2021 2021 2020 2020 2020 2020 2020 2020 ...</span>
 <span class="co">#&gt;  $ olc_c                        : chr  "8FH5X6G4+VF3" "8CMX8M42+Q8G" "8FQ6QVW7+M8J" "8CCX49J3+95Q" ...</span></code></pre></div>
 <p>To <a href="https://datastudio.google.com/reporting/ae84bde2-a200-4254-bdd0-017f08a8baa7">visualize the mosquito point data</a> over Europe we can use e.g.:</p>
-<div class="sourceCode" id="cb109"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb113"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="http://github.com/edzer/spacetime">spacetime</a></span><span class="op">)</span>
 <span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/Envirometrix/plotKML">plotKML</a></span><span class="op">)</span>
 <span class="va">sp_ST</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/spacetime/man/STIDF-class.html">STIDF</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/plotKML/man/layer.SpatialPoints.html">SpatialPoints</a></span><span class="op">(</span><span class="va">occ</span><span class="op">[</span>,<span class="fu"><a href="https://rdrr.io/pkg/terra/man/c.html">c</a></span><span class="op">(</span><span class="st">"decimalLongitude"</span>, <span class="st">"decimalLatitude"</span><span class="op">)</span><span class="op">]</span>, proj4string <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/sp/man/CRS-class.html">CRS</a></span><span class="op">(</span><span class="st">"EPSG:4326"</span><span class="op">)</span><span class="op">)</span>, 
@@ -167,7 +167,7 @@ occurrence-only models, expert knowledge and/or geosurveys <span class="citation
 To generate pseudo-absence data we can use the <a href="https://github.com/rbchan/maxlike">maxlike</a> package. First, we need
 to prepare enough ecological information that can help us map habitat of the species
 using all records for Europe. In the local folder we can find:</p>
-<div class="sourceCode" id="cb110"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb114"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">eco.tifs</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.files.html">list.files</a></span><span class="op">(</span><span class="st">"./input/mood4km/static"</span>, <span class="fu"><a href="https://rdrr.io/r/utils/glob2rx.html">glob2rx</a></span><span class="op">(</span><span class="st">"*.tif$"</span><span class="op">)</span>, full.names<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span>
 <span class="fu"><a href="https://rdrr.io/r/base/basename.html">basename</a></span><span class="op">(</span><span class="va">eco.tifs</span><span class="op">)</span>
 <span class="co">#&gt;  [1] "clm_bioclim.1_chelsa.climate_m_4km_s0..0cm_1980..2010_mood_v2.1.tif"      </span>
@@ -190,7 +190,7 @@ Temperatures</a> for months 1, 3, 6 and 9,
 <a href="https://doi.org/10.5281/zenodo.5774953">snow probability images for winter months</a> and DTM elevation model from Copernicus.
 We can load the stack of rasters into R and use principal components to reduce
 overlap between different layers:</p>
-<div class="sourceCode" id="cb111"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb115"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co">#gc()</span>
 <span class="va">g4km</span> <span class="op">=</span> <span class="fu">raster</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/raster/man/stack.html">stack</a></span><span class="op">(</span><span class="va">eco.tifs</span><span class="op">)</span>
 <span class="va">g4km</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/methods/as.html">as</a></span><span class="op">(</span><span class="va">g4km</span>, <span class="st">"SpatialGridDataFrame"</span><span class="op">)</span>
@@ -204,13 +204,13 @@ overlap between different layers:</p>
 <span class="co">#&gt; Converting covariates to principal components...</span></code></pre></div>
 <p>Next, we can fit a <code>maxlike</code> model for occurrence probability using presence only data,
 and predict values at all locations:</p>
-<div class="sourceCode" id="cb112"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb116"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">occ.sp</span> <span class="op">=</span> <span class="va">occ</span><span class="op">[</span>,<span class="fu"><a href="https://rdrr.io/pkg/terra/man/c.html">c</a></span><span class="op">(</span><span class="st">"decimalLongitude"</span>,<span class="st">"decimalLatitude"</span>,<span class="st">"Year"</span>,<span class="st">"olc_c"</span><span class="op">)</span><span class="op">]</span>
 <span class="va">occ.sp</span> <span class="op">=</span> <span class="va">occ.sp</span><span class="op">[</span><span class="op">!</span><span class="fu"><a href="https://Rdatatable.gitlab.io/data.table/reference/duplicated.html">duplicated</a></span><span class="op">(</span><span class="va">occ.sp</span><span class="op">$</span><span class="va">olc_c</span><span class="op">)</span>,<span class="op">]</span>
 <span class="fu"><a href="https://rdrr.io/pkg/raster/man/xyFromCell.html">coordinates</a></span><span class="op">(</span><span class="va">occ.sp</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/terra/man/c.html">c</a></span><span class="op">(</span><span class="st">"decimalLongitude"</span>, <span class="st">"decimalLatitude"</span><span class="op">)</span>
 <span class="fu"><a href="https://rdrr.io/pkg/raster/man/projection.html">proj4string</a></span><span class="op">(</span><span class="va">occ.sp</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/sp/man/CRS-class.html">CRS</a></span><span class="op">(</span><span class="st">"+init=epsg:4326"</span><span class="op">)</span>
 <span class="va">occ.sp</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/sp/man/spTransform.html">spTransform</a></span><span class="op">(</span><span class="va">occ.sp</span>, <span class="st">"EPSG:3035"</span><span class="op">)</span></code></pre></div>
-<div class="sourceCode" id="cb113"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb117"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co">#gc()</span>
 <span class="va">max.fm</span> <span class="op">&lt;-</span> <span class="fu">stats</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/stats/formula.html">as.formula</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste</a></span><span class="op">(</span><span class="st">"~"</span>, <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/raster/man/names.html">names</a></span><span class="op">(</span><span class="va">g4km.spc</span><span class="op">@</span><span class="va">predicted</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">12</span><span class="op">]</span><span class="op">)</span>, collapse<span class="op">=</span><span class="st">"+"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
 <span class="va">max.ml</span> <span class="op">&lt;-</span> <span class="fu">maxlike</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/maxlike/man/maxlike.html">maxlike</a></span><span class="op">(</span>formula<span class="op">=</span><span class="va">max.fm</span>, rasters<span class="op">=</span><span class="fu">raster</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/raster/man/stack.html">stack</a></span><span class="op">(</span><span class="va">g4km.spc</span><span class="op">@</span><span class="va">predicted</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">12</span><span class="op">]</span><span class="op">)</span>, points<span class="op">=</span><span class="va">occ.sp</span><span class="op">@</span><span class="va">coords</span>, method<span class="op">=</span><span class="st">"BFGS"</span>, savedata<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span>
@@ -237,7 +237,7 @@ or do analysis in both maxlike and maxent and then produce an ensemble estimate.
 <p>Next, we can generate a reasonable number of pseudo-absences (as a rule of thumb,
 number of the generated pseudo-absences should not exceed 10% to 20% of the actual
 number of occurrence points):</p>
-<div class="sourceCode" id="cb114"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb118"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">max.ml.p</span> <span class="op">=</span> <span class="fu">rgdal</span><span class="fu">::</span><span class="fu"><a href="http://rgdal.r-forge.r-project.org/reference/readGDAL.html">readGDAL</a></span><span class="op">(</span><span class="st">"./output/occ.prob_aedes_albopictus.tif"</span><span class="op">)</span>
 <span class="co">## insert 0 values for all occurrences before the date:</span>
 <span class="va">max.ml.p</span><span class="op">$</span><span class="va">absence</span> <span class="op">=</span> <span class="fu"><a href="https://Rdatatable.gitlab.io/data.table/reference/fifelse.html">ifelse</a></span><span class="op">(</span><span class="va">max.ml.p</span><span class="op">$</span><span class="va">band1</span><span class="op">==</span><span class="fl">100</span>, <span class="fl">1</span>, <span class="cn">NA</span><span class="op">)</span>
@@ -273,21 +273,21 @@ of species by using the occurrence-only data. The method is explained in detail 
 <span class="citation">Liu, Ting, &amp; Zhou (<a href="references.html#ref-liu2012isolation" role="doc-biblioref">2012</a>)</span> and <span class="citation">Hariri, Kind, &amp; Brunner (<a href="references.html#ref-hariri2019extended" role="doc-biblioref">2019</a>)</span>. Solitude builds on top of the <code>ranger</code> package hence it is suitable
 also for larger datasets. To fit the model we do not need to specify any target
 column but we ONLY specify a matrix of covariates at occurrence locations:</p>
-<div class="sourceCode" id="cb115"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb119"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/talegari/solitude">solitude</a></span><span class="op">)</span>
 <span class="va">occ.ov</span> <span class="op">=</span> <span class="fu">sp</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/sp/man/over.html">over</a></span><span class="op">(</span><span class="va">occ.sp</span>, <span class="va">g4km.spc</span><span class="op">@</span><span class="va">predicted</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">12</span><span class="op">]</span><span class="op">)</span>
 <span class="va">occ.ov</span> <span class="op">=</span> <span class="va">occ.ov</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/stats/complete.cases.html">complete.cases</a></span><span class="op">(</span><span class="va">occ.ov</span><span class="op">)</span>,<span class="op">]</span>
 <span class="co">#head(occ.ov)</span>
 <span class="va">iso</span> <span class="op">=</span> <span class="va"><a href="https://rdrr.io/pkg/solitude/man/isolationForest.html">isolationForest</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="op">)</span>
 <span class="va">iso</span><span class="op">$</span><span class="fu">fit</span><span class="op">(</span>dataset <span class="op">=</span> <span class="va">occ.ov</span><span class="op">)</span>
-<span class="co">#&gt; INFO  [16:00:22.671] dataset has duplicated rows </span>
-<span class="co">#&gt; INFO  [16:00:22.722] Building Isolation Forest ...  </span>
-<span class="co">#&gt; INFO  [16:00:22.816] done </span>
-<span class="co">#&gt; INFO  [16:00:22.818] Computing depth of terminal nodes ...  </span>
-<span class="co">#&gt; INFO  [16:00:23.463] done </span>
-<span class="co">#&gt; INFO  [16:00:23.731] Completed growing isolation forest</span></code></pre></div>
+<span class="co">#&gt; INFO  [15:14:03.438] dataset has duplicated rows </span>
+<span class="co">#&gt; INFO  [15:14:03.484] Building Isolation Forest ...  </span>
+<span class="co">#&gt; INFO  [15:14:03.576] done </span>
+<span class="co">#&gt; INFO  [15:14:03.578] Computing depth of terminal nodes ...  </span>
+<span class="co">#&gt; INFO  [15:14:04.147] done </span>
+<span class="co">#&gt; INFO  [15:14:04.405] Completed growing isolation forest</span></code></pre></div>
 <p>The fitted model shows:</p>
-<div class="sourceCode" id="cb116"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb120"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">iso</span><span class="op">$</span><span class="va">forest</span>
 <span class="co">#&gt; Ranger result</span>
 <span class="co">#&gt; </span>
@@ -308,7 +308,7 @@ column but we ONLY specify a matrix of covariates at occurrence locations:</p>
 <p>These numbers are somewhat difficult to interpret with R-square being close to 0.
 We can produce predictions of the anomaly scores (the likelihood that a point is an outlier)
 for every location based on the fitted model using:</p>
-<div class="sourceCode" id="cb117"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb121"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">pred.iso</span> <span class="op">=</span> <span class="va">iso</span><span class="op">$</span><span class="fu">predict</span><span class="op">(</span>data<span class="op">=</span><span class="va">g4km.spc</span><span class="op">@</span><span class="va">predicted</span><span class="op">@</span><span class="va">data</span><span class="op">[</span>,<span class="fl">1</span><span class="op">:</span><span class="fl">12</span><span class="op">]</span><span class="op">)</span>
 <span class="va">g4km</span><span class="op">$</span><span class="va">anomaly_score</span> <span class="op">=</span> <span class="va">pred.iso</span><span class="op">$</span><span class="va">anomaly_score</span><span class="op">*</span><span class="fl">100</span>
 <span class="fu">rgdal</span><span class="fu">::</span><span class="fu"><a href="http://rgdal.r-forge.r-project.org/reference/readGDAL.html">writeGDAL</a></span><span class="op">(</span><span class="va">g4km</span><span class="op">[</span><span class="st">"anomaly_score"</span><span class="op">]</span>, <span class="st">"./output/aedes_anomaly_score_4km.tif"</span>, type<span class="op">=</span><span class="st">"Int16"</span>, 
@@ -334,7 +334,7 @@ anomaly scores, which are abstract and should not be interpreted as probability 
 in spacetime to produce a spatiotemporal regression-matrix. The total list of
 layers for Europe (MOOD Horizon 2020 project) available as <a href="https://av.tib.eu/media/55228">Cloud-Optimized GeoTIFFs</a>
 is documented in:</p>
-<div class="sourceCode" id="cb118"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb122"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">cov.lst</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/utils/read.table.html">read.csv</a></span><span class="op">(</span><span class="st">"./input/mood_layers1km.csv"</span><span class="op">)</span>
 <span class="fu"><a href="https://rdrr.io/r/utils/str.html">str</a></span><span class="op">(</span><span class="va">cov.lst</span><span class="op">)</span>
 <span class="co">#&gt; 'data.frame':    454 obs. of  5 variables:</span>
@@ -344,7 +344,7 @@ is documented in:</p>
 <span class="co">#&gt;  $ source_doi : chr  "http://doi.org/10.5194/essd-13-5403-2021" "http://doi.org/10.5194/essd-13-5403-2021" "http://doi.org/10.5194/essd-13-5403-2021" "http://doi.org/10.5194/essd-13-5403-2021" ...</span>
 <span class="co">#&gt;  $ description: chr  "Cropland fraction historic" "Cropland fraction historic" "Cropland fraction historic" "Cropland fraction historic" ...</span></code></pre></div>
 <p>To connect to the layers and extract values at point locations we can use:</p>
-<div class="sourceCode" id="cb119"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb123"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://rspatial.org/terra">terra</a></span><span class="op">)</span>
 <span class="va">tif</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="st">"/vsicurl/"</span>, <span class="va">cov.lst</span><span class="op">$</span><span class="va">filename</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span>
 <span class="va">r</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/terra/man/rast.html">rast</a></span><span class="op">(</span><span class="va">tif</span><span class="op">)</span>
@@ -373,7 +373,7 @@ is documented in:</p>
 <span class="co">#&gt; names       : lcv_globalcropland_bowen.et.al_p_1km_s0..0cm_2001_mood_v0.1</span></code></pre></div>
 <p>To get values of pixels at some location we can fetch values without downloading
 the complete rasters e.g.:</p>
-<div class="sourceCode" id="cb120"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb124"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/terra/man/extract.html">extract</a></span><span class="op">(</span><span class="va">r</span>, <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span>x<span class="op">=</span><span class="fl">3828332</span>, y<span class="op">=</span><span class="fl">2315068</span><span class="op">)</span><span class="op">)</span>
 <span class="co">#&gt;      ID lcv_globalcropland_bowen.et.al_p_1km_s0..0cm_2001_mood_v0.1</span>
 <span class="co">#&gt; [1,]  1                                                          24</span></code></pre></div>
@@ -385,7 +385,7 @@ Figure 5.5: Opening Cloud-Optimized GeoTIFF layers in QGIS. The total size of la
 </div>
 <p>The spacetime overlay process can be computational hence we have already pre-computed
 the regression / classification matrix:</p>
-<div class="sourceCode" id="cb121"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb125"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/source.html">source</a></span><span class="op">(</span><span class="st">"mood_functions.R"</span><span class="op">)</span>
 <span class="va">rm.all</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html">readRDS</a></span><span class="op">(</span><span class="st">"./input/regmatrix_aedes_1km.rds"</span><span class="op">)</span>
 <span class="fu"><a href="https://rdrr.io/pkg/terra/man/dimensions.html">dim</a></span><span class="op">(</span><span class="va">rm.all</span><span class="op">)</span>
@@ -393,13 +393,13 @@ the regression / classification matrix:</p>
 <p>This is now a relatively large matrix with basically diversity of Earth Observation
 and climatic time-series of images. We can define the model as classification problem
 where occurrence/absence values (0/1) are two states of the target variable:</p>
-<div class="sourceCode" id="cb122"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb126"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">rm.all</span><span class="op">$</span><span class="va">occurrence</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/terra/man/factors.html">as.factor</a></span><span class="op">(</span><span class="fu"><a href="https://Rdatatable.gitlab.io/data.table/reference/fifelse.html">ifelse</a></span><span class="op">(</span><span class="va">rm.all</span><span class="op">$</span><span class="va">individualCount</span><span class="op">&gt;</span><span class="fl">0</span>, <span class="fl">1</span>, <span class="fl">0</span><span class="op">)</span><span class="op">)</span>
 <span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">rm.all</span><span class="op">$</span><span class="va">occurrence</span><span class="op">)</span>
 <span class="co">#&gt;     0     1 </span>
 <span class="co">#&gt;  4400 13834</span></code></pre></div>
 <p>and which we model as a function of number of static and dynamic covariate layers:</p>
-<div class="sourceCode" id="cb123"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb127"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">sel.stat</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/terra/man/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/grep.html">gsub</a></span><span class="op">(</span><span class="st">"4km"</span>, <span class="st">"1km"</span>, <span class="fu">tools</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/tools/fileutils.html">file_path_sans_ext</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/basename.html">basename</a></span><span class="op">(</span><span class="va">eco.tifs</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>, 
              <span class="st">"dtm_twi_merit.dem_m_1km_s0..0cm_2017_mood_v1"</span>,
              <span class="st">"dtm_floodmap.500y_jrc.hazardmapping_m_1km_s0..0cm_1500..2016_mood_v1.0"</span>,
@@ -420,7 +420,7 @@ for 2000–2021 period by following the basic steps:</p>
 <li>Generate predictions for the time-series of interest;</li>
 </ol>
 <p>The steps can be run using functions we created and which extend the mlr package:</p>
-<div class="sourceCode" id="cb124"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb128"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org">dplyr</a></span><span class="op">)</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; Attaching package: 'dplyr'</span>
@@ -474,7 +474,7 @@ for 2000–2021 period by following the basic steps:</p>
 <span class="co">#&gt; Number of Fisher Scoring iterations: 9</span></code></pre></div>
 <p>which shows the model is significant with errors in probability space ranging from -0.08 to 0.12.
 The most important variables based on the variable importance functionality of the random forest seem to be:</p>
-<div class="sourceCode" id="cb125"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb129"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">xl</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/terra/man/as.data.frame.html">as.data.frame</a></span><span class="op">(</span><span class="fu">mlr</span><span class="fu">::</span><span class="fu"><a href="https://mlr.mlr-org.com/reference/getFeatureImportance.html">getFeatureImportance</a></span><span class="op">(</span><span class="va">t.m</span><span class="op">[[</span><span class="st">"learner.model"</span><span class="op">]</span><span class="op">]</span><span class="op">[[</span><span class="st">"base.models"</span><span class="op">]</span><span class="op">]</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">)</span><span class="op">$</span><span class="va">res</span><span class="op">)</span>
 <span class="va">xl</span><span class="op">$</span><span class="va">relative_importance</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="fl">100</span><span class="op">*</span><span class="va">xl</span><span class="op">$</span><span class="va">importance</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">xl</span><span class="op">$</span><span class="va">importance</span><span class="op">)</span>, <span class="fl">1</span><span class="op">)</span>
 <span class="va">xl</span> <span class="op">=</span> <span class="va">xl</span><span class="op">[</span><span class="fu"><a href="https://Rdatatable.gitlab.io/data.table/reference/setorder.html">order</a></span><span class="op">(</span><span class="va">xl</span><span class="op">$</span><span class="va">relative_importance</span>, decreasing <span class="op">=</span> <span class="cn">T</span><span class="op">)</span>,<span class="op">]</span>
@@ -524,12 +524,12 @@ Figure 5.6: Spatiotemporal visualization of the predicted occurrence probability
 </div>
 <p>we can also derive beta coefficient per pixel using the <a href="https://greenbrown.r-forge.r-project.org/">greenbrown package</a> to see
 if some parts of Europe are showing higher increase in mosquito density. Example with predictions for Spain:</p>
-<div class="sourceCode" id="cb126"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb130"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/Envirometrix/plotKML">plotKML</a></span><span class="op">)</span>; <span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://rspatial.org/raster">raster</a></span><span class="op">)</span>
 <span class="va">es.tifs</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.files.html">list.files</a></span><span class="op">(</span><span class="st">"./output/spain1km"</span>, <span class="fu"><a href="https://rdrr.io/r/utils/glob2rx.html">glob2rx</a></span><span class="op">(</span><span class="st">"aedes.albopictus_M_*.tif"</span><span class="op">)</span>, full.names <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>
 <span class="va">spain1km</span> <span class="op">=</span> <span class="fu">raster</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/raster/man/brick.html">brick</a></span><span class="op">(</span><span class="fu">raster</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/raster/man/stack.html">stack</a></span><span class="op">(</span><span class="va">es.tifs</span><span class="op">)</span><span class="op">)</span>
 <span class="co">#spplot(spain1km[[c(1,22)]], col.regions=SAGA_pal[[10]])</span></code></pre></div>
-<div class="sourceCode" id="cb127"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb131"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co">#install.packages("greenbrown", repos="http://R-Forge.R-project.org")</span>
 <span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">greenbrown</span><span class="op">)</span>
 <span class="va">trendmap</span> <span class="op">&lt;-</span> <span class="fu">TrendRaster</span><span class="op">(</span><span class="va">spain1km</span>, start<span class="op">=</span><span class="fu"><a href="https://rdrr.io/pkg/terra/man/c.html">c</a></span><span class="op">(</span><span class="fl">2000</span>, <span class="fl">1</span><span class="op">)</span>, freq<span class="op">=</span><span class="fl">1</span>, breaks<span class="op">=</span><span class="fl">1</span><span class="op">)</span> 
@@ -539,7 +539,7 @@ if some parts of Europe are showing higher increase in mosquito density. Example
      zlim<span class="op">=</span><span class="fu"><a href="https://rdrr.io/pkg/terra/man/c.html">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">1.5</span>,<span class="fl">1.5</span><span class="op">)</span>, main<span class="op">=</span><span class="st">"Slope SEG1"</span><span class="op">)</span></code></pre></div>
 <p>Alternatively, we can also derive beta coefficient using parallelization and <code>lm</code> function.
 This basically fits model for every time-series of pixels and returns a vector.</p>
-<div class="sourceCode" id="cb128"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb132"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">xs</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/methods/as.html">as</a></span><span class="op">(</span><span class="va">spain1km</span>, <span class="st">"SpatialGridDataFrame"</span><span class="op">)</span>
 <span class="va">in.years</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html">as.numeric</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/substr.html">substr</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/lapply.html">sapply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/basename.html">basename</a></span><span class="op">(</span><span class="va">es.tifs</span><span class="op">)</span>, <span class="kw">function</span><span class="op">(</span><span class="va">i</span><span class="op">)</span><span class="op">{</span><span class="fu"><a href="https://Rdatatable.gitlab.io/data.table/reference/tstrsplit.html">strsplit</a></span><span class="op">(</span><span class="va">i</span>, <span class="st">"_"</span><span class="op">)</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">[</span><span class="fl">3</span><span class="op">]</span><span class="op">}</span><span class="op">)</span>, <span class="fl">1</span>, <span class="fl">4</span><span class="op">)</span><span class="op">)</span>
 <span class="va">cl</span> <span class="op">&lt;-</span> <span class="fu">parallel</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/parallel/makeCluster.html">makeCluster</a></span><span class="op">(</span><span class="fu">parallel</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/parallel/detectCores.html">detectCores</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span>
@@ -593,7 +593,7 @@ it only means that running any spatial analysis on GBIF data should be done with
 care and aiming at correct interpretation.</p>
 <p>The simple alternative to derive (kernel) density maps of mosquitos for Europe
 would be to use the <code><a href="https://tilmandavies.github.io/sparr/reference/spattemp.density.html">sparr::spattemp.density</a></code> function:</p>
-<div class="sourceCode" id="cb129"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb133"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">st.f</span> <span class="op">=</span> <span class="va">occ</span><span class="op">[</span>,<span class="fu"><a href="https://rdrr.io/pkg/terra/man/c.html">c</a></span><span class="op">(</span><span class="st">"decimalLongitude"</span>,<span class="st">"decimalLatitude"</span>,<span class="st">"Date"</span>,<span class="st">"individualCount"</span><span class="op">)</span><span class="op">]</span>
 <span class="va">st.f</span><span class="op">$</span><span class="va">individualCount</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html">as.numeric</a></span><span class="op">(</span><span class="fu"><a href="https://Rdatatable.gitlab.io/data.table/reference/fifelse.html">ifelse</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="va">st.f</span><span class="op">$</span><span class="va">individualCount</span><span class="op">)</span>, <span class="fl">1</span>, <span class="va">st.f</span><span class="op">$</span><span class="va">individualCount</span><span class="op">)</span><span class="op">)</span>
 <span class="fu"><a href="https://rdrr.io/pkg/raster/man/xyFromCell.html">coordinates</a></span><span class="op">(</span><span class="va">st.f</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/terra/man/c.html">c</a></span><span class="op">(</span><span class="st">"decimalLongitude"</span>, <span class="st">"decimalLatitude"</span><span class="op">)</span>

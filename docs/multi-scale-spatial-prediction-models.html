@@ -98,7 +98,7 @@ two sets of covariates basically at different resolutions 250-m and 100-m. For
 this we use the Edgeroi data-set <span class="citation">(<a href="references.html#ref-malone2009mapping" role="doc-biblioref">Malone, McBratney, Minasny, &amp; Laslett, 2009</a>)</span> used commonly in the soil
 science to demonstrate 3D soil mapping of soil organic carbon (g/kg) based on
 samples taken from diagnostic soil horizons (multiple depth intervals):</p>
-<div class="sourceCode" id="cb130"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb134"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/data.html">data</a></span><span class="op">(</span><span class="va">edgeroi</span><span class="op">)</span>
 <span class="va">edgeroi.sp</span> <span class="op">&lt;-</span> <span class="va">edgeroi</span><span class="op">$</span><span class="va">sites</span>
 <span class="fu"><a href="https://rdrr.io/pkg/raster/man/xyFromCell.html">coordinates</a></span><span class="op">(</span><span class="va">edgeroi.sp</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="op">~</span> <span class="va">LONGDA94</span> <span class="op">+</span> <span class="va">LATGDA94</span>
@@ -118,7 +118,7 @@ datasets and require serious computing capacity.</p>
 <span class="header-section-number">6.3</span> Coarse-scale model<a class="anchor" aria-label="anchor" href="#coarse-scale-model"><i class="fas fa-link"></i></a>
 </h2>
 <p>First we use the 250-m resolution covariates:</p>
-<div class="sourceCode" id="cb131"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb135"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/load.html">load</a></span><span class="op">(</span><span class="st">"input/edgeroi.grids.rda"</span><span class="op">)</span>
 <span class="fu"><a href="https://rdrr.io/pkg/sp/man/gridded-methods.html">gridded</a></span><span class="op">(</span><span class="va">edgeroi.grids</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="op">~</span><span class="va">x</span><span class="op">+</span><span class="va">y</span>
 <span class="fu"><a href="https://rdrr.io/pkg/raster/man/projection.html">proj4string</a></span><span class="op">(</span><span class="va">edgeroi.grids</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/sp/man/CRS-class.html">CRS</a></span><span class="op">(</span><span class="st">"+init=epsg:28355"</span><span class="op">)</span>
@@ -127,7 +127,7 @@ datasets and require serious computing capacity.</p>
 <span class="va">ov2</span><span class="op">$</span><span class="va">x</span> <span class="op">=</span> <span class="va">edgeroi.sp</span><span class="op">@</span><span class="va">coords</span><span class="op">[</span>,<span class="fl">1</span><span class="op">]</span>
 <span class="va">ov2</span><span class="op">$</span><span class="va">y</span> <span class="op">=</span> <span class="va">edgeroi.sp</span><span class="op">@</span><span class="va">coords</span><span class="op">[</span>,<span class="fl">2</span><span class="op">]</span></code></pre></div>
 <p>This is a 3D soil data set, so we also use the horizon <code>DEPTH</code> to explain distribution of SOC in soil:</p>
-<div class="sourceCode" id="cb132"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb136"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/source.html">source</a></span><span class="op">(</span><span class="st">"PSM_functions.R"</span><span class="op">)</span>
 <span class="va">h2</span> <span class="op">&lt;-</span> <span class="fu">hor2xyd</span><span class="op">(</span><span class="va">edgeroi</span><span class="op">$</span><span class="va">horizons</span><span class="op">)</span>
 <span class="co">## regression matrix:</span>
@@ -146,7 +146,7 @@ datasets and require serious computing capacity.</p>
 <span class="co">#&gt;  $ EV3MOD5: num  -5.74 -5.74 -5.74 -5.74 -5.74 -5.74 0.01 0.01 0.01 0.01 ...</span>
 <span class="co">#&gt;  $ DEPTH  : num  11.5 17.5 26 55 80 ...</span></code></pre></div>
 <p>We can now fit an EML directly by using the derived regression matrix:</p>
-<div class="sourceCode" id="cb133"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb137"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="kw">if</span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/exists.html">exists</a></span><span class="op">(</span><span class="st">"m.oc"</span><span class="op">)</span><span class="op">)</span><span class="op">{</span>
   <span class="va">m.oc</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/landmap/man/train.spLearner.matrix.html">train.spLearner.matrix</a></span><span class="op">(</span><span class="va">rmP2</span>, <span class="va">formulaStringP2</span>, <span class="va">edgeroi.grids</span>, 
                         parallel<span class="op">=</span><span class="cn">FALSE</span>, cov.model<span class="op">=</span><span class="st">"nugget"</span>, cell.size<span class="op">=</span><span class="fl">1000</span><span class="op">)</span>
@@ -245,7 +245,7 @@ duplicates. We can ignore this problem and use the pre-defined cell size of 1-km
 for spatial blocking, although in theory one can also fit 3D variograms and then
 determine blocking parameter using training data.</p>
 <p>The results show that the EML model is significant:</p>
-<div class="sourceCode" id="cb134"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb138"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">m.oc</span><span class="op">@</span><span class="va">spModel</span><span class="op">$</span><span class="va">learner.model</span><span class="op">$</span><span class="va">super.model</span><span class="op">$</span><span class="va">learner.model</span><span class="op">)</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; Call:</span>
@@ -270,7 +270,7 @@ determine blocking parameter using training data.</p>
 <span class="co">#&gt; Multiple R-squared:  0.6938, Adjusted R-squared:  0.6935 </span>
 <span class="co">#&gt; F-statistic:  2250 on 5 and 4966 DF,  p-value: &lt; 2.2e-16</span></code></pre></div>
 <p>We can now predict values at e.g. 5-cm depth by adding a dummy spatial layer with all fixed values:</p>
-<div class="sourceCode" id="cb135"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb139"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">out.tif</span> <span class="op">=</span> <span class="st">"output/edgeroi/pred_oc_250m.tif"</span>
 <span class="va">edgeroi.grids</span><span class="op">$</span><span class="va">DEPTH</span> <span class="op">&lt;-</span> <span class="fl">5</span>
 <span class="kw">if</span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/exists.html">exists</a></span><span class="op">(</span><span class="st">"edgeroi.oc"</span><span class="op">)</span><span class="op">)</span><span class="op">{</span>
@@ -292,7 +292,7 @@ Figure 6.2: Predicted SOC content using 250-m covariates.
 </p>
 </div>
 <p>The average prediction error in the map is somewhat higher than the average error from the model fitting:</p>
-<div class="sourceCode" id="cb136"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb140"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">edgeroi.oc</span><span class="op">$</span><span class="va">pred</span><span class="op">$</span><span class="va">model.error</span><span class="op">)</span>
 <span class="co">#&gt;    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. </span>
 <span class="co">#&gt;   2.323   4.710   6.340   6.929   9.257  15.338</span></code></pre></div>
@@ -305,7 +305,7 @@ Figure 6.2: Predicted SOC content using 250-m covariates.
 <p>We can now fit the fine-scale model independently from the coarse-scale model
 using the 100-m resolution covariates. In this case the 100-m covariates are
 based on Landsat 8 and gamma radiometrics images (see <code><a href="https://rdrr.io/pkg/landmap/man/edgeroi.html">?edgeroi</a></code> for more details):</p>
-<div class="sourceCode" id="cb137"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb141"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">edgeroi.grids100</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html">readRDS</a></span><span class="op">(</span><span class="st">"input/edgeroi.grids.100m.rds"</span><span class="op">)</span>
 <span class="co">#gridded(edgeroi.grids100) &lt;- ~x+y</span>
 <span class="co">#proj4string(edgeroi.grids100) &lt;- CRS("+init=epsg:28355")</span>
@@ -329,7 +329,7 @@ based on Landsat 8 and gamma radiometrics images (see <code><a href="https://rdr
 <span class="co">#&gt;  $ PCTGAD6: num  7.82 7.82 7.82 7.82 7.82 7.82 6.48 6.48 6.48 6.48 ...</span>
 <span class="co">#&gt;  $ DEPTH  : num  11.5 17.5 26 55 80 ...</span></code></pre></div>
 <p>We fit the 2nd fine-scale model:</p>
-<div class="sourceCode" id="cb138"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb142"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="kw">if</span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/exists.html">exists</a></span><span class="op">(</span><span class="st">"m.ocF"</span><span class="op">)</span><span class="op">)</span><span class="op">{</span>
   <span class="va">m.ocF</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/landmap/man/train.spLearner.matrix.html">train.spLearner.matrix</a></span><span class="op">(</span><span class="va">rmPF</span>, <span class="va">formulaStringPF</span>, <span class="va">edgeroi.grids100</span>, 
                         parallel<span class="op">=</span><span class="cn">FALSE</span>, cov.model<span class="op">=</span><span class="st">"nugget"</span>, cell.size<span class="op">=</span><span class="fl">1000</span><span class="op">)</span>
@@ -520,7 +520,7 @@ based on Landsat 8 and gamma radiometrics images (see <code><a href="https://rdr
 predictions with R-square about 0.7. We can also make predictions at 5-cm depth
 by using (note: this takes almost 6x more time to compute predictions than for
 250-m resolution data):</p>
-<div class="sourceCode" id="cb139"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb143"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">edgeroi.grids100</span><span class="op">$</span><span class="va">DEPTH</span> <span class="op">&lt;-</span> <span class="fl">5</span>
 <span class="va">sel.grid</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/complete.cases.html">complete.cases</a></span><span class="op">(</span><span class="va">edgeroi.grids100</span><span class="op">@</span><span class="va">data</span><span class="op">[</span>,<span class="va">m.ocF</span><span class="op">@</span><span class="va">spModel</span><span class="op">$</span><span class="va">features</span><span class="op">]</span><span class="op">)</span>
 <span class="kw">if</span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/exists.html">exists</a></span><span class="op">(</span><span class="st">"edgeroi.ocF"</span><span class="op">)</span><span class="op">)</span><span class="op">{</span>
@@ -559,7 +559,7 @@ Figure 6.4: Coarse-scale and fine-scale predictions of soil organic carbon at 5-
 <li>Derive propagated error using the pooled variance based on individual predictions and errors,</li>
 </ul>
 <p>Before we run this operation, we need to downscale the maps to the same grid, best using Cubic-splines in GDAL:</p>
-<div class="sourceCode" id="cb140"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb144"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">edgeroi.grids100</span><span class="op">@</span><span class="va">bbox</span>
 <span class="co">#&gt;       min     max</span>
 <span class="co">#&gt; x  741400  789000</span>
@@ -572,7 +572,7 @@ Figure 6.4: Coarse-scale and fine-scale predictions of soil organic carbon at 5-
          <span class="st">' -r \"cubicspline\" -te 741400 6646000 789000 6678100 -tr 100 100 -overwrite'</span><span class="op">)</span><span class="op">)</span>
 <span class="op">}</span></code></pre></div>
 <p>We can now read the downscaled predictions, and merge them using the prediction errors as weights (weighted average per pixel):</p>
-<div class="sourceCode" id="cb141"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb145"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">sel.pix</span> <span class="op">=</span> <span class="va">edgeroi.ocF</span><span class="op">$</span><span class="va">pred</span><span class="op">@</span><span class="va">grid.index</span>
 <span class="va">edgeroi.ocF</span><span class="op">$</span><span class="va">pred</span><span class="op">$</span><span class="va">responseC</span> <span class="op">=</span> <span class="fu"><a href="http://rgdal.r-forge.r-project.org/reference/readGDAL.html">readGDAL</a></span><span class="op">(</span><span class="st">"output/edgeroi/pred_oc_250m_100m.tif"</span><span class="op">)</span><span class="op">$</span><span class="va">band1</span><span class="op">[</span><span class="va">sel.pix</span><span class="op">]</span>
 <span class="co">#&gt; output/edgeroi/pred_oc_250m_100m.tif has GDAL driver GTiff </span>
@@ -587,7 +587,7 @@ Figure 6.4: Coarse-scale and fine-scale predictions of soil organic carbon at 5-
   <span class="fu"><a href="http://rgdal.r-forge.r-project.org/reference/readGDAL.html">writeGDAL</a></span><span class="op">(</span><span class="va">edgeroi.ocF</span><span class="op">$</span><span class="va">pred</span><span class="op">[</span><span class="st">"responseF"</span><span class="op">]</span>, <span class="va">out.tif</span>, options <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/terra/man/c.html">c</a></span><span class="op">(</span><span class="st">"COMPRESS=DEFLATE"</span><span class="op">)</span><span class="op">)</span>
 <span class="op">}</span></code></pre></div>
 <p>The final map of predictions is a combination of the two independently produced predictions <span class="citation">(<a href="references.html#ref-hengl2021african" role="doc-biblioref">Tomislav Hengl et al., 2021</a>)</span>:</p>
-<div class="sourceCode" id="cb142"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb146"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/pkg/raster/man/plot.html">plot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/raster/man/raster.html">raster</a></span><span class="op">(</span><span class="va">edgeroi.ocF</span><span class="op">$</span><span class="va">pred</span><span class="op">[</span><span class="st">"responseF"</span><span class="op">]</span><span class="op">)</span>, col<span class="op">=</span><span class="va">R_pal</span><span class="op">[[</span><span class="st">"rainbow_75"</span><span class="op">]</span><span class="op">]</span><span class="op">[</span><span class="fl">4</span><span class="op">:</span><span class="fl">20</span><span class="op">]</span>,
   main<span class="op">=</span><span class="st">"Merged predictions spLearner"</span>, axes<span class="op">=</span><span class="cn">FALSE</span>, box<span class="op">=</span><span class="cn">FALSE</span><span class="op">)</span>
 <span class="fu"><a href="https://rdrr.io/r/graphics/points.html">points</a></span><span class="op">(</span><span class="va">edgeroi.sp</span>, pch<span class="op">=</span><span class="st">"+"</span>, cex<span class="op">=</span><span class="fl">.8</span><span class="op">)</span></code></pre></div>
@@ -598,7 +598,7 @@ Figure 6.5: Merged predictions (coarse+fine scale) of SOC content at 100-m.
 </p>
 </div>
 <p>To merge the prediction errors, we use the pooled variance formula <span class="citation">(<a href="references.html#ref-rudmin2010calculating" role="doc-biblioref">Rudmin, 2010</a>)</span>:</p>
-<div class="sourceCode" id="cb143"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb147"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">comp.var</span>
 <span class="co">#&gt; function (x, r1, r2, v1, v2) </span>
 <span class="co">#&gt; {</span>
@@ -608,7 +608,7 @@ Figure 6.5: Merged predictions (coarse+fine scale) of SOC content at 100-m.
 <span class="co">#&gt;         rowMeans(x[, c(r1, r2)])^2)</span>
 <span class="co">#&gt;     return(data.frame(response = r, stdev = v))</span>
 <span class="co">#&gt; }</span>
-<span class="co">#&gt; &lt;bytecode: 0x186e4820&gt;</span>
+<span class="co">#&gt; &lt;bytecode: 0x18268b88&gt;</span>
 <span class="va">edgeroi.ocF</span><span class="op">$</span><span class="va">pred</span><span class="op">$</span><span class="va">model.errorF</span> <span class="op">=</span> <span class="va">X</span><span class="op">$</span><span class="va">stdev</span>
 <span class="va">out.tif</span> <span class="op">=</span> <span class="st">"output/edgeroi/pred_oc_100m_merged_pe.tif"</span>
 <span class="kw">if</span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/files.html">file.exists</a></span><span class="op">(</span><span class="va">out.tif</span><span class="op">)</span><span class="op">)</span><span class="op">{</span>

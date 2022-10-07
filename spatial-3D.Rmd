@@ -26,9 +26,9 @@ A horizon and C horizon; Fig. \@ref(fig:ds801-example)).
 We have previously imported and overlaid the sampling points vs large stack of 
 covariate layers using e.g.:
 
-```{r, eval=FALSE}
+```{r}
 ## Training data ----
-ngs.m <- read.csv("./training_data/ds_801_all.csv")
+ngs.m <- read.csv(gzfile("./input/ds_801_all.csv.gz"))
 ngs.m$olc_id = olctools::encode_olc(ngs.m$latitude, ngs.m$longitude, 11)
 ## Spatial overlay ----
 sel.pnts = !duplicated(ngs.m$olc_id)
@@ -36,7 +36,11 @@ summary(sel.pnts)
 ngs.m.pnts = ngs.m[which(sel.pnts), c("olc_id", "longitude", "latitude")]
 coordinates(ngs.m.pnts) <- ~ longitude + latitude
 proj4string(ngs.m.pnts) <- "+init=epsg:4326"
-ngs.xy = spTransform(ngs.m.pnts, crs(mask))
+prj = "+proj=aea +lat_0=23 +lon_0=-96 +lat_1=29.5 +lat_2=45.5 +x_0=0 +y_0=0 +datum=NAD83 +units=m +no_defs"
+ngs.xy = spTransform(ngs.m.pnts, prj)
+```
+
+```{r, eval=FALSE}
 tif.lst = list.files("./1km", glob2rx("*.tif$"), full.names = TRUE)
 ## 262 layers
 ov.tmp = parallel::mclapply(1:length(tif.lst), function(j){ terra::extract(terra::rast(tif.lst[j]), terra::vect(ngs.xy)) }, mc.cores = 80)
@@ -216,9 +220,10 @@ Based on these results, it can be said that in general:
 ## Modeling multiple geochemicals using a single ML model
 
 The package **randomForestSRC** [@Ishwaran2021] provides functionality to run so-called 
-[“Multivariate Outcomes”](https://www.randomforestsrc.org/articles/getstarted.html#multivariate-outcomes) which means that one can fit a model with multivariate outcomes. 
+[“Multivariate Outcomes”](https://www.randomforestsrc.org/articles/getstarted.html#multivariate-outcomes) which means that one can fit a model with multivariate outcomes (one model to predict multiple target variables). 
 In the case of geochemical data, usually multitude of geochemicals (50+) are analyzed in lab, so that 
-it seems more practical to fit a single model to predict p+ target variables (outcomes) all at once. 
+it seems more practical to fit a single model to predict p+ target variables (outcomes) all at once, than 
+to fit p+ models instead. 
 
 In the case of `ds801` dataset we can first specify number of target variables that we would like to map:
 
@@ -229,7 +234,7 @@ tvs = c("as_ppm", "al_pct", "cd_ppm", "cr_ppm", "cu_ppm", "fe_pct",
 sapply(tvs, function(i){sum(is.na(ds801[,i]))})
 ```
 
-These variables are obviously highly cross-correlated and their multiliearity could be reduced:
+These variables are obviously highly cross-correlated:
 
 ```{r corPlot, echo=FALSE, fig.width=7, out.width="100%", fig.cap="Correlation matrics for a selection of geochemicals. Number indicates correlation coefficient (0 to 100%). All variables seem to be positively correlated."}
 ds801.x <- scale(log1p(ds801[,tvs]))
@@ -237,7 +242,9 @@ openair::corPlot(as.data.frame(ds801.x))
 ```
 
 Here especially `zn`, `cu`, `fe`, `al` and `ni` seem to be highly cross-correlated. 
-Converting them to Principal Components is a logical step to reduce overlap in data. 
+The **multicolinearity** of these variables could be reduced by converting them e.g. 
+to Principal Components [@Venables2002Springer]. Principal Component Analysis helps 
+reduce overlap in data and can help with modeling. 
 Before transferring the original values to Principal Components we can also filter out 
 all missing values by replacing them with a mean value (for scaled variable this is 0):
 
@@ -251,9 +258,12 @@ pcs.ds801 <- stats::prcomp(x = ds801.xd)
 ggplot2::autoplot(pcs.ds801, size=1, asp=1, colour="darkgrey", shape=3, loadings = TRUE, loadings.label = TRUE)
 ```
 
-We also recommend converting all log-normal or percent variables using `log1p` and/or logit transformation 
-to: (1) produce close-to-normal distribution and (2) avoid producting predictions beyond the physical range of data 
-(e.g. negative values or values >100%).
+This again shows that most of geochemicals are positively correlated with about 
+6 groups of most correlated variables.
+
+Note that, in the previous step, we convert all log-normal or percent variables 
+using `log1p` and/or logit transformation to: (1) produce close-to-normal distribution 
+and (2) avoid producing predictions beyond the physical range of data (e.g. negative values or values >100%).
 
 First 6 components explain majority of variance in data, but it appears that to be on a safe-side, 
 we can model up to PC11:
@@ -277,8 +287,21 @@ nComp = 11; Ntree = 85
 xdta = ds801[,pr.vars]
 ydta = pcs.ds801$x[,1:nComp]
 tfm = get.mv.formula(colnames(ydta))
-m.s1 = randomForestSRC::rfsrc(tfm, data.frame(ydta, xdta), 
-                              importance=TRUE, ntree = Ntree)
+## spatial tiles 30x30km
+sp.tiles = unique(ds801$ID)
+## we define own custom bootstrapping principle by  
+## organizing training points using spatial blocks;
+samp = randomForestSRC:::make.sample(ntree=Ntree, samp.size=length(sp.tiles), 
+                                     boot.size=length(sp.tiles)/2)
+samp.df = plyr::join(ds801["ID"], cbind(data.frame(ID=sp.tiles), data.frame(samp)), type="left")
+samp.df = as.matrix(samp.df[,-1])
+## sampsize must be identical for each tree
+n.col = min(colSums(samp.df))
+samp.dfa = apply(X = samp.df, MARGIN = 2, FUN = function(i){fill.null(i, n.col)})
+m.s1 = randomForestSRC::rfsrc(tfm, data.frame(ydta, xdta),
+                              bootstrap = "by.user", 
+                              samp = samp.dfa,
+                              importance=TRUE)
 print(m.s1, outcome.target = "PC1")
 ```
 
@@ -303,11 +326,13 @@ ggplot(data = vmp[1:20,], aes(x = reorder(variable, relative_importance), y = re
   theme_bw() + theme(text = element_text(size=15))
 ```
 
-To generate predictions for different depths and for different PCs, we can run loop 
-the `predict.rfsrc` function:
+## Predicting geochemicals using decomposition-composition method
+
+To generate predictions for different depths and for different PCs, we can loop 
+the `predict.rfsrc` function across different soil depths:
 
 ```{r}
-for(j in 1:11){
+for(j in 1:nComp){
  for(k in c(5, 30, 60)){
   out.tif = paste0("./output/pc", j, "_", k, "cm_1km.tif")
   if(!file.exists(out.tif)){
@@ -339,7 +364,7 @@ pred.tops = raster::stack(ls.5cm)
 pred.tops = as(pred.tops, "SpatialGridDataFrame")
 ```
 
-next, we back-transform values to original scale by using:
+next, we [back-transform values](https://stats.stackexchange.com/questions/229092/how-to-reverse-pca-and-reconstruct-original-variables-from-several-principal-com) to the original scale by:
 
 ```{r}
 Xhat = as.matrix(pred.tops@data[,paste0("pc", 1:nComp, "_5cm_1km")]/100) %*% t(pcs.ds801$rotation[,1:nComp])
@@ -353,19 +378,116 @@ We can plot two predictions of `Pb` (using EML produced in the previous example;
 
 ```{r pca-pred, echo=TRUE, fig.width=8, out.width="100%", fig.cap="Predicted Pb concentration using ensemble ML (left) vs using the decomposition-composition PCA method (right)."}
 pred.tops$Pb_5cm_1km.PCA = log1p(Xhat.s[,"pb_ppm"])
+pred.tops$pb.pca_ppm_5cm_1km = pred.tops$Pb_5cm_1km.PCA * 100
+#rgdal::writeGDAL(pred.tops["pb.pca_ppm_5cm_1km"], "./output/pb.pca_ppm_5cm_1km.tif", 
+#                 type="Int16", mvFlag=-32768, options=c("COMPRESS=DEFLATE"))
 pred.tops$Pb_5cm_1km.EML = log1p(readGDAL("./output/pb_ppm_5cm_1km.tif")$band1)
-spplot(pred.tops[c("Pb_5cm_1km.EML", "Pb_5cm_1km.PCA")])
+r.pal = rev(rainbow(65)[1:48])
+pred.tops.df = as.data.frame(pred.tops[c("Pb_5cm_1km.EML", "Pb_5cm_1km.PCA")])
+all_df_long <- tidyr::gather(pred.tops.df, 'layer', 'value', -s1, -s2)
+pred.pnts = as.data.frame(ngs.xy[!is.na(over(y=pred.tops[1], x=ngs.xy)[,1]),], xy=TRUE)
+ggplot() + 
+  geom_raster(data = all_df_long, aes(x=s1, y=s2, fill = value)) + 
+  facet_wrap(. ~ layer, ncol = 2) + 
+  geom_point(data = pred.pnts, aes(x=longitude, y=latitude), shape="+", size=2) +
+  scale_fill_gradientn(colours=r.pal, name="", limits=c(2.8,3.9)) + 
+  coord_equal() + 
+  theme_minimal() + xlab("Westing")+ ylab("Northing")
 ```
 
 This shows that the predictions are quite similar, except the PCA-method somewhat smooths out some very 
-high values. 
+high values (Chicago city area). The difference also happens due to the fact that, 
+for the map on the left, we have use an Ensemble model, while the map on the right is 
+purely based on RF.
 
-By combining PCA analysis and predictive mapping (we refer to this method as the **Decomposition-composition PCA method**) 
-one integrates modeling of multiple cross-correlated variables and multicolinearity reduction. 
-As a rule of thumb one can model only PCs that explain up to 99% of variance in data, this way modeling 
-effort can be significantly reduced (e.g. for 50+ target variables one could model all target variables 
-only a dozen of PCs). A disadvantage of the Decomposition-composition PCA method is that interpretation of 
-scaled values is somewhat more complex, certainly more abstract.
+It seem to be also possible to derive prediction errors using the `quantreg` [function](https://www.randomforestsrc.org/reference/quantreg.rfsrc.html), although 
+this can get at the order of magnitude more computational. In addition, for multiple 
+predicted PCs one would need to derive a composite prediction error (usually a 
+geometric mean of variances).
+
+## Predicting geochemicals assuming No-human-influence
+
+Using this integrated model for geochemicals, we could also map hypothetical distribution of the target geochemical 
+**assuming no or marginal human influence** (NoHI). For this we can use the same model, 
+but during prediction replace values of the covariates for those that quantify 
+human impact. For example layers `travel_time_to_cities`, `population_density`, 
+lights at night images, density of industrial complexes and proximity to roads and 
+cities, are all variables that basically quantify human / industrial footprint [@mu2022global].
+To predict values of geochemicals assuming no human influence i.e. to estimate the 
+background or natural concentrations of geochemicals we can thus replace values 
+for all such layers using the following simple principles [@sanderman2017soil]:
+
+- for lights at night images and human population density we replace all values with 0 value;  
+- for travel time to cities, buffer densities to industrial sources of pollution and similar
+  we use some very high value e.g. 99% probability quantile value for the whole of USA;
+
+We can thus re-make all predictions using NoHI settings:
+
+```{r}
+## only top-soil
+k = 5
+for(j in 1:nComp){
+  out.tif = paste0("./output/pc", j, ".nohi_", k, "cm_1km.tif")
+  if(!file.exists(out.tif)){
+    g1km$hzn_depth = k
+    sel.na = complete.cases(g1km)
+    newdata = g1km[sel.na, pr.vars]
+    ## replace values / simulate noHI:
+    newdata[,grep("travel", pr.vars)] = 1000
+    newdata[,grep("pop", pr.vars)] = 0
+    #newdata[,grep("light", pr.vars)] = 0
+    pred = predict(m.s1, m.target = paste0("PC", j), newdata=newdata)
+    g1km.sp = SpatialPixelsDataFrame(as.matrix(g1km[sel.na,c("x","y")]), 
+                data=data.frame(pred$regrOutput[[paste0("PC", j)]][[1]]), 
+                proj4string=CRS("EPSG:5070"))
+    g1km.sp$pred = g1km.sp@data[,1]*100
+    rgdal::writeGDAL(g1km.sp["pred"], out.tif, type="Int16", mvFlag=-32768, options=c("COMPRESS=DEFLATE"))
+    #gc()
+  }
+}
+```
+
+Again we need to back-transform the values to original scale:
+
+```{r}
+lsN.5cm = list.files('./output', pattern=glob2rx("^pc*.nohi_5cm_1km.tif$"), full.names = TRUE)
+predN.tops = raster::stack(lsN.5cm)
+predN.tops = as(predN.tops, "SpatialGridDataFrame")
+XhatN = as.matrix(predN.tops@data[,paste0("pc", 1:nComp, ".nohi_5cm_1km")]/100) %*% t(pcs.ds801$rotation[,1:nComp])
+XhatN.s = sweep(XhatN %*% diag(attr(ds801.x, 'scaled:scale')), 2, attr(ds801.x, 'scaled:center'), "+")
+XhatN.s = as.data.frame(expm1( XhatN.s ))
+names(XhatN.s) = tvs
+```
+
+We can plot the two predictions for e.g. Pb to see if there is any difference:
+
+```{r nohi-pred, echo=TRUE, fig.width=8, out.width="100%", fig.cap="Predicted Pb concentration using decomposition-composition PCA method with original covariates (left) and assuming no human influence (right)."}
+pred.tops$Pb.nohi_5cm_1km.PCA = log1p(XhatN.s[,"pb_ppm"])
+pred.tops$pb.pca.nohi_ppm_5cm_1km = pred.tops$Pb.nohi_5cm_1km.PCA * 100
+#rgdal::writeGDAL(pred.tops["pb.pca.nohi_ppm_5cm_1km"], "./output/pb.pca.nohi_ppm_5cm_1km.tif", 
+#                 type="Int16", mvFlag=-32768, options=c("COMPRESS=DEFLATE"))
+predN.tops.df = as.data.frame(pred.tops[c("Pb_5cm_1km.PCA", "Pb.nohi_5cm_1km.PCA")])
+allN_df_long <- tidyr::gather(predN.tops.df, 'layer', 'value', -s1, -s2)
+ggplot() + 
+  geom_raster(data = allN_df_long, aes(x=s1, y=s2, fill = value)) + 
+  facet_wrap(. ~ layer, ncol = 2) + 
+  geom_point(data = pred.pnts, aes(x=longitude, y=latitude), shape="+", size=2) +
+  scale_fill_gradientn(colours=r.pal, name="", limits=c(2.8,3.9)) + 
+  coord_equal() + 
+  theme_minimal() + xlab("Westing")+ ylab("Northing")
+```
+
+This has significantly reduced the total values of Pb. Basically the map on the right 
+is most likely showing the *background* or *natural* concentration of Pb assuming 
+no human influence (notice the city of Chicago and similar are not visible on the map any more). 
+The difference between the two maps is an estimate of human-induced pollution by Pb. 
+If there are historic Pb soil measurements the map on the right could also be validated. 
+
+Note that we have only *modified* values for travel time to cities, population density etc, 
+also the MODIS LST night time temperatures should be probably adjusted since they 
+also show big urban areas and similar. We have not done it here because converting 
+MODIS LST images to no-human influence would probably require modeling in itself, but it is 
+most likely doable.
 
 ## Advantages and limitations of running 3D predictive mapping
 
@@ -388,3 +510,13 @@ in the cases it does not correlate with the target variable, there is probably
 also no need for 3D soil mapping. In the case depth is not significantly 
 correlated, one could simply first aggregate all values to fixed block depth and 
 convert modeling from 3D to 2D.
+
+By combining PCA analysis and predictive mapping (we refer to this method as the **Decomposition-composition PCA method**) 
+one can integrate modeling of multiple cross-correlated variables and multicolinearity reduction (PCA analysis). 
+This seems to be especially applicable for cases where there are ≫10 target variables which 
+are highly cross-correlated, possibly have inconsistent missing values and after transformation 
+match close-to-normal distribution.
+As a rule of thumb one can model only PCs that explain up to 99% of variance in data, this way modeling 
+effort can be significantly reduced (e.g. for 50+ target variables one could model all target variables 
+only a dozen of PCs). A disadvantage of the Decomposition-composition PCA method is that interpretation of 
+scaled values is somewhat more complex, certainly more abstract.

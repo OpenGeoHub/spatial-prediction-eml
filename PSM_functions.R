@@ -1,4 +1,14 @@
 
+## fill with nulls randomly rows that exceed n.col number
+fill.null = function(i, n.col){
+  smp.r <- which(i>0)
+  if(length(smp.r)>n.col){
+    smp.r <- sample(smp.r, size=length(smp.r)-n.col)
+    i[smp.r] <- 0
+  }
+  return(i)
+}
+
 hor2xyd <- function(x, U="UHDICM", L="LHDICM", treshold.T=15){
   x$DEPTH <- x[,U] + (x[,L] - x[,U])/2
   x$THICK <- x[,L] - x[,U]

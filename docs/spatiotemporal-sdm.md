@@ -244,12 +244,12 @@ occ.ov = occ.ov[complete.cases(occ.ov),]
 #head(occ.ov)
 iso = isolationForest$new()
 iso$fit(dataset = occ.ov)
-#> INFO  [16:00:22.671] dataset has duplicated rows 
-#> INFO  [16:00:22.722] Building Isolation Forest ...  
-#> INFO  [16:00:22.816] done 
-#> INFO  [16:00:22.818] Computing depth of terminal nodes ...  
-#> INFO  [16:00:23.463] done 
-#> INFO  [16:00:23.731] Completed growing isolation forest
+#> INFO  [15:14:03.438] dataset has duplicated rows 
+#> INFO  [15:14:03.484] Building Isolation Forest ...  
+#> INFO  [15:14:03.576] done 
+#> INFO  [15:14:03.578] Computing depth of terminal nodes ...  
+#> INFO  [15:14:04.147] done 
+#> INFO  [15:14:04.405] Completed growing isolation forest
 ```
 
 The fitted model shows:

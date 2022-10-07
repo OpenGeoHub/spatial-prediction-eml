@@ -594,7 +594,7 @@ comp.var
 #>         rowMeans(x[, c(r1, r2)])^2)
 #>     return(data.frame(response = r, stdev = v))
 #> }
-#> <bytecode: 0x186e4820>
+#> <bytecode: 0x18268b88>
 edgeroi.ocF$pred$model.errorF = X$stdev
 out.tif = "output/edgeroi/pred_oc_100m_merged_pe.tif"
 if(!file.exists(out.tif)){
