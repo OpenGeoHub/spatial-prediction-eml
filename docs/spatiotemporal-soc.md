@@ -38,9 +38,9 @@ the [Global Mangrove Alliance](https://www.mangrovealliance.org/) [@LealSpalding
 
 In principle, there are at least three (3) ways to map soil organic carbon stocks [@hengl2019predictive]:
 
-1. Estimate SOC stocks (t/ha) then produce 2D model and predict,
-2. Model SOC density (kg/m3) in 3D, then aggregate to fixed depths,
-3. Model SOC %, bulk density and coarse fragments separately in 3D, then aggregate to SOC density and to fixed depths,
+1. Estimate SOC stocks (t/ha) then produce 2D model and predict,  
+2. Model SOC density (kg/m3) in 3D, then aggregate to fixed depths,  
+3. Model SOC %, bulk density and coarse fragments separately in 3D, then aggregate to SOC density and to fixed depths,  
 
 Choice between the three is often determined by the project objectives and 
 availability of data. For example, if most of point measurements are from top-soil 
@@ -87,7 +87,7 @@ openair::scatterPlot(rms.df[sel.db,], x = "hzn_depth", y = "oc", method = "hexbi
 ```
 
 <div class="figure" style="text-align: center">
-<img src="spatiotemporal-soc_files/figure-html/soc-depth-1.png" alt="Distribution of values for SOC in g/kg vs soil depth." width="90%" />
+<img src="spatiotemporal-soc_files/figure-html/soc-depth-1.png" alt="Distribution of values for SOC in g/kg vs soil depth." width="100%" />
 <p class="caption">(\#fig:soc-depth)Distribution of values for SOC in g/kg vs soil depth.</p>
 </div>
 
@@ -115,7 +115,7 @@ openair::scatterPlot(rms.df[sel.db,], y = "db_od", x = "oc", method = "hexbin", 
 ```
 
 <div class="figure" style="text-align: center">
-<img src="spatiotemporal-soc_files/figure-html/soc-db-1.png" alt="Distribution of values for SOC in g/kg vs soil bulk density." width="90%" />
+<img src="spatiotemporal-soc_files/figure-html/soc-db-1.png" alt="Distribution of values for SOC in g/kg vs soil bulk density." width="100%" />
 <p class="caption">(\#fig:soc-db)Distribution of values for SOC in g/kg vs soil bulk density.</p>
 </div>
 
@@ -151,7 +151,7 @@ summary(m.bd.soc)
 #> F-statistic:  3604 on 2 and 2885 DF,  p-value: < 2.2e-16
 ```
 
-so that we can estimate bulk density for average SOC content and depth of 50cm to be:
+so that we can estimate bulk density for average SOC content and depth of 50-cm:
 
 
 ```r
@@ -161,8 +161,8 @@ mean.db_od
 #> 0.7701787
 ```
 
-i.e. about 770 kg/m-cubic. Based on these rough numbers we can estimate that the mean 
-SOC density for world mangroves at 50 cm depth is about:
+i.e. it is about 770 kg/m-cubic. Based on these rough numbers we can estimate that the mean 
+SOC density for world mangroves at 50-cm depth is about:
 
 
 ```r
@@ -180,14 +180,14 @@ Assuming that there are about [147,000 square-km of mangroves forests in the wor
 #> [1] 6.321
 ```
 
-i.e. about [6.3 gigatones of soil carbon](https://www.mangrovealliance.org/wp-content/uploads/2022/09/The-State-of-the-Worlds-Mangroves-Report_2022.pdf). This estimate is not ideal for multiple reasons:
+i.e. about 6.3 gigatones of soil carbon. This estimate is not ideal for multiple reasons:
 - Training points are just a compilation of data from literature, i.e. it is possible 
 that some areas are over-represented i.e. that there is a bias in how average SOC is estimated,  
 - Training points come from different time-periods and SOC is a dynamic property; again we could generate bias in predictions,  
 
 To produce a more reliable estimate of global SOC stock in world mangroves and also 
 to map their distribution we use [predctive soil mapping](https://soilmapper.org), 
-in this case spatiotemporal EML.
+in this case spatiotemporal Ensemble Machine Learning (EML).
 
 We can first check if there is enough point data spread through time:
 
@@ -197,25 +197,25 @@ openair::scatterPlot(rms.df[sel.db,], y = "oc", x = "observation_year", method =
 ```
 
 <div class="figure" style="text-align: center">
-<img src="spatiotemporal-soc_files/figure-html/soc-time-1.png" alt="Distribution of training points through time." width="90%" />
+<img src="spatiotemporal-soc_files/figure-html/soc-time-1.png" alt="Distribution of training points through time." width="100%" />
 <p class="caption">(\#fig:soc-time)Distribution of training points through time.</p>
 </div>
 
 Overall, there are definitively enough points spread over time for spatiotemporal 
-mapping of SOC. Also note, there seems to be no overall trends in SOC in average. 
+mapping of SOC. Also note, there seems to be, in average, no overall trends in SOC. 
 Still, many reports shows that in some areas such as Niger delta, Indonesia, Australia etc 
-the mangrove forests have gone through significant degradation [@LealSpalding2022GMA] and this should be 
+the mangrove forests have gone through significant degradation [@LealSpalding2022GMA; @murray2022high] and this should be 
 also represented in maps.
 
 ## Estimating added value of temporal component
 
 For spatiotemporal EML we use a regression matrix with number of target variables, 
-and over 150 covariate layers. This include (covering 2000–2020 period):
+and over 150 covariate layers. This include:
 
-- Globally consistent ARD Landsat bands (Blue, Green, Red, NIR, SWIR1, SWIR2) [@potapov2020landsat], aggregated and 
+- Globally consistent time-series 2000–2020 ARD Landsat bands (Blue, Green, Red, NIR, SWIR1, SWIR2) [@potapov2020landsat], aggregated and 
 gap-filled to produce complete consistent lower quantiles (P25 = lower 0.25 probability), as explained in detail in @yamazaki2019merit,  
 - [Time-series of CHELSA images](https://chelsa-climate.org/timeseries/) representing climate precipitation, mean, minimum and maximum air temperature [@karger2017climatologies],  
-- MODIS LST (1km) and EVI (250m) monthly time-series generated using aggregation,  
+- MODIS LST (1km) and EVI (250m) monthly time-series (covering 2000–2020 period) generated using aggregation,  
 - Number of static (long-term) layers including MERIT DEM elevation [@yamazaki2019merit], global surface water 
 probability [@pekel2016high], long-term climatic variables and and global composites of Landsat bands from 2010, 2014 and 2018 [@hansen2013high],  
 
@@ -254,7 +254,7 @@ str(g30m.s@data)
 #>  $ Water_occurrence                    : num  35 41 27 29 19 21 24 30 39 49 ...
 ```
 
-We can start the modeling process by comparing predictive power of purely-spatial vs 
+We can start modeling SOC by tesing predictive power of purely-spatial vs 
 spatiotemporal covariates. We first test modeling performance using only *static* covariates 
 and log-SOC (%) as the target variable:
 
@@ -307,12 +307,12 @@ m1.oc
 #> R squared (OOB):                  0.802172
 ```
 
-It appears that static variables are already sufficient to map SOC content. The 
+It appears that static variables are already sufficient to map SOC content and the models are highly significant. The 
 problem of this approach is that it ignores spatial clustering of points including 
 the fact that many samples come from the same spatial locations. We want to, instead, validate models 
 using [spatial blocks](https://opengeohub.github.io/spatial-sampling-ml/resampling-methods-for-machine-learning.html#resampling-using-ensemble-ml) so that a subset of points is either used for training or cross-validation. 
 To fit a model that *blocks* spatially overlapping points in training / validation we 
-can use the mlr package:
+can use the [mlr package](https://mlr.mlr-org.com/articles/tutorial/handling_of_spatial_data.html):
 
 
 
@@ -361,10 +361,10 @@ summary(eml0$learner.model$super.model$learner.model)
 #> F-statistic:  2563 on 4 and 11918 DF,  p-value: < 2.2e-16
 ```
 
-This shows drastically lower R-square: e.g. a drop from 0.82 to 0.44. The 
-cross-validation is now based on using 30-km spatial blocks as the blocking criterion, 
-hence this test the strict performance of the model. The drop in R-square is thus 
-primarily effect of taking whole soil profiles and points close to each other out of training [@gasch2015spatio].
+In this case we have added `ID` which is the unique ID of the spatial block (30×30-km).
+So the results show drastically lower R-square when strict spatial blocking is used: e.g. a drop from 0.82 to 0.44. 
+The drop in R-square is primarily effect of taking complete soil profiles and points 
+close to each other out of training [@gasch2015spatio].
 
 We can compare accuracy of modeling with using both statics and temporal variables:
 
@@ -406,11 +406,11 @@ summary(eml1$learner.model$super.model$learner.model)
 #> F-statistic:  2049 on 4 and 9280 DF,  p-value: < 2.2e-16
 ```
 
-This shows that: (1) adding temporal components helps increase mapping accuracy, 
-(2) without using CV with blocking Random Forest most likely [overfits data](https://medium.com/nerd-for-tech/extrapolation-is-tough-for-trees-tree-based-learners-combining-learners-of-different-type-makes-659187a6f58d).
+This shows that: (1) adding temporal components helps increase mapping accuracy altough the difference is marginal (5–10%), 
+(2) without using CV with blocking, Random Foreost most likely [overfits data](https://medium.com/nerd-for-tech/extrapolation-is-tough-for-trees-tree-based-learners-combining-learners-of-different-type-makes-659187a6f58d) values.
 
-The estimated accuracy of predicting SOC content (%) anywhere inside the world mangrove 
-forests is thus:
+The estimated accuracy of predicting SOC content (%) anywhere in the world (inside the world mangrove 
+forests) is thus:
 
 
 ```r
@@ -427,7 +427,7 @@ plot_hexbin(varn="SOC_EML", breaks=c(t.b[1], seq(t.b[2], t.b[3], length=25)),
 </div>
 
 It is also interesting to look at the variable importance to see which covariates 
-are most important for modeling:
+are most important for modeling SOC:
 
 
 ```r
@@ -452,9 +452,10 @@ ggplot(data = xl.soc[1:20,], aes(x = reorder(variable, relative_importance), y =
 </div>
 
 As expected, soil depth significantly helps predict SOC. Next most important covariates 
-are Landsat SWIR bands and daytime surface temperature (LST) for October.
+are Landsat SWIR bands and daytime surface temperature (LST) for October. Note that, in 
+average, time-series `landsat.ard` (i.e. temporal component) are overall the most important covariates.
 
-Likewise, we can fit an independent model for BD:
+Likewise, we can fit an independent model for BD using the same modeling framework:
 
 
 ```r
@@ -496,23 +497,24 @@ summary(bd.eml$learner.model$super.model$learner.model)
 ```
 
 This has more missing values and is hence will likely be more cumbersome to 
-map at higher accuracy. 
+map at higher accuracy.
 
 ## Producing predictions of SOC and BD
 
 Now that we have fitted (independently) models for SOC and BD, we can generate 
-predictions for all time-periods and all standard depths (0, 30, 60 and 100 cm). 
-After we produce predictions at standard depths, we can aggregate those predictions 
+predictions for all time-periods and all standard depths (0, 30, 60 and 100-cm). 
+Then, after we produce predictions at standard depths, we can aggregate those predictions 
 to standard depth intervals e.g. 0–30 and 30–100 cm. For each interval, we can then 
 determine SOC stocks (t/ha) and then sum up the two to produce total SOC stocks 
 0–100 cm.
 
-In summary, we will produce a total of 192 maps, which includes:
+In summary, we will produce a total of 190+ maps, which includes:
 - Predictions of SOC and BD at 4 standard depths + prediction errors for 5 period (2×4×2×5 = 96),
 - Derived values for SOC and BD for standard depth intervals 0–30 and 30–100-cm (2×2×2×5 = 40),
 - Derived stocks for standard depths with lower and upper intervals (2×3×5 = 30),
 
 The 4-year time-periods include:
+
 - 2002 = 2000–2003,  
 - 2006 = 2004–2007,  
 - 2010 = 2008–2011,  
@@ -525,6 +527,7 @@ We can now run predictions over time-periods:
 
 
 ```r
+source("PSM_functions.R")
 yl =  c(2002, 2006, 2010, 2014, 2018, 2020)
 ## correction factor for prediction error:
 m.train = eml1$learner.model$super.model$learner.model$model
@@ -545,7 +548,7 @@ depth intervals:
 ```r
 params = expand.grid(t.var=c("log.oc", "db.od"), year=yl, tile="T162E_10S")
 params = split(params, 1:nrow(params))
-str(params[[1]])
+#str(params[[1]])
 library(doMC)
 registerDoMC(parallel::detectCores())
 x <- foreach(p=params, .packages=c("rgdal", "raster", "matrixStats"), 
@@ -561,9 +564,8 @@ This will populate the folder `./output/T162E_10S` with all maps as a result of
 predictive mapping. The most interesting output maps are e.g. `sol_soc.tha_mangroves.typology_m_30m_s0..30cm_2020`, 
 which are the most recent estimates of SOC stocks for mangrove map of interest.
 
-We can visualize predictions and lower and upper intervals, best by using the 
-[Raster Time-series Manager plugin](https://raster-timeseries-manager.readthedocs.io/en/latest/content.html) in QGIS. Simply download the maps in the `./output/T162E_10S` 
-and open and customize predictions in QGIS as shown below.
+We can visualize produced predictions best by using e.g. the 
+[Raster Time-series Manager plugin](https://raster-timeseries-manager.readthedocs.io/en/latest/content.html) in QGIS. Simply download the maps from the `./output/T162E_10S` folder and open and customize predictions in QGIS as shown below.
 
 <div class="figure" style="text-align: center">
 <img src="./img/preview_soc_magroves_qgis.gif" alt="Visualization of SOC t/ha predictions in QGIS." width="100%" />
@@ -578,32 +580,39 @@ parallelMap::parallelStop()
 
 ## Summary points
 
-In this tutorial we demonstrate how to fit spatiotemporal models for SOC to estimate 
-SOC stocks in t/ha. We fit two independent models for SOC content (%) and for bulk 
+In this tutorial we have demonstrated how to fit spatiotemporal models for SOC to estimate 
+SOC stocks in t/ha for world mangrove forests. We fit two independent models for SOC content (%) and for bulk 
 density, then aggregate values to produce global estimates of SOC for the whole mangroves. 
-This is so-called 3D predictive soil mapping approach with independetly fitted components of 
-SOC stocks. For modeling we use a compilation of soil samples from literature and 
+This is so-called 3D predictive soil mapping approach with independently fitted components of 
+SOC stocks. For modeling we use a compilation of [soil samples from literature](https://opengeohub.github.io/SoilSamples/) and 
 various national and international projects (at total of 12,000 samples). As covariate 
 layers we use standard climatic, terrain, vegetation and hydrological parameters.
 
 Results of strict cross-validation using 5-fold blocking (where spatially close points 
 are used either for modeling or validation) show that the CCC for SOC (%) is 
 about 0.7 and for bulk density around 0.65. The mapping uncertainty is somewhat higher 
-than for SOC mapping projects where interest is agricultural land.
-The tutorial demonstrates that Random Forest that ignores spatial overlap and would likely 
+than for SOC mapping projects where interest is agricultural land. This is most likely due to 
+the following reasons:
+
+1. Most of world mangrove forests are in Tropics and covered with vegetation whole year; vegetation cover might not be correlated with SOC content,  
+2. Point data (digitized from the literature mainly) used for training is largely unharmonized and many points have relatively inaccurate location,  
+3. A lot of SOC is covered in deeper soils, so depth only marginaly helps model SOC,  
+
+The tutorial demonstrates that Random Forest that ignores spatial overlap would likely 
 result in overfitting. This illustrates importance of doing strict validation to 
-build models and interpret the results. As most important covariates for 
+build models and interpret the results. As the most important covariates for 
 mapping SOC models show soil depth and Landsat SWIR bands.  
 
 Based on spatiotemporal prediction of SOC stocks, we estimate that the global SOC 
-stocks are in average about 350 t/ha (0–100 cm) or (67% interval: 232–470 t/ha) 
-i.e. about 4.6 gigatonnes (67% interval: 3.1–6.2), which is significantly less 
+stocks for world mangrove forests are in average about 350 t/ha (0–100 cm) or (67% prob. interval: 232–470 t/ha) 
+i.e. about 4.6 gigatonnes (67% prob. interval: 3.1–6.2), which is somewhat less 
 than we estimate directly from soil samples. This is for 2 main probable reasons:
+
 1. The soil samples (points) are usually collected for top-soil, hence average most likely over-estimates deeper soils,  
 2. Soil samples are in most cases collected inside mangrove forests, so that lower stocks in the transition areas would have been likely over-estimated,  
 
 Also note that our results show that, in average, SOC for mangrove forests did 
-not change, although one would need to validate specifies areas to see if in some 
+not change (see below), although one would need to validate specifies areas to see if in some 
 parts there are gains / losses in SOC.
 
 <div class="figure" style="text-align: center">
@@ -611,9 +620,11 @@ parts there are gains / losses in SOC.
 <p class="caption">(\#fig:global-trend)Global SOC stocks in gigatones with prediction uncertainty for the time-period of interest.</p>
 </div>
 
-To access global predictions you can use the Cloud-Optimized GeoTIFFs available at (Soil Carbon t/ha Maps) 
-published at https://s3.eu-central-1.wasabisys.com/openlandmap/mangroves/. Simply expand the file name using 
-the simple pattern of standard depths `s0..30cm`, `s30..100cm` and years of predictions e.g. `2020`. 
+## Access global predictions of SOC for magroves
+
+To access global predictions you can use the Cloud-Optimized GeoTIFFs available at 
+ https://s3.eu-central-1.wasabisys.com/openlandmap/mangroves/. Simply expand the file name using 
+the file-name pattern of standard depths `s0..30cm`, `s30..100cm` and years of predictions e.g. `2020`. 
 Example of mean, lower-prediction-interval and upper-prediction-interval maps are:
 
 - sol_soc.tha_mangroves.typology_m_30m_s0..30cm_2020_global_v1.0.tif,  
@@ -634,24 +645,25 @@ library(terra)
 #> The following object is masked from 'package:rgdal':
 #> 
 #>     project
-cog = "/vsicurl/https://s3.eu-central-1.wasabisys.com/openlandmap/mangroves/sol_soc.tha_mangroves.typology_u.std_30m_s0..30cm_2020_global_v1.0.tif"
+cog = "/vsicurl/https://s3.eu-central-1.wasabisys.com/openlandmap/mangroves/sol_soc.tha_mangroves.typology_m_30m_s0..30cm_2020_global_v1.0.tif"
 terra::rast(cog)
 #> class       : SpatRaster 
 #> dimensions  : 280004, 1360004, 1  (nrow, ncol, nlyr)
 #> resolution  : 0.00025, 0.00025  (x, y)
 #> extent      : -160.0005, 180.0005, -39.0005, 31.0005  (xmin, xmax, ymin, ymax)
 #> coord. ref. : +proj=longlat +datum=WGS84 +no_defs 
-#> data source : sol_soc.tha_mangroves.typology_u.std_30m_s0..30cm_2020_global_v1.0.tif 
-#> names       : sol_soc.tha_mangroves.typology_u.std_30m_s0..30cm_2020_global_v1.0
+#> data source : sol_soc.tha_mangroves.typology_m_30m_s0..30cm_2020_global_v1.0.tif 
+#> names       : sol_soc.tha_mangroves.typology_m_30m_s0..30cm_2020_global_v1.0
 ```
 
-From this you can crop to bounding box of interest or simply [overlay points or polygons](https://gitlab.com/openlandmap/africa-soil-and-agronomy-data-cube).
+Once you define the COG in R, you can crop to bounding box of interest or simply [overlay points or polygons](https://gitlab.com/openlandmap/africa-soil-and-agronomy-data-cube).
 
 Note: if you compare the output maps with the mask map of the global mangrove forests, 
-you will notice that we couldn't produce predictions for about 116 mangroves polygons 
+you will notice that we could not produce predictions for about 116 mangroves polygons 
 (mostly in Fiji and other smaller islands) because of the absence of GLAD Landsat 
 data. We could try to predict these areas using only coarser resolution EO data, 
-but the result would be highly uncertain + we would not match the spatial resolution.
+but the result would be highly uncertain + we would not match the spatial resolution, 
+so we have decided to better leave the pixels as NA.
 
 This work has received funding from the **[Global Mangrove Alliance](https://www.mangrovealliance.org/)**. Global Mangrove 
 Alliance is currently coordinated by members Conservation International, The International 

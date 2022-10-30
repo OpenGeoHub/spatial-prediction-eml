@@ -100,6 +100,7 @@ training-data
 estimating-added-value-of-temporal-component
 producing-predictions-of-soc-and-bd
 summary-points
+access-global-predictions-of-soc-for-magroves
 multi-scale-spatial-prediction-models
 rationale-for-multiscale-models
 fitting-and-predicting-with-multiscale-models
