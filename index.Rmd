@@ -1,7 +1,7 @@
 ---
 knit: "bookdown::render_book"
 title: "Spatial and spatiotemporal interpolation using Ensemble Machine Learning"
-author: "Tom Hengl, Leandro Parente and Carmelo Bonannella"
+author: "Tom Hengl, Leandro Parente, Carmelo Bonannella and contributors"
 description: "This R tutorial explains step-by-step how to use Ensemble Machine Learning to generate predictions (maps) from 2D, 3D, 2D+T training (point) datasets. We show functionality to do automated benchmarking for spatial/spatiotemporal prediction problems, and for which we use primarily the mlr framework and spatial packages terra, rgdal and similar. In addition, we explain how to plot spatial/spatiotemporal prediction inputs and outputs, including how to do accuracy plots and predictograms. We focus engineering the predictive mapping around three main areas: (a) accuracy performance, (b) computing time, (c) robustness of the algorithms (sensitivity to noise, artifacts etc). More chapters will be added in the future. Contributions are welcome. To discuss issues or report a bug please use the repository homepage."
 url: 'https\://opengeohub.github.io/spatial-prediction-eml/'
 bibliography: ./tex/refs.bib

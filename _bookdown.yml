@@ -10,6 +10,7 @@ rmd_files: [
   "spatial-3D.Rmd",
   "spatiotemporal-interpolation.Rmd",
   "spatiotemporal-sdm.Rmd",
+  "spatiotemporal-soc.Rmd",
   "multiscale-models.Rmd",
   "summary.Rmd",
 
