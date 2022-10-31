@@ -17,15 +17,18 @@ sequestration from atmosphere to soil, we could potentially could help mitigate
 global warming effects of GHG [@lal2022soil].
 
 In this tutorial we explain how soil samples (points) can be used in combination with 
-time-series of Earth Observation and climatic data to map changes in SOC through time. 
-We use the Global compilation of soil organic carbon samples for world mangrove forest [@sanderman2018global], 
-which we combine with other soil samples (a total of +12,000 samples). We overlay the points in space 
-and time vs dynamic time-series EO data and some static covariates. We fit spatiotemporal 
+time-series of Earth Observation and climatic data to map SOC stocks and 
+potentially also  changes in SOC through time. For this we use the Global 
+compilation of soil organic carbon samples for world mangrove forest [@sanderman2018global], 
+which we combine with other soil samples from [various project](https://opengeohub.github.io/SoilSamples/) (resulting in a 
+total of +12,000 samples). We overlay the points in space 
+and time vs dynamic time-series EO data and some static covariates. We then fit spatiotemporal 
 Ensemble Machine Learning model and generate predictions for 30×30km tiles (about 1459 tiles with mangrove mask). 
 
 The analysis was run for the needs of the project State of the World’s Mangroves 2022 run by 
 the [Global Mangrove Alliance](https://www.mangrovealliance.org/) [@LealSpalding2022GMA]. The objectives of this work are:
-- Provide best unbiased estimate of SOC stocks at 30m spatial resolution for recent time-period (2020–2021) with uncertainty,  
+
+- Provide best unbiased estimate of SOC stocks at 30-m spatial resolution for recent time-period (2020–2021) with uncertainty,  
 - Test if predictions in @sanderman2018global can be improved by using spatiotemporal EML vs RF only,  
 - Provide open access to data and computational steps and regularly update predictions using new training points, new covariates and models,  
 
@@ -87,26 +90,27 @@ openair::scatterPlot(rms.df[sel.db,], x = "hzn_depth", y = "oc", method = "hexbi
 ```
 
 <div class="figure" style="text-align: center">
-<img src="spatiotemporal-soc_files/figure-html/soc-depth-1.png" alt="Distribution of values for SOC in g/kg vs soil depth." width="100%" />
-<p class="caption">(\#fig:soc-depth)Distribution of values for SOC in g/kg vs soil depth.</p>
+<img src="spatiotemporal-soc_files/figure-html/soc-depth-1.png" alt="Distribution of values for SOC in g/kg vs soil depth. Notice for many soil samples standard depths are used hence some groupings are visible." width="100%" />
+<p class="caption">(\#fig:soc-depth)Distribution of values for SOC in g/kg vs soil depth. Notice for many soil samples standard depths are used hence some groupings are visible.</p>
 </div>
 
 In this case clearly most of soils in mangrove forests are so-called organic soils 
 where SOC content remains high with depth (compare vs CSIRO samples from Australia 
-and PRONASOLOS samples from Brazil). We can quickly estimate what are the average 
+and PRONASOLOS samples from Brazil). We can quickly estimate what the average 
 SOC content for world mangroves by using:
 
 
 ```r
-mean.oc = mean(rms.df[rms.df$source_db %in% c("MangrovesDB","TNC_mangroves_2022"),"oc"], na.rm=TRUE)
+sel.oc = rms.df$source_db %in% c("MangrovesDB","TNC_mangroves_2022")
+mean.oc = mean(rms.df[sel.oc,"oc"], na.rm=TRUE)
 mean.oc
 #> [1] 56.28807
-mean.hzn_depth = mean(rms.df[rms.df$source_db %in% c("MangrovesDB","TNC_mangroves_2022"),"hzn_depth"], na.rm=TRUE)
+mean.hzn_depth = mean(rms.df[sel.oc,"hzn_depth"], na.rm=TRUE)
 mean.hzn_depth
 #> [1] 48.02937
 ```
 
-Hence world soil mangrove forest have about 5.6% SOC for an average soil depth of 48cm. 
+Hence world soil mangrove forest have about 5.6% SOC for an average soil depth of 48-cm. 
 Next we can look at the bulk density values:
 
 
@@ -120,9 +124,9 @@ openair::scatterPlot(rms.df[sel.db,], y = "db_od", x = "oc", method = "hexbin", 
 </div>
 
 This shows that, as expected BD can be related with SOC using linear-log relationship. 
-Note that most of bulk density points in @sanderman2018global are based on using 
-a simple pedo-transfer function to estimate BD from SOC content. We can use actual 
-SOC and BD measurements to estimate a more applicable pedo-transfer function for bulk density:
+Note that most of bulk density points in @sanderman2018global (`MangrovesDB`) are based on using 
+a simple pedo-transfer function to estimate BD from SOC content hence the grouping on a line. 
+We can use actual SOC and BD measurements to estimate a more applicable pedo-transfer function for bulk density:
 
 
 ```r
@@ -181,13 +185,109 @@ Assuming that there are about [147,000 square-km of mangroves forests in the wor
 ```
 
 i.e. about 6.3 gigatones of soil carbon. This estimate is not ideal for multiple reasons:
+
 - Training points are just a compilation of data from literature, i.e. it is possible 
 that some areas are over-represented i.e. that there is a bias in how average SOC is estimated,  
 - Training points come from different time-periods and SOC is a dynamic property; again we could generate bias in predictions,  
 
+## Pedo-tranfer function to estimate SOC density from content
+
+We can also look at relationship between SOC (%) and SOC density (kg/m3). Based on the 
+available data this shows:
+
+
+```r
+openair::scatterPlot(rms.df[sel.db,], y = "oc_d", x = "oc", method = "hexbin", col = "increment", type = "source_db", log.x = TRUE, log.y = TRUE, ylab="SOC [kg/m3]", xlab="SOC [g/kg]")
+```
+
+<div class="figure" style="text-align: center">
+<img src="spatiotemporal-soc_files/figure-html/soc-dens-1.png" alt="Relationship between SOC content and density on a log-scale." width="100%" />
+<p class="caption">(\#fig:soc-dens)Relationship between SOC content and density on a log-scale.</p>
+</div>
+
+Which shows that SOC in kg/m3 is linearly correlated with SOC %, except for 
+organic soils this relationship is curvilinear i.e. after some values of SOC % 
+SOC in kg/m3 stabilizes and does not grow any more. Again, we can fit a simple pedo-tranfer 
+function using this data to predict SOC density (kg/m3) directly from SOC %:
+
+
+```r
+rms.df$log.oc2 = rms.df$log.oc^2
+m.oc_d = glm(I(oc_d+.Machine$double.eps)~log.oc+log.oc2+hzn_depth, 
+             rms.df[sel.oc,], family = gaussian(link="log"))
+summary(m.oc_d)
+#> 
+#> Call:
+#> glm(formula = I(oc_d + .Machine$double.eps) ~ log.oc + log.oc2 + 
+#>     hzn_depth, family = gaussian(link = "log"), data = rms.df[sel.oc, 
+#>     ])
+#> 
+#> Deviance Residuals: 
+#>     Min       1Q   Median       3Q      Max  
+#> -28.323   -2.365    0.284    1.766   71.646  
+#> 
+#> Coefficients:
+#>               Estimate Std. Error t value Pr(>|t|)    
+#> (Intercept) -8.066e-01  6.948e-02 -11.609  < 2e-16 ***
+#> log.oc       1.638e+00  3.288e-02  49.827  < 2e-16 ***
+#> log.oc2     -1.389e-01  3.825e-03 -36.324  < 2e-16 ***
+#> hzn_depth    3.416e-04  6.821e-05   5.008 5.68e-07 ***
+#> ---
+#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#> 
+#> (Dispersion parameter for gaussian family taken to be 53.10529)
+#> 
+#>     Null deviance: 1516054  on 5586  degrees of freedom
+#> Residual deviance:  296485  on 5583  degrees of freedom
+#>   (52 observations deleted due to missingness)
+#> AIC: 38054
+#> 
+#> Number of Fisher Scoring iterations: 7
+```
+
+This models has an R-square of about:
+
+
+```r
+#calculate McFadden's R-squared for model
+with(summary(m.oc_d), 1 - deviance/null.deviance)
+#> [1] 0.8044367
+```
+
+We can plot the fitted model vs measured data by using:
+
+
+```r
+oc_data <- data.frame(log.oc=seq(0, 6, length.out=20))
+oc_data$log.oc2 = oc_data$log.oc^2
+oc_data$hzn_depth = 20
+oc_data$oc_d = predict(m.oc_d, oc_data, type = c("response"))
+ggplot(rms.df[sel.oc,c("oc_d","log.oc")], aes(log.oc, oc_d)) + 
+  geom_hex(bins=40) + 
+  scale_fill_gradient(low = "grey90", high = "black") +
+  theme_bw() + 
+  geom_line(data=oc_data, aes(log.oc, oc_d), col="orange",
+              size=1)
+#> Warning: Removed 52 rows containing non-finite values (stat_binhex).
+```
+
+<div class="figure" style="text-align: center">
+<img src="spatiotemporal-soc_files/figure-html/ocd-plot-1.png" alt="Modelling SOC density (kg/m3) as a function of log.SOC (g/kg). This model explains cca 80% of variability in data, notice however that the uncertainty around regression line increases for higher values of SOC." width="80%" />
+<p class="caption">(\#fig:ocd-plot)Modelling SOC density (kg/m3) as a function of log.SOC (g/kg). This model explains cca 80% of variability in data, notice however that the uncertainty around regression line increases for higher values of SOC.</p>
+</div>
+
+## Estimating total stocks using Predictive Soil Mapping
+
+In the previous examples we have shown how to start with checking the SOC data 
+to estimate global stocks, visualize relationships and  detect differences between datasets. 
+The quick-and-dirt calculus tells us that there should be about 6.3 gigatones of soil carbon 
+in the world mangrove forests. This number assumes perfectly random sample and no 
+bias in representation of various geographies and soil depths.
+
 To produce a more reliable estimate of global SOC stock in world mangroves and also 
-to map their distribution we use [predctive soil mapping](https://soilmapper.org), 
-in this case spatiotemporal Ensemble Machine Learning (EML).
+to map their distribution we will use [predictive soil mapping](https://soilmapper.org), 
+in this case spatiotemporal Ensemble Machine Learning (EML) and the approach where 
+SOC (g/kg) and BD are used independently, then aggregated to derive SOC stocks.
 
 We can first check if there is enough point data spread through time:
 
@@ -221,8 +321,8 @@ probability [@pekel2016high], long-term climatic variables and and global compos
 
 In addition to original Landsat bands, we also use a list of standard vegetation 
 indices that can be [derived from Landsat data](https://www.usgs.gov/landsat-missions/landsat-surface-reflectance-derived-spectral-indices). 
-The Landsat bands and derivatives are available at 30m spatial resolution, while 
-the 250m and 1km resolution images had to be downscaled to 30m spatial resolution 
+The Landsat bands and derivatives are available at 30-m spatial resolution, while 
+the 250m and 1km resolution images had to be downscaled to 30-m spatial resolution 
 (here we used GDAL and cubic-spline downscaling). An example of complete data prepared 
 for world mangroves is the tile `162E_10S`:
 
@@ -604,7 +704,7 @@ build models and interpret the results. As the most important covariates for
 mapping SOC models show soil depth and Landsat SWIR bands.  
 
 Based on spatiotemporal prediction of SOC stocks, we estimate that the global SOC 
-stocks for world mangrove forests are in average about 350 t/ha (0–100 cm) or (67% prob. interval: 232–470 t/ha) 
+stocks for world mangrove forests are in average about 350 t/ha for 0–100 cm depth (67% prob. interval: 232–470 t/ha) 
 i.e. about 4.6 gigatonnes (67% prob. interval: 3.1–6.2), which is somewhat less 
 than we estimate directly from soil samples. This is for 2 main probable reasons:
 

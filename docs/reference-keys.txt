@@ -44,6 +44,8 @@ fig:mangroves-map
 fig:soc-scheme
 fig:soc-depth
 fig:soc-db
+fig:soc-dens
+fig:ocd-plot
 fig:soc-time
 fig:eml-soc1
 fig:varimp-soc
@@ -97,6 +99,8 @@ spatiotemporal-prediction-of-soil-organic-carbon
 soil-organic-carbon-global-mangrove-forests
 predictive-mapping-of-soil-organic-carbon-stocks
 training-data
+pedo-tranfer-function-to-estimate-soc-density-from-content
+estimating-total-stocks-using-predictive-soil-mapping
 estimating-added-value-of-temporal-component
 producing-predictions-of-soc-and-bd
 summary-points
