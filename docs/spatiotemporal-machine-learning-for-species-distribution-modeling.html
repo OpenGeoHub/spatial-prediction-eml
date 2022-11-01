@@ -281,12 +281,12 @@ column but we ONLY specify a matrix of covariates at occurrence locations:</p>
 <span class="co">#head(occ.ov)</span>
 <span class="va">iso</span> <span class="op">=</span> <span class="va"><a href="https://rdrr.io/pkg/solitude/man/isolationForest.html">isolationForest</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="op">)</span>
 <span class="va">iso</span><span class="op">$</span><span class="fu">fit</span><span class="op">(</span>dataset <span class="op">=</span> <span class="va">occ.ov</span><span class="op">)</span>
-<span class="co">#&gt; INFO  [12:53:04.614] dataset has duplicated rows </span>
-<span class="co">#&gt; INFO  [12:53:04.661] Building Isolation Forest ...  </span>
-<span class="co">#&gt; INFO  [12:53:04.753] done </span>
-<span class="co">#&gt; INFO  [12:53:04.756] Computing depth of terminal nodes ...  </span>
-<span class="co">#&gt; INFO  [12:53:05.312] done </span>
-<span class="co">#&gt; INFO  [12:53:05.599] Completed growing isolation forest</span></code></pre></div>
+<span class="co">#&gt; INFO  [12:38:52.127] dataset has duplicated rows </span>
+<span class="co">#&gt; INFO  [12:38:52.179] Building Isolation Forest ...  </span>
+<span class="co">#&gt; INFO  [12:38:52.273] done </span>
+<span class="co">#&gt; INFO  [12:38:52.276] Computing depth of terminal nodes ...  </span>
+<span class="co">#&gt; INFO  [12:38:52.954] done </span>
+<span class="co">#&gt; INFO  [12:38:53.222] Completed growing isolation forest</span></code></pre></div>
 <p>The fitted model shows:</p>
 <div class="sourceCode" id="cb120"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">iso</span><span class="op">$</span><span class="va">forest</span>

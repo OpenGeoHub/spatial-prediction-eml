@@ -245,48 +245,50 @@ SOC in kg/m3 stabilizes and does not grow any more. Again, we can fit a simple p
 function using this data to predict SOC density (kg/m3) directly from SOC %:</p>
 <div class="sourceCode" id="cb143"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">rms.df</span><span class="op">$</span><span class="va">log.oc2</span> <span class="op">=</span> <span class="va">rms.df</span><span class="op">$</span><span class="va">log.oc</span><span class="op">^</span><span class="fl">2</span>
+<span class="va">df.oc_d</span> <span class="op">=</span> <span class="va">rms.df</span><span class="op">[</span><span class="va">sel.oc</span>,<span class="fu"><a href="https://rdrr.io/pkg/terra/man/c.html">c</a></span><span class="op">(</span><span class="st">"oc_d"</span>, <span class="st">"log.oc"</span>, <span class="st">"log.oc2"</span>, <span class="st">"hzn_depth"</span><span class="op">)</span><span class="op">]</span>
+<span class="co">## remove some artifacts in points:</span>
+<span class="va">df.oc_d</span> <span class="op">=</span> <span class="va">df.oc_d</span><span class="op">[</span><span class="op">!</span><span class="op">(</span><span class="va">df.oc_d</span><span class="op">$</span><span class="va">log.oc</span><span class="op">&lt;</span><span class="fl">0.5</span> <span class="op">&amp;</span> <span class="va">df.oc_d</span><span class="op">$</span><span class="va">oc_d</span><span class="op">&gt;</span><span class="fl">5</span><span class="op">)</span>,<span class="op">]</span>
 <span class="va">m.oc_d</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/glm.html">glm</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/AsIs.html">I</a></span><span class="op">(</span><span class="va">oc_d</span><span class="op">+</span><span class="va">.Machine</span><span class="op">$</span><span class="va">double.eps</span><span class="op">)</span><span class="op">~</span><span class="va">log.oc</span><span class="op">+</span><span class="va">log.oc2</span><span class="op">+</span><span class="va">hzn_depth</span>, 
-             <span class="va">rms.df</span><span class="op">[</span><span class="va">sel.oc</span>,<span class="op">]</span>, family <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/family.html">gaussian</a></span><span class="op">(</span>link<span class="op">=</span><span class="st">"log"</span><span class="op">)</span><span class="op">)</span>
+             <span class="va">df.oc_d</span>, family <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/family.html">gaussian</a></span><span class="op">(</span>link<span class="op">=</span><span class="st">"log"</span><span class="op">)</span><span class="op">)</span>
 <span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">m.oc_d</span><span class="op">)</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; Call:</span>
 <span class="co">#&gt; glm(formula = I(oc_d + .Machine$double.eps) ~ log.oc + log.oc2 + </span>
-<span class="co">#&gt;     hzn_depth, family = gaussian(link = "log"), data = rms.df[sel.oc, </span>
-<span class="co">#&gt;     ])</span>
+<span class="co">#&gt;     hzn_depth, family = gaussian(link = "log"), data = df.oc_d)</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; Deviance Residuals: </span>
 <span class="co">#&gt;     Min       1Q   Median       3Q      Max  </span>
-<span class="co">#&gt; -28.323   -2.365    0.284    1.766   71.646  </span>
+<span class="co">#&gt; -28.255   -2.370    0.317    1.724   71.752  </span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; Coefficients:</span>
 <span class="co">#&gt;               Estimate Std. Error t value Pr(&gt;|t|)    </span>
-<span class="co">#&gt; (Intercept) -8.066e-01  6.948e-02 -11.609  &lt; 2e-16 ***</span>
-<span class="co">#&gt; log.oc       1.638e+00  3.288e-02  49.827  &lt; 2e-16 ***</span>
-<span class="co">#&gt; log.oc2     -1.389e-01  3.825e-03 -36.324  &lt; 2e-16 ***</span>
-<span class="co">#&gt; hzn_depth    3.416e-04  6.821e-05   5.008 5.68e-07 ***</span>
+<span class="co">#&gt; (Intercept) -8.345e-01  6.701e-02 -12.455  &lt; 2e-16 ***</span>
+<span class="co">#&gt; log.oc       1.651e+00  3.170e-02  52.094  &lt; 2e-16 ***</span>
+<span class="co">#&gt; log.oc2     -1.404e-01  3.687e-03 -38.085  &lt; 2e-16 ***</span>
+<span class="co">#&gt; hzn_depth    3.423e-04  6.555e-05   5.222 1.84e-07 ***</span>
 <span class="co">#&gt; ---</span>
 <span class="co">#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span>
 <span class="co">#&gt; </span>
-<span class="co">#&gt; (Dispersion parameter for gaussian family taken to be 53.10529)</span>
+<span class="co">#&gt; (Dispersion parameter for gaussian family taken to be 49.05412)</span>
 <span class="co">#&gt; </span>
-<span class="co">#&gt;     Null deviance: 1516054  on 5586  degrees of freedom</span>
-<span class="co">#&gt; Residual deviance:  296485  on 5583  degrees of freedom</span>
+<span class="co">#&gt;     Null deviance: 1511634  on 5564  degrees of freedom</span>
+<span class="co">#&gt; Residual deviance:  272790  on 5561  degrees of freedom</span>
 <span class="co">#&gt;   (52 observations deleted due to missingness)</span>
-<span class="co">#&gt; AIC: 38054</span>
+<span class="co">#&gt; AIC: 37463</span>
 <span class="co">#&gt; </span>
-<span class="co">#&gt; Number of Fisher Scoring iterations: 7</span></code></pre></div>
+<span class="co">#&gt; Number of Fisher Scoring iterations: 5</span></code></pre></div>
 <p>This models has an R-square of about:</p>
 <div class="sourceCode" id="cb144"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co">#calculate McFadden's R-squared for model</span>
 <span class="fu"><a href="https://rdrr.io/r/base/with.html">with</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">m.oc_d</span><span class="op">)</span>, <span class="fl">1</span> <span class="op">-</span> <span class="va">deviance</span><span class="op">/</span><span class="va">null.deviance</span><span class="op">)</span>
-<span class="co">#&gt; [1] 0.8044367</span></code></pre></div>
+<span class="co">#&gt; [1] 0.8195399</span></code></pre></div>
 <p>We can plot the fitted model vs measured data by using:</p>
 <div class="sourceCode" id="cb145"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">oc_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span>log.oc<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">6</span>, length.out<span class="op">=</span><span class="fl">20</span><span class="op">)</span><span class="op">)</span>
 <span class="va">oc_data</span><span class="op">$</span><span class="va">log.oc2</span> <span class="op">=</span> <span class="va">oc_data</span><span class="op">$</span><span class="va">log.oc</span><span class="op">^</span><span class="fl">2</span>
 <span class="va">oc_data</span><span class="op">$</span><span class="va">hzn_depth</span> <span class="op">=</span> <span class="fl">20</span>
 <span class="va">oc_data</span><span class="op">$</span><span class="va">oc_d</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/raster/man/predict.html">predict</a></span><span class="op">(</span><span class="va">m.oc_d</span>, <span class="va">oc_data</span>, type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/terra/man/c.html">c</a></span><span class="op">(</span><span class="st">"response"</span><span class="op">)</span><span class="op">)</span>
-<span class="fu"><a href="https://rdrr.io/pkg/ggplot2/man/ggplot.html">ggplot</a></span><span class="op">(</span><span class="va">rms.df</span><span class="op">[</span><span class="va">sel.oc</span>,<span class="fu"><a href="https://rdrr.io/pkg/terra/man/c.html">c</a></span><span class="op">(</span><span class="st">"oc_d"</span>,<span class="st">"log.oc"</span><span class="op">)</span><span class="op">]</span>, <span class="fu"><a href="https://rdrr.io/pkg/ggplot2/man/aes.html">aes</a></span><span class="op">(</span><span class="va">log.oc</span>, <span class="va">oc_d</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> 
+<span class="fu"><a href="https://rdrr.io/pkg/ggplot2/man/ggplot.html">ggplot</a></span><span class="op">(</span><span class="va">df.oc_d</span>, <span class="fu"><a href="https://rdrr.io/pkg/ggplot2/man/aes.html">aes</a></span><span class="op">(</span><span class="va">log.oc</span>, <span class="va">oc_d</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> 
   <span class="fu"><a href="https://rdrr.io/pkg/ggplot2/man/geom_hex.html">geom_hex</a></span><span class="op">(</span>bins<span class="op">=</span><span class="fl">40</span><span class="op">)</span> <span class="op">+</span> 
   <span class="fu"><a href="https://rdrr.io/pkg/ggplot2/man/scale_gradient.html">scale_fill_gradient</a></span><span class="op">(</span>low <span class="op">=</span> <span class="st">"grey90"</span>, high <span class="op">=</span> <span class="st">"black"</span><span class="op">)</span> <span class="op">+</span>
   <span class="fu"><a href="https://rdrr.io/pkg/ggplot2/man/ggtheme.html">theme_bw</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> 
@@ -299,6 +301,14 @@ function using this data to predict SOC density (kg/m3) directly from SOC %:</p>
 Figure 6.6: Modelling SOC density (kg/m3) as a function of log.SOC (g/kg). This model explains cca 80% of variability in data, notice however that the uncertainty around regression line increases for higher values of SOC.
 </p>
 </div>
+<p>This means that at depth of 20-cm, SOC % of 6% (log.SOC = 4.1) converts to SOC
+density (kg/m3) of about 36 kg/m-cubic, but the number could very well be somewhere
+between 22 and 46 kg/m-cubic (see density plot above).</p>
+<div class="sourceCode" id="cb146"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">oc_data</span><span class="op">$</span><span class="va">SOC</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html">expm1</a></span><span class="op">(</span><span class="va">oc_data</span><span class="op">$</span><span class="va">log.oc</span><span class="op">)</span>
+<span class="va">oc_data</span><span class="op">[</span><span class="fl">14</span>,<span class="fu"><a href="https://rdrr.io/pkg/terra/man/c.html">c</a></span><span class="op">(</span><span class="st">"SOC"</span>,<span class="st">"log.oc"</span>,<span class="st">"oc_d"</span><span class="op">)</span><span class="op">]</span>
+<span class="co">#&gt;         SOC   log.oc     oc_d</span>
+<span class="co">#&gt; 14 59.65871 4.105263 36.03792</span></code></pre></div>
 </div>
 <div id="estimating-total-stocks-using-predictive-soil-mapping" class="section level2" number="6.5">
 <h2>
@@ -314,7 +324,7 @@ to map their distribution we will use <a href="https://soilmapper.org">predictiv
 in this case spatiotemporal Ensemble Machine Learning (EML) and the approach where
 SOC (g/kg) and BD are used independently, then aggregated to derive SOC stocks.</p>
 <p>We can first check if there is enough point data spread through time:</p>
-<div class="sourceCode" id="cb146"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb147"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu">openair</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/openair/man/scatterPlot.html">scatterPlot</a></span><span class="op">(</span><span class="va">rms.df</span><span class="op">[</span><span class="va">sel.db</span>,<span class="op">]</span>, y <span class="op">=</span> <span class="st">"oc"</span>, x <span class="op">=</span> <span class="st">"observation_year"</span>, method <span class="op">=</span> <span class="st">"hexbin"</span>, type <span class="op">=</span> <span class="st">"source_db"</span>, col <span class="op">=</span> <span class="st">"increment"</span>, log.y <span class="op">=</span> <span class="cn">TRUE</span>, xlab<span class="op">=</span><span class="st">"Year"</span>, ylab<span class="op">=</span><span class="st">"SOC [g/kg]"</span><span class="op">)</span></code></pre></div>
 <div class="figure" style="text-align: center">
 <span id="fig:soc-time"></span>
@@ -352,7 +362,7 @@ The Landsat bands and derivatives are available at 30-m spatial resolution, whil
 the 250m and 1km resolution images had to be downscaled to 30-m spatial resolution
 (here we used GDAL and cubic-spline downscaling). An example of complete data prepared
 for world mangroves is the tile <code>162E_10S</code>:</p>
-<div class="sourceCode" id="cb147"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb148"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">g30m.t</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html">readRDS</a></span><span class="op">(</span><span class="st">"./input/T162E_10S/data_2020.rds"</span><span class="op">)</span>
 <span class="fu"><a href="https://rdrr.io/pkg/raster/man/dimensions.html">dim</a></span><span class="op">(</span><span class="va">g30m.t</span><span class="op">@</span><span class="va">data</span><span class="op">)</span>
 <span class="co">#&gt; [1] 10548   147</span>
@@ -377,10 +387,10 @@ for world mangroves is the tile <code>162E_10S</code>:</p>
 <span class="co">#&gt;  $ MERIT_upstream.area                 : num  0.2445 0.2303 0.0768 0.0971 0.0389 ...</span>
 <span class="co">#&gt;  $ Water_change                        : num  242 238 248 247 251 250 247 241 231 217 ...</span>
 <span class="co">#&gt;  $ Water_occurrence                    : num  35 41 27 29 19 21 24 30 39 49 ...</span></code></pre></div>
-<p>We can start modeling SOC by tesing predictive power of purely-spatial vs
+<p>We can start modeling SOC by testing predictive power of purely-spatial vs
 spatiotemporal covariates. We first test modeling performance using only <em>static</em> covariates
 and log-SOC (%) as the target variable:</p>
-<div class="sourceCode" id="cb148"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb149"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">pr.vars</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html">readRDS</a></span><span class="op">(</span><span class="st">"./input/world.mangroves_soil.carbon_pr.vars.rds"</span><span class="op">)</span>
 <span class="va">pr.vars0</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/raster/man/names.html">names</a></span><span class="op">(</span><span class="va">g30m.s</span><span class="op">@</span><span class="va">data</span><span class="op">)</span><span class="op">[</span><span class="op">-</span><span class="fl">1</span><span class="op">]</span>
 <span class="va">sel0</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/complete.cases.html">complete.cases</a></span><span class="op">(</span><span class="va">rms.df</span><span class="op">[</span>,<span class="fu"><a href="https://rdrr.io/pkg/terra/man/c.html">c</a></span><span class="op">(</span><span class="st">"log.oc"</span>, <span class="va">pr.vars0</span><span class="op">)</span><span class="op">]</span><span class="op">)</span>
@@ -402,7 +412,7 @@ and log-SOC (%) as the target variable:</p>
 <span class="co">#&gt; Splitrule:                        variance </span>
 <span class="co">#&gt; OOB prediction error (MSE):       0.3371771 </span>
 <span class="co">#&gt; R squared (OOB):                  0.816463</span></code></pre></div>
-<div class="sourceCode" id="cb149"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb150"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">sel1</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/complete.cases.html">complete.cases</a></span><span class="op">(</span><span class="va">rms.df</span><span class="op">[</span>,<span class="fu"><a href="https://rdrr.io/pkg/terra/man/c.html">c</a></span><span class="op">(</span><span class="st">"log.oc"</span>, <span class="va">pr.vars</span><span class="op">)</span><span class="op">]</span><span class="op">)</span>
 <span class="va">m1.oc</span> <span class="op">=</span> <span class="fu">ranger</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/ranger/man/ranger.html">ranger</a></span><span class="op">(</span>y<span class="op">=</span><span class="va">rms.df</span><span class="op">$</span><span class="va">log.oc</span><span class="op">[</span><span class="va">sel1</span><span class="op">]</span>, x<span class="op">=</span><span class="va">rms.df</span><span class="op">[</span><span class="va">sel1</span>, <span class="fu"><a href="https://rdrr.io/pkg/terra/man/c.html">c</a></span><span class="op">(</span><span class="st">"hzn_depth"</span>, <span class="va">pr.vars</span><span class="op">)</span><span class="op">]</span>, 
             num.trees <span class="op">=</span> <span class="fl">85</span>, importance <span class="op">=</span> <span class="st">'impurity'</span><span class="op">)</span>
@@ -426,9 +436,9 @@ and log-SOC (%) as the target variable:</p>
 problem of this approach is that it ignores spatial clustering of points including
 the fact that many samples come from the same spatial locations. We want to, instead, validate models
 using <a href="https://opengeohub.github.io/spatial-sampling-ml/resampling-methods-for-machine-learning.html#resampling-using-ensemble-ml">spatial blocks</a> so that a subset of points is either used for training or cross-validation.
-To fit a model that <em>blocks</em> spatially overlapping points in training / validation we
+To fit a model that <em>blocks</em> spatially overlapping points into training or validation we
 can use the <a href="https://mlr.mlr-org.com/articles/tutorial/handling_of_spatial_data.html">mlr package</a>:</p>
-<div class="sourceCode" id="cb150"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb151"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">lrns</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="fu">mlr</span><span class="fu">::</span><span class="fu"><a href="https://mlr.mlr-org.com/reference/makeLearner.html">makeLearner</a></span><span class="op">(</span><span class="st">"regr.ranger"</span>, 
                 num.threads <span class="op">=</span> <span class="fu">parallel</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/parallel/detectCores.html">detectCores</a></span><span class="op">(</span><span class="op">)</span>, num.trees<span class="op">=</span><span class="fl">85</span>, importance<span class="op">=</span><span class="st">"impurity"</span><span class="op">)</span>,
              <span class="fu">mlr</span><span class="fu">::</span><span class="fu"><a href="https://mlr.mlr-org.com/reference/makeLearner.html">makeLearner</a></span><span class="op">(</span><span class="st">"regr.cubist"</span><span class="op">)</span>, <span class="fu">mlr</span><span class="fu">::</span><span class="fu"><a href="https://mlr.mlr-org.com/reference/makeLearner.html">makeLearner</a></span><span class="op">(</span><span class="st">"regr.rpart"</span><span class="op">)</span>, 
@@ -475,7 +485,7 @@ So the results show drastically lower R-square when strict spatial blocking is u
 The drop in R-square is primarily effect of taking complete soil profiles and points
 close to each other out of training <span class="citation">(<a href="references.html#ref-gasch2015spatio" role="doc-biblioref">Gasch et al., 2015</a>)</span>.</p>
 <p>We can compare accuracy of modeling with using both statics and temporal variables:</p>
-<div class="sourceCode" id="cb151"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb152"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">tsk1</span> <span class="op">&lt;-</span> <span class="fu">mlr</span><span class="fu">::</span><span class="fu"><a href="https://mlr.mlr-org.com/reference/RegrTask.html">makeRegrTask</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">rms.df</span><span class="op">[</span><span class="va">sel1</span>, <span class="fu"><a href="https://rdrr.io/pkg/terra/man/c.html">c</a></span><span class="op">(</span><span class="st">"log.oc"</span>, <span class="st">"hzn_depth"</span>, <span class="va">pr.vars</span><span class="op">)</span><span class="op">]</span>, 
                           blocking <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/raster/man/factor.html">as.factor</a></span><span class="op">(</span><span class="va">rms.df</span><span class="op">$</span><span class="va">ID</span><span class="op">[</span><span class="va">sel1</span><span class="op">]</span><span class="op">)</span>, 
                           target <span class="op">=</span> <span class="st">"log.oc"</span><span class="op">)</span>
@@ -510,11 +520,12 @@ close to each other out of training <span class="citation">(<a href="references.
 <span class="co">#&gt; Residual standard error: 0.9572 on 9280 degrees of freedom</span>
 <span class="co">#&gt; Multiple R-squared:  0.4689, Adjusted R-squared:  0.4687 </span>
 <span class="co">#&gt; F-statistic:  2049 on 4 and 9280 DF,  p-value: &lt; 2.2e-16</span></code></pre></div>
-<p>This shows that: (1) adding temporal components helps increase mapping accuracy altough the difference is marginal (5–10%),
-(2) without using CV with blocking, Random Foreost most likely <a href="https://medium.com/nerd-for-tech/extrapolation-is-tough-for-trees-tree-based-learners-combining-learners-of-different-type-makes-659187a6f58d">overfits data</a> values.</p>
+<p>This shows that: (1) adding temporal components helps increase mapping accuracy
+although the difference is marginal (e.g. 5–10%),
+(2) without using CV with blocking, Random Foreost most likely <a href="https://medium.com/nerd-for-tech/extrapolation-is-tough-for-trees-tree-based-learners-combining-learners-of-different-type-makes-659187a6f58d">overfits</a> training points.</p>
 <p>The estimated accuracy of predicting SOC content (%) anywhere in the world (inside the world mangrove
 forests) is thus:</p>
-<div class="sourceCode" id="cb152"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb153"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">t.b</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/raster/man/quantile.html">quantile</a></span><span class="op">(</span><span class="va">rms.df</span><span class="op">$</span><span class="va">log.oc</span>, <span class="fu"><a href="https://rdrr.io/pkg/terra/man/c.html">c</a></span><span class="op">(</span><span class="fl">0.001</span>, <span class="fl">0.01</span>, <span class="fl">0.999</span><span class="op">)</span>, na.rm<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span>
 <span class="fu">plot_hexbin</span><span class="op">(</span>varn<span class="op">=</span><span class="st">"SOC_EML"</span>, breaks<span class="op">=</span><span class="fu"><a href="https://rdrr.io/pkg/terra/man/c.html">c</a></span><span class="op">(</span><span class="va">t.b</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="va">t.b</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span>, <span class="va">t.b</span><span class="op">[</span><span class="fl">3</span><span class="op">]</span>, length<span class="op">=</span><span class="fl">25</span><span class="op">)</span><span class="op">)</span>, 
       meas<span class="op">=</span><span class="va">eml1</span><span class="op">$</span><span class="va">learner.model</span><span class="op">$</span><span class="va">super.model</span><span class="op">$</span><span class="va">learner.model</span><span class="op">$</span><span class="va">model</span><span class="op">$</span><span class="va">log.oc</span>, 
@@ -526,9 +537,9 @@ forests) is thus:</p>
 Figure 6.8: Accuracy plot for soil organic carbon fitted using Ensemble ML.
 </p>
 </div>
-<p>It is also interesting to look at the variable importance to see which covariates
+<p>It is also interesting to look at the variable importance for this model to see which covariates
 are most important for modeling SOC:</p>
-<div class="sourceCode" id="cb153"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb154"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="http://ggplot2.tidyverse.org">ggplot2</a></span><span class="op">)</span>
 <span class="va">xl.soc</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/raster/man/as.data.frame.html">as.data.frame</a></span><span class="op">(</span><span class="fu">mlr</span><span class="fu">::</span><span class="fu"><a href="https://mlr.mlr-org.com/reference/getFeatureImportance.html">getFeatureImportance</a></span><span class="op">(</span><span class="va">eml1</span><span class="op">[[</span><span class="st">"learner.model"</span><span class="op">]</span><span class="op">]</span><span class="op">[[</span><span class="st">"base.models"</span><span class="op">]</span><span class="op">]</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">)</span><span class="op">$</span><span class="va">res</span><span class="op">)</span>
 <span class="va">xl.soc</span><span class="op">$</span><span class="va">relative_importance</span> <span class="op">=</span> <span class="fl">100</span><span class="op">*</span><span class="va">xl.soc</span><span class="op">$</span><span class="va">importance</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">xl.soc</span><span class="op">$</span><span class="va">importance</span><span class="op">)</span>
@@ -552,7 +563,7 @@ Figure 6.9: Variable importance for 3D prediction model for SOC based on random 
 are Landsat SWIR bands and daytime surface temperature (LST) for October. Note that, in
 average, time-series <code>landsat.ard</code> (i.e. temporal component) are overall the most important covariates.</p>
 <p>Likewise, we can fit an independent model for BD using the same modeling framework:</p>
-<div class="sourceCode" id="cb154"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb155"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">sel.bd</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/complete.cases.html">complete.cases</a></span><span class="op">(</span><span class="va">rms.df</span><span class="op">[</span>,<span class="fu"><a href="https://rdrr.io/pkg/terra/man/c.html">c</a></span><span class="op">(</span><span class="st">"db_od"</span>, <span class="va">pr.vars</span><span class="op">)</span><span class="op">]</span><span class="op">)</span>
 <span class="va">tsk.bd</span> <span class="op">&lt;-</span> <span class="fu">mlr</span><span class="fu">::</span><span class="fu"><a href="https://mlr.mlr-org.com/reference/RegrTask.html">makeRegrTask</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">rms.df</span><span class="op">[</span><span class="va">sel.bd</span>, <span class="fu"><a href="https://rdrr.io/pkg/terra/man/c.html">c</a></span><span class="op">(</span><span class="st">"db_od"</span>, <span class="st">"hzn_depth"</span>, <span class="va">pr.vars</span><span class="op">)</span><span class="op">]</span>, 
                           blocking <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/raster/man/factor.html">as.factor</a></span><span class="op">(</span><span class="va">rms.df</span><span class="op">$</span><span class="va">ID</span><span class="op">[</span><span class="va">sel.bd</span><span class="op">]</span><span class="op">)</span>, 
@@ -589,7 +600,18 @@ average, time-series <code>landsat.ard</code> (i.e. temporal component) are ove
 <span class="co">#&gt; Multiple R-squared:  0.5401, Adjusted R-squared:  0.5397 </span>
 <span class="co">#&gt; F-statistic:  1694 on 4 and 5770 DF,  p-value: &lt; 2.2e-16</span></code></pre></div>
 <p>This has more missing values and is hence will likely be more cumbersome to
-map at higher accuracy.</p>
+map at higher accuracy. Note that the residual error (RMSE) of 294 kg/m3 is
+relatively high, which means that with our model we can only detect about
+11 classes of BD <span class="citation">(<a href="references.html#ref-hengl2013mapping" role="doc-biblioref">Tomislav Hengl, Nikolić, &amp; MacMillan, 2013</a>)</span>:</p>
+<div class="sourceCode" id="cb156"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">bd.range</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/raster/man/quantile.html">quantile</a></span><span class="op">(</span><span class="va">rms.df</span><span class="op">$</span><span class="va">db_od</span>, probs<span class="op">=</span><span class="fu"><a href="https://rdrr.io/pkg/terra/man/c.html">c</a></span><span class="op">(</span><span class="fl">0.01</span>, <span class="fl">0.99</span><span class="op">)</span>, na.rm<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/terra/man/diff.html">diff</a></span><span class="op">(</span><span class="va">bd.range</span><span class="op">)</span><span class="op">/</span><span class="op">(</span><span class="fl">0.293</span><span class="op">/</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span>
+<span class="co">#&gt; 99% </span>
+<span class="co">#&gt;  11</span></code></pre></div>
+<p>The classes would be e.g.:</p>
+<div class="sourceCode" id="cb157"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="va">bd.range</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, <span class="va">bd.range</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span>, length.out<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/terra/man/diff.html">diff</a></span><span class="op">(</span><span class="va">bd.range</span><span class="op">)</span><span class="op">/</span><span class="op">(</span><span class="fl">0.293</span><span class="op">/</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
+<span class="co">#&gt;  [1] 0.130 0.295 0.460 0.625 0.790 0.955 1.120 1.285 1.450 1.615 1.780</span></code></pre></div>
 </div>
 <div id="producing-predictions-of-soc-and-bd" class="section level2" number="6.7">
 <h2>
@@ -601,10 +623,12 @@ Then, after we produce predictions at standard depths, we can aggregate those pr
 to standard depth intervals e.g. 0–30 and 30–100 cm. For each interval, we can then
 determine SOC stocks (t/ha) and then sum up the two to produce total SOC stocks
 0–100 cm.</p>
-<p>In summary, we will produce a total of 190+ maps, which includes:
-- Predictions of SOC and BD at 4 standard depths + prediction errors for 5 period (2×4×2×5 = 96),
-- Derived values for SOC and BD for standard depth intervals 0–30 and 30–100-cm (2×2×2×5 = 40),
-- Derived stocks for standard depths with lower and upper intervals (2×3×5 = 30),</p>
+<p>In summary, we will produce a total of 190+ maps, which includes:</p>
+<ul>
+<li>Predictions of SOC and BD at 4 standard depths + prediction errors for 5 period (2×4×2×5 = 96),</li>
+<li>Derived values for SOC and BD for standard depth intervals 0–30 and 30–100-cm (2×2×2×5 = 40),</li>
+<li>Derived stocks for standard depths with lower and upper intervals (2×3×5 = 30),</li>
+</ul>
 <p>The 4-year time-periods include:</p>
 <ul>
 <li>2002 = 2000–2003,<br>
@@ -619,9 +643,9 @@ determine SOC stocks (t/ha) and then sum up the two to produce total SOC stocks
 </li>
 <li>2020 = 2020–2021,</li>
 </ul>
-<p>We first prepare a function <code>pred_mlr</code> and <code>pred_lst</code> to speed up making predictions.
-We can now run predictions over time-periods:</p>
-<div class="sourceCode" id="cb155"><pre class="downlit sourceCode r">
+<p>We first prepare a function <code>pred_mlr</code> and <code>pred_lst</code> (see R script <code>PSM_functions.R</code>)
+to speed up making predictions. We can now run predictions over time-periods:</p>
+<div class="sourceCode" id="cb158"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/source.html">source</a></span><span class="op">(</span><span class="st">"PSM_functions.R"</span><span class="op">)</span>
 <span class="va">yl</span> <span class="op">=</span>  <span class="fu"><a href="https://rdrr.io/pkg/terra/man/c.html">c</a></span><span class="op">(</span><span class="fl">2002</span>, <span class="fl">2006</span>, <span class="fl">2010</span>, <span class="fl">2014</span>, <span class="fl">2018</span>, <span class="fl">2020</span><span class="op">)</span>
 <span class="co">## correction factor for prediction error:</span>
@@ -635,8 +659,9 @@ We can now run predictions over time-periods:</p>
   <span class="kw"><a href="https://rdrr.io/r/base/try.html">try</a></span><span class="op">(</span> <span class="fu">pred_lst</span><span class="op">(</span>tvar<span class="op">=</span><span class="st">"log.oc"</span>, id<span class="op">=</span><span class="st">"T162E_10S"</span>, <span class="va">year</span>, <span class="va">eml1</span>, <span class="va">eml.cf</span>, in.dir<span class="op">=</span><span class="st">"./input/"</span><span class="op">)</span> <span class="op">)</span>
 <span class="op">}</span></code></pre></div>
 <p>Next, we can aggregate all predictions to produce SOC and BD estimates for standard
-depth intervals:</p>
-<div class="sourceCode" id="cb156"><pre class="downlit sourceCode r">
+depth intervals. For this we use the function <code>soc_calc</code> and we run it in
+parallel to speed up processing:</p>
+<div class="sourceCode" id="cb159"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">params</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/expand.grid.html">expand.grid</a></span><span class="op">(</span>t.var<span class="op">=</span><span class="fu"><a href="https://rdrr.io/pkg/terra/man/c.html">c</a></span><span class="op">(</span><span class="st">"log.oc"</span>, <span class="st">"db.od"</span><span class="op">)</span>, year<span class="op">=</span><span class="va">yl</span>, tile<span class="op">=</span><span class="st">"T162E_10S"</span><span class="op">)</span>
 <span class="va">params</span> <span class="op">=</span> <span class="fu"><a href="https://Rdatatable.gitlab.io/data.table/reference/split.html">split</a></span><span class="op">(</span><span class="va">params</span>, <span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/pkg/raster/man/ncell.html">nrow</a></span><span class="op">(</span><span class="va">params</span><span class="op">)</span><span class="op">)</span>
 <span class="co">#str(params[[1]])</span>
@@ -652,15 +677,18 @@ depth intervals:</p>
 <p>This will populate the folder <code>./output/T162E_10S</code> with all maps as a result of
 predictive mapping. The most interesting output maps are e.g. <code>sol_soc.tha_mangroves.typology_m_30m_s0..30cm_2020</code>,
 which are the most recent estimates of SOC stocks for mangrove map of interest.</p>
-<p>We can visualize produced predictions best by using e.g. the
-<a href="https://raster-timeseries-manager.readthedocs.io/en/latest/content.html">Raster Time-series Manager plugin</a> in QGIS. Simply download the maps from the <code>./output/T162E_10S</code> folder and open and customize predictions in QGIS as shown below.</p>
+<p>We can visualize produced predictions, best by using e.g. the
+<a href="https://raster-timeseries-manager.readthedocs.io/en/latest/content.html">Raster Time-series Manager plugin</a>
+in QGIS or similar. Simply download the maps from the <code>./output/T162E_10S</code> folder
+and open and customize predictions in QGIS as shown below. As you move with the
+cursor around the map, you will see changes in SOC stocks over different time-periods.</p>
 <div class="figure" style="text-align: center">
 <span id="fig:qgis-trend"></span>
 <img src="img/preview_soc_magroves_qgis.gif" alt="Visualization of SOC t/ha predictions in QGIS." width="100%"><p class="caption">
 Figure 6.10: Visualization of SOC t/ha predictions in QGIS.
 </p>
 </div>
-<div class="sourceCode" id="cb157"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb160"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu">parallelMap</span><span class="fu">::</span><span class="fu"><a href="https://parallelmap.mlr-org.com/reference/parallelStop.html">parallelStop</a></span><span class="op">(</span><span class="op">)</span>
 <span class="co">#&gt; Stopped parallelization. All cleaned up.</span></code></pre></div>
 </div>
@@ -669,7 +697,8 @@ Figure 6.10: Visualization of SOC t/ha predictions in QGIS.
 <span class="header-section-number">6.8</span> Summary points<a class="anchor" aria-label="anchor" href="#summary-points"><i class="fas fa-link"></i></a>
 </h2>
 <p>In this tutorial we have demonstrated how to fit spatiotemporal models for SOC to estimate
-SOC stocks in t/ha for world mangrove forests. We fit two independent models for SOC content (%) and for bulk
+SOC stocks in t/ha (with prediction uncertainty) for the world mangrove forests.
+We fit two independent models for SOC content (%) and for bulk
 density, then aggregate values to produce global estimates of SOC for the whole mangroves.
 This is so-called 3D predictive soil mapping approach with independently fitted components of
 SOC stocks. For modeling we use a compilation of <a href="https://opengeohub.github.io/SoilSamples/">soil samples from literature</a> and
@@ -677,32 +706,33 @@ various national and international projects (at total of 12,000 samples). As cov
 layers we use standard climatic, terrain, vegetation and hydrological parameters.</p>
 <p>Results of strict cross-validation using 5-fold blocking (where spatially close points
 are used either for modeling or validation) show that the CCC for SOC (%) is
-about 0.7 and for bulk density around 0.65. The mapping uncertainty is somewhat higher
+about 0.7 and for bulk density (kg/m3) around 0.65. The mapping uncertainty is somewhat higher
 than for SOC mapping projects where interest is agricultural land. This is most likely due to
 the following reasons:</p>
 <ol style="list-style-type: decimal">
-<li>Most of world mangrove forests are in Tropics and covered with vegetation whole year; vegetation cover might not be correlated with SOC content,<br>
+<li>Most of world mangrove forests are in Tropics and covered with vegetation whole year; vegetation cover is not always linearly correlated with SOC content,<br>
 </li>
 <li>Point data (digitized from the literature mainly) used for training is largely unharmonized and many points have relatively inaccurate location,<br>
 </li>
-<li>A lot of SOC is covered in deeper soils, so depth only marginaly helps model SOC,</li>
+<li>A lot of SOC is located in deeper soils, so EO data only marginaly helps map SOC,</li>
 </ol>
-<p>The tutorial demonstrates that Random Forest that ignores spatial overlap would likely
-result in overfitting. This illustrates importance of doing strict validation to
-build models and interpret the results. As the most important covariates for
-mapping SOC models show soil depth and Landsat SWIR bands.</p>
+<p>The tutorial demonstrates that Random Forest that ignores spatial overlap in
+training data would likely result in overfitting. This illustrates importance of
+doing strict validation to build models and interpret the results. As the most
+important covariates for mapping SOC models show soil depth and Landsat SWIR bands.</p>
 <p>Based on spatiotemporal prediction of SOC stocks, we estimate that the global SOC
 stocks for world mangrove forests are in average about 350 t/ha for 0–100 cm depth (67% prob. interval: 232–470 t/ha)
 i.e. about 4.6 gigatonnes (67% prob. interval: 3.1–6.2), which is somewhat less
 than we estimate directly from soil samples. This is for 2 main probable reasons:</p>
 <ol style="list-style-type: decimal">
-<li>The soil samples (points) are usually collected for top-soil, hence average most likely over-estimates deeper soils,<br>
+<li>The soil samples (points) are usually collected for top-soil which usually has more SOC, hence average value from training points most likely over-estimates deeper soils,<br>
 </li>
-<li>Soil samples are in most cases collected inside mangrove forests, so that lower stocks in the transition areas would have been likely over-estimated,</li>
+<li>Soil samples are in most cases collected inside mangrove forests, so that lower stocks in the transition areas would have also been likely over-estimated,</li>
 </ol>
 <p>Also note that our results show that, in average, SOC for mangrove forests did
 not change (see below), although one would need to validate specifies areas to see if in some
-parts there are gains / losses in SOC.</p>
+parts there are gains / losses in SOC. The figure below shows global mean and lower and upper
+prediction intervals for SOC stocks for mangrove forests through time.</p>
 <div class="figure" style="text-align: center">
 <span id="fig:global-trend"></span>
 <img src="img/mangroves_stock_0..30cm.png" alt="Global SOC stocks in gigatones with prediction uncertainty for the time-period of interest." width="80%"><p class="caption">
@@ -726,7 +756,7 @@ Example of mean, lower-prediction-interval and upper-prediction-interval maps ar
 <li>sol_soc.tha_mangroves.typology_u.std_30m_s0..30cm_2020_global_v1.0.tif</li>
 </ul>
 <p>From R you can access and crop this data using e.g.:</p>
-<div class="sourceCode" id="cb158"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb161"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://rspatial.org/terra">terra</a></span><span class="op">)</span>
 <span class="co">#&gt; terra version 0.8.11 (beta-release)</span>
 <span class="co">#&gt; </span>

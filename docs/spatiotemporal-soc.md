@@ -213,36 +213,38 @@ function using this data to predict SOC density (kg/m3) directly from SOC %:
 
 ```r
 rms.df$log.oc2 = rms.df$log.oc^2
+df.oc_d = rms.df[sel.oc,c("oc_d", "log.oc", "log.oc2", "hzn_depth")]
+## remove some artifacts in points:
+df.oc_d = df.oc_d[!(df.oc_d$log.oc<0.5 & df.oc_d$oc_d>5),]
 m.oc_d = glm(I(oc_d+.Machine$double.eps)~log.oc+log.oc2+hzn_depth, 
-             rms.df[sel.oc,], family = gaussian(link="log"))
+             df.oc_d, family = gaussian(link="log"))
 summary(m.oc_d)
 #> 
 #> Call:
 #> glm(formula = I(oc_d + .Machine$double.eps) ~ log.oc + log.oc2 + 
-#>     hzn_depth, family = gaussian(link = "log"), data = rms.df[sel.oc, 
-#>     ])
+#>     hzn_depth, family = gaussian(link = "log"), data = df.oc_d)
 #> 
 #> Deviance Residuals: 
 #>     Min       1Q   Median       3Q      Max  
-#> -28.323   -2.365    0.284    1.766   71.646  
+#> -28.255   -2.370    0.317    1.724   71.752  
 #> 
 #> Coefficients:
 #>               Estimate Std. Error t value Pr(>|t|)    
-#> (Intercept) -8.066e-01  6.948e-02 -11.609  < 2e-16 ***
-#> log.oc       1.638e+00  3.288e-02  49.827  < 2e-16 ***
-#> log.oc2     -1.389e-01  3.825e-03 -36.324  < 2e-16 ***
-#> hzn_depth    3.416e-04  6.821e-05   5.008 5.68e-07 ***
+#> (Intercept) -8.345e-01  6.701e-02 -12.455  < 2e-16 ***
+#> log.oc       1.651e+00  3.170e-02  52.094  < 2e-16 ***
+#> log.oc2     -1.404e-01  3.687e-03 -38.085  < 2e-16 ***
+#> hzn_depth    3.423e-04  6.555e-05   5.222 1.84e-07 ***
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 #> 
-#> (Dispersion parameter for gaussian family taken to be 53.10529)
+#> (Dispersion parameter for gaussian family taken to be 49.05412)
 #> 
-#>     Null deviance: 1516054  on 5586  degrees of freedom
-#> Residual deviance:  296485  on 5583  degrees of freedom
+#>     Null deviance: 1511634  on 5564  degrees of freedom
+#> Residual deviance:  272790  on 5561  degrees of freedom
 #>   (52 observations deleted due to missingness)
-#> AIC: 38054
+#> AIC: 37463
 #> 
-#> Number of Fisher Scoring iterations: 7
+#> Number of Fisher Scoring iterations: 5
 ```
 
 This models has an R-square of about:
@@ -251,7 +253,7 @@ This models has an R-square of about:
 ```r
 #calculate McFadden's R-squared for model
 with(summary(m.oc_d), 1 - deviance/null.deviance)
-#> [1] 0.8044367
+#> [1] 0.8195399
 ```
 
 We can plot the fitted model vs measured data by using:
@@ -262,7 +264,7 @@ oc_data <- data.frame(log.oc=seq(0, 6, length.out=20))
 oc_data$log.oc2 = oc_data$log.oc^2
 oc_data$hzn_depth = 20
 oc_data$oc_d = predict(m.oc_d, oc_data, type = c("response"))
-ggplot(rms.df[sel.oc,c("oc_d","log.oc")], aes(log.oc, oc_d)) + 
+ggplot(df.oc_d, aes(log.oc, oc_d)) + 
   geom_hex(bins=40) + 
   scale_fill_gradient(low = "grey90", high = "black") +
   theme_bw() + 
@@ -275,6 +277,19 @@ ggplot(rms.df[sel.oc,c("oc_d","log.oc")], aes(log.oc, oc_d)) +
 <img src="spatiotemporal-soc_files/figure-html/ocd-plot-1.png" alt="Modelling SOC density (kg/m3) as a function of log.SOC (g/kg). This model explains cca 80% of variability in data, notice however that the uncertainty around regression line increases for higher values of SOC." width="80%" />
 <p class="caption">(\#fig:ocd-plot)Modelling SOC density (kg/m3) as a function of log.SOC (g/kg). This model explains cca 80% of variability in data, notice however that the uncertainty around regression line increases for higher values of SOC.</p>
 </div>
+
+This means that at depth of 20-cm, SOC % of 6% (log.SOC = 4.1) converts to SOC 
+density (kg/m3) of about 36 kg/m-cubic, but the number could very well be somewhere 
+between 22 and 46 kg/m-cubic (see density plot above).
+
+
+```r
+oc_data$SOC = expm1(oc_data$log.oc)
+oc_data[14,c("SOC","log.oc","oc_d")]
+#>         SOC   log.oc     oc_d
+#> 14 59.65871 4.105263 36.03792
+```
+
 
 ## Estimating total stocks using Predictive Soil Mapping
 
@@ -354,7 +369,7 @@ str(g30m.s@data)
 #>  $ Water_occurrence                    : num  35 41 27 29 19 21 24 30 39 49 ...
 ```
 
-We can start modeling SOC by tesing predictive power of purely-spatial vs 
+We can start modeling SOC by testing predictive power of purely-spatial vs 
 spatiotemporal covariates. We first test modeling performance using only *static* covariates 
 and log-SOC (%) as the target variable:
 
@@ -411,7 +426,7 @@ It appears that static variables are already sufficient to map SOC content and t
 problem of this approach is that it ignores spatial clustering of points including 
 the fact that many samples come from the same spatial locations. We want to, instead, validate models 
 using [spatial blocks](https://opengeohub.github.io/spatial-sampling-ml/resampling-methods-for-machine-learning.html#resampling-using-ensemble-ml) so that a subset of points is either used for training or cross-validation. 
-To fit a model that *blocks* spatially overlapping points in training / validation we 
+To fit a model that *blocks* spatially overlapping points into training or validation we 
 can use the [mlr package](https://mlr.mlr-org.com/articles/tutorial/handling_of_spatial_data.html):
 
 
@@ -506,8 +521,9 @@ summary(eml1$learner.model$super.model$learner.model)
 #> F-statistic:  2049 on 4 and 9280 DF,  p-value: < 2.2e-16
 ```
 
-This shows that: (1) adding temporal components helps increase mapping accuracy altough the difference is marginal (5–10%), 
-(2) without using CV with blocking, Random Foreost most likely [overfits data](https://medium.com/nerd-for-tech/extrapolation-is-tough-for-trees-tree-based-learners-combining-learners-of-different-type-makes-659187a6f58d) values.
+This shows that: (1) adding temporal components helps increase mapping accuracy 
+although the difference is marginal (e.g. 5–10%), 
+(2) without using CV with blocking, Random Foreost most likely [overfits](https://medium.com/nerd-for-tech/extrapolation-is-tough-for-trees-tree-based-learners-combining-learners-of-different-type-makes-659187a6f58d) training points.
 
 The estimated accuracy of predicting SOC content (%) anywhere in the world (inside the world mangrove 
 forests) is thus:
@@ -526,7 +542,7 @@ plot_hexbin(varn="SOC_EML", breaks=c(t.b[1], seq(t.b[2], t.b[3], length=25)),
 <p class="caption">(\#fig:eml-soc1)Accuracy plot for soil organic carbon fitted using Ensemble ML.</p>
 </div>
 
-It is also interesting to look at the variable importance to see which covariates 
+It is also interesting to look at the variable importance for this model to see which covariates 
 are most important for modeling SOC:
 
 
@@ -597,7 +613,26 @@ summary(bd.eml$learner.model$super.model$learner.model)
 ```
 
 This has more missing values and is hence will likely be more cumbersome to 
-map at higher accuracy.
+map at higher accuracy. Note that the residual error (RMSE) of 294 kg/m3 is 
+relatively high, which means that with our model we can only detect about 
+11 classes of BD [@hengl2013mapping]:
+
+
+```r
+bd.range = quantile(rms.df$db_od, probs=c(0.01, 0.99), na.rm=TRUE)
+round(diff(bd.range)/(0.293/2))
+#> 99% 
+#>  11
+```
+
+The classes would be e.g.:
+
+
+```r
+seq(bd.range[1], bd.range[2], length.out=round(diff(bd.range)/(0.293/2)))
+#>  [1] 0.130 0.295 0.460 0.625 0.790 0.955 1.120 1.285 1.450 1.615 1.780
+```
+
 
 ## Producing predictions of SOC and BD
 
@@ -609,6 +644,7 @@ determine SOC stocks (t/ha) and then sum up the two to produce total SOC stocks
 0–100 cm.
 
 In summary, we will produce a total of 190+ maps, which includes:
+
 - Predictions of SOC and BD at 4 standard depths + prediction errors for 5 period (2×4×2×5 = 96),
 - Derived values for SOC and BD for standard depth intervals 0–30 and 30–100-cm (2×2×2×5 = 40),
 - Derived stocks for standard depths with lower and upper intervals (2×3×5 = 30),
@@ -622,8 +658,8 @@ The 4-year time-periods include:
 - 2018 = 2016–2019,  
 - 2020 = 2020–2021,  
 
-We first prepare a function `pred_mlr` and `pred_lst` to speed up making predictions. 
-We can now run predictions over time-periods:
+We first prepare a function `pred_mlr` and `pred_lst` (see R script `PSM_functions.R`) 
+to speed up making predictions. We can now run predictions over time-periods:
 
 
 ```r
@@ -642,7 +678,8 @@ for(year in yl){
 ```
 
 Next, we can aggregate all predictions to produce SOC and BD estimates for standard 
-depth intervals:
+depth intervals. For this we use the function `soc_calc` and we run it in 
+parallel to speed up processing:
 
 
 ```r
@@ -664,8 +701,11 @@ This will populate the folder `./output/T162E_10S` with all maps as a result of
 predictive mapping. The most interesting output maps are e.g. `sol_soc.tha_mangroves.typology_m_30m_s0..30cm_2020`, 
 which are the most recent estimates of SOC stocks for mangrove map of interest.
 
-We can visualize produced predictions best by using e.g. the 
-[Raster Time-series Manager plugin](https://raster-timeseries-manager.readthedocs.io/en/latest/content.html) in QGIS. Simply download the maps from the `./output/T162E_10S` folder and open and customize predictions in QGIS as shown below.
+We can visualize produced predictions, best by using e.g. the 
+[Raster Time-series Manager plugin](https://raster-timeseries-manager.readthedocs.io/en/latest/content.html) 
+in QGIS or similar. Simply download the maps from the `./output/T162E_10S` folder 
+and open and customize predictions in QGIS as shown below. As you move with the 
+cursor around the map, you will see changes in SOC stocks over different time-periods.
 
 <div class="figure" style="text-align: center">
 <img src="./img/preview_soc_magroves_qgis.gif" alt="Visualization of SOC t/ha predictions in QGIS." width="100%" />
@@ -681,7 +721,8 @@ parallelMap::parallelStop()
 ## Summary points
 
 In this tutorial we have demonstrated how to fit spatiotemporal models for SOC to estimate 
-SOC stocks in t/ha for world mangrove forests. We fit two independent models for SOC content (%) and for bulk 
+SOC stocks in t/ha (with prediction uncertainty) for the world mangrove forests. 
+We fit two independent models for SOC content (%) and for bulk 
 density, then aggregate values to produce global estimates of SOC for the whole mangroves. 
 This is so-called 3D predictive soil mapping approach with independently fitted components of 
 SOC stocks. For modeling we use a compilation of [soil samples from literature](https://opengeohub.github.io/SoilSamples/) and 
@@ -690,30 +731,31 @@ layers we use standard climatic, terrain, vegetation and hydrological parameters
 
 Results of strict cross-validation using 5-fold blocking (where spatially close points 
 are used either for modeling or validation) show that the CCC for SOC (%) is 
-about 0.7 and for bulk density around 0.65. The mapping uncertainty is somewhat higher 
+about 0.7 and for bulk density (kg/m3) around 0.65. The mapping uncertainty is somewhat higher 
 than for SOC mapping projects where interest is agricultural land. This is most likely due to 
 the following reasons:
 
-1. Most of world mangrove forests are in Tropics and covered with vegetation whole year; vegetation cover might not be correlated with SOC content,  
+1. Most of world mangrove forests are in Tropics and covered with vegetation whole year; vegetation cover is not always linearly correlated with SOC content,  
 2. Point data (digitized from the literature mainly) used for training is largely unharmonized and many points have relatively inaccurate location,  
-3. A lot of SOC is covered in deeper soils, so depth only marginaly helps model SOC,  
+3. A lot of SOC is located in deeper soils, so EO data only marginaly helps map SOC,  
 
-The tutorial demonstrates that Random Forest that ignores spatial overlap would likely 
-result in overfitting. This illustrates importance of doing strict validation to 
-build models and interpret the results. As the most important covariates for 
-mapping SOC models show soil depth and Landsat SWIR bands.  
+The tutorial demonstrates that Random Forest that ignores spatial overlap in 
+training data would likely result in overfitting. This illustrates importance of 
+doing strict validation to build models and interpret the results. As the most 
+important covariates for mapping SOC models show soil depth and Landsat SWIR bands.  
 
 Based on spatiotemporal prediction of SOC stocks, we estimate that the global SOC 
 stocks for world mangrove forests are in average about 350 t/ha for 0–100 cm depth (67% prob. interval: 232–470 t/ha) 
 i.e. about 4.6 gigatonnes (67% prob. interval: 3.1–6.2), which is somewhat less 
 than we estimate directly from soil samples. This is for 2 main probable reasons:
 
-1. The soil samples (points) are usually collected for top-soil, hence average most likely over-estimates deeper soils,  
-2. Soil samples are in most cases collected inside mangrove forests, so that lower stocks in the transition areas would have been likely over-estimated,  
+1. The soil samples (points) are usually collected for top-soil which usually has more SOC, hence average value from training points most likely over-estimates deeper soils,  
+2. Soil samples are in most cases collected inside mangrove forests, so that lower stocks in the transition areas would have also been likely over-estimated,  
 
 Also note that our results show that, in average, SOC for mangrove forests did 
 not change (see below), although one would need to validate specifies areas to see if in some 
-parts there are gains / losses in SOC.
+parts there are gains / losses in SOC. The figure below shows global mean and lower and upper 
+prediction intervals for SOC stocks for mangrove forests through time.
 
 <div class="figure" style="text-align: center">
 <img src="./img/mangroves_stock_0..30cm.png" alt="Global SOC stocks in gigatones with prediction uncertainty for the time-period of interest." width="80%" />
