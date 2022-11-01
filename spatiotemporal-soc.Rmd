@@ -390,7 +390,6 @@ The classes would be e.g.:
 seq(bd.range[1], bd.range[2], length.out=round(diff(bd.range)/(0.293/2)))
 ```
 
-
 ## Producing predictions of SOC and BD
 
 Now that we have fitted (independently) models for SOC and BD, we can generate 
@@ -469,6 +468,112 @@ knitr::include_graphics("./img/preview_soc_magroves_qgis.gif")
 ```{r}
 parallelMap::parallelStop()
 ```
+
+## Comparing previous versions of SOC maps for mangroves
+
+The previous model for SOC for mangroves was based on a somewhat smaller dataset with 
+some additional covariates such as sea-surface-temperature and tidal range [@sanderman2018global]. 
+We can again check the performance of the model using the strict cross-validation with 
+blocking, this time we use the profile ID:
+
+```{r}
+rm.oc = readRDS("./input/world.mangroves_soil.carbon_rm0.rds")
+rm.oc$log.oc = log1p(rm.oc$ORCDRC)
+fm.oc <- as.formula(paste0("log.oc ~ DEPTH + SOCS_0_200cm_30m + TRC_30m +
+               SW1_30m + SW2_30m + SRTMGL1_30m + RED_30m + NIR_30m +", 
+              paste0("SST_",c(1:4),"_30m", collapse="+"), "+", 
+              paste0("TSM_",c(1:4),"_30m", collapse="+"), "+", 
+              paste0("MTYP_",c("Organogenic","Mineralogenic","Estuarine"), 
+                     "_30m", collapse = "+"), "+ TidalRange_30m"))
+```
+
+We again train the EML model by:
+
+```{r}
+selA = complete.cases(rm.oc[,all.vars(fm.oc)])
+tskA <- mlr::makeRegrTask(data = rm.oc[selA, all.vars(fm.oc)], 
+                          blocking = as.factor(rm.oc$SOURCEID[selA]), 
+                          target = "log.oc")
+emlA = train(init.m, tskA)
+summary(emlA$learner.model$super.model$learner.model)
+```
+
+```{r}
+tskB <- mlr::makeRegrTask(data = rms.df[sel1, c("log.oc", "hzn_depth", pr.vars)], 
+                          blocking = as.factor(rms.df$olc_id[sel1]), 
+                          target = "log.oc")
+emlB = train(init.m, tskB)
+summary(emlB$learner.model$super.model$learner.model)
+```
+
+The R-square is somewhat higher than if we use 30×30km spatial blocking (strict), and still 
+higher for the new set of covariates. Note that by blocking using only location ID, 
+we generate a somewhat smaller RMSE; the true accuracy of predictions for SOC % 
+is most likely somewhere between R-square of 0.50 and 0.70.
+
+```{r, message=FALSE, echo=TRUE}
+plot_hexbin(varn="SOC_EML_ID", breaks=c(t.b[1], seq(t.b[2], t.b[3], length=25)), 
+      meas=emlB$learner.model$super.model$learner.model$model$log.oc, 
+      pred=emlB$learner.model$super.model$learner.model$fitted.values, 
+      main="SOC [EML] by ID")
+```
+
+```{r eml-soc2, echo=FALSE, fig.width=7, fig.cap="Accuracy plot for soil organic carbon fitted using Ensemble ML with blocking by profile ID only.", out.width="70%"}
+knitr::include_graphics("./img/plot_CV_SOC_EML_ID.png")
+```
+
+A comparison of predictions for an area shown below we notice that, by using 
+the 30-m resolution covariate layers we produce much finer grain of detail, plus 
+we most likely model SOC for deeper soils with higher accuracy / avoiding overfitting 
+the models.
+
+```{r qgis-compare, echo=FALSE, fig.width=6, fig.cap="Comparing previous predictions of SOC at 100-m resolution vs current predictions at 30-m.", out.width="100%"}
+knitr::include_graphics("./img/mangroves_previous_2022_version.gif")
+```
+
+## Removing uncertainty of predictions
+
+As you can notice from the modeling results, uncertainty of predictions for SOC 
+can be relatively large with R-square at CV points reaching max 0.5–0.7. To simplify 
+decisions for decision-makers we can remove uncertainty from predictions by rounding 
+all predictions using half-RMSE rule [@hengl2013mapping] i.e. by adjusting the 
+*numeric resolution* of predictions.
+
+Consider for example predictions of log-SOC % for 0–30 cm for the sample tile. We know that the average 
+mapping accuracy (RMSE) for this variable is 0.914 (see previous sections), hence we can round all numbers 
+using 0.914/2. This is an example:
+
+```{r}
+library(terra)
+oc.pred = terra::rast("./output/T162E_10S/sol_log.oc_mangroves.typology_m_30m_s0..30cm_2020_global_v0.1.tif")
+names(oc.pred) = "log.oc"
+oc.predB = as.data.frame(terra::crop(oc.pred, 
+            ext(162.26889, 162.28905, -10.77543, -10.75329)), xy=TRUE)
+oc.predB = oc.predB[!is.na(oc.predB$log.oc),]
+oc.predB$CL = round(oc.predB$log.oc/10/(0.914/2))
+oc.predB$s.log.oc = oc.predB$CL * 0.914/2 * 10
+summary(as.factor(oc.predB$CL))
+```
+
+Assuming we want to know values with 67% probability confidence, then the map of 
+SOC for this small area would only have 3 classes:
+
+```{r nohi-pred, echo=TRUE, fig.width=8, out.width="100%", fig.cap="Predicted log-SOC original values (left) and rounded values using the average mapping accuracy."}
+allN_df_long <- tidyr::pivot_longer(oc.predB, cols=c("log.oc","s.log.oc"))
+lims = range(oc.predB$log.oc)
+pal = RColorBrewer::brewer.pal(n=9, name = "RdYlGn")
+ggplot() + 
+  geom_raster(data = allN_df_long, aes(x=x, y=y, fill = value)) + 
+  geom_path() + 
+  facet_wrap(. ~ name, ncol = 2) + 
+  scale_fill_gradientn(colours=pal, name="", limits=lims) + 
+  theme_minimal() + xlab("Easting")+ ylab("Northing")
+```
+
+Anyone wanting to use the maps for decisions without worrying about risks associated 
+with uncertainty should probably use the map on the right. Likewise, uncertainty can 
+also be used per pixel by combining the prediction errors with values and then deriving 
+with 67% or 90% probability confidence areas exceeding some threshold value.
 
 ## Summary points
 

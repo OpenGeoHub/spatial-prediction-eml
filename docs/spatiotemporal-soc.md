@@ -633,7 +633,6 @@ seq(bd.range[1], bd.range[2], length.out=round(diff(bd.range)/(0.293/2)))
 #>  [1] 0.130 0.295 0.460 0.625 0.790 0.955 1.120 1.285 1.450 1.615 1.780
 ```
 
-
 ## Producing predictions of SOC and BD
 
 Now that we have fitted (independently) models for SOC and BD, we can generate 
@@ -718,6 +717,178 @@ parallelMap::parallelStop()
 #> Stopped parallelization. All cleaned up.
 ```
 
+## Comparing previous versions of SOC maps for mangroves
+
+The previous model for SOC for mangroves was based on a somewhat smaller dataset with 
+some additional covariates such as sea-surface-temperature and tidal range [@sanderman2018global]. 
+We can again check the performance of the model using the strict cross-validation with 
+blocking, this time we use the profile ID:
+
+
+```r
+rm.oc = readRDS("./input/world.mangroves_soil.carbon_rm0.rds")
+rm.oc$log.oc = log1p(rm.oc$ORCDRC)
+fm.oc <- as.formula(paste0("log.oc ~ DEPTH + SOCS_0_200cm_30m + TRC_30m +
+               SW1_30m + SW2_30m + SRTMGL1_30m + RED_30m + NIR_30m +", 
+              paste0("SST_",c(1:4),"_30m", collapse="+"), "+", 
+              paste0("TSM_",c(1:4),"_30m", collapse="+"), "+", 
+              paste0("MTYP_",c("Organogenic","Mineralogenic","Estuarine"), 
+                     "_30m", collapse = "+"), "+ TidalRange_30m"))
+```
+
+We again train the EML model by:
+
+
+```r
+selA = complete.cases(rm.oc[,all.vars(fm.oc)])
+tskA <- mlr::makeRegrTask(data = rm.oc[selA, all.vars(fm.oc)], 
+                          blocking = as.factor(rm.oc$SOURCEID[selA]), 
+                          target = "log.oc")
+emlA = train(init.m, tskA)
+summary(emlA$learner.model$super.model$learner.model)
+#> 
+#> Call:
+#> stats::lm(formula = f, data = d)
+#> 
+#> Residuals:
+#>     Min      1Q  Median      3Q     Max 
+#> -4.4416 -0.2995  0.0489  0.3840  2.8210 
+#> 
+#> Coefficients:
+#>                Estimate Std. Error t value Pr(>|t|)    
+#> (Intercept)   -0.436672   0.039217 -11.135  < 2e-16 ***
+#> regr.ranger    0.900342   0.019145  47.027  < 2e-16 ***
+#> regr.cubist    0.017427   0.006023   2.894  0.00382 ** 
+#> regr.rpart     0.114944   0.021857   5.259 1.49e-07 ***
+#> regr.cvglmnet  0.094627   0.021764   4.348 1.40e-05 ***
+#> ---
+#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#> 
+#> Residual standard error: 0.685 on 6618 degrees of freedom
+#> Multiple R-squared:  0.6692,	Adjusted R-squared:  0.669 
+#> F-statistic:  3347 on 4 and 6618 DF,  p-value: < 2.2e-16
+```
+
+
+```r
+tskB <- mlr::makeRegrTask(data = rms.df[sel1, c("log.oc", "hzn_depth", pr.vars)], 
+                          blocking = as.factor(rms.df$olc_id[sel1]), 
+                          target = "log.oc")
+emlB = train(init.m, tskB)
+summary(emlB$learner.model$super.model$learner.model)
+#> 
+#> Call:
+#> stats::lm(formula = f, data = d)
+#> 
+#> Residuals:
+#>     Min      1Q  Median      3Q     Max 
+#> -4.0427 -0.3806  0.0076  0.3566  3.3374 
+#> 
+#> Coefficients:
+#>                Estimate Std. Error t value Pr(>|t|)    
+#> (Intercept)   -0.168854   0.022796  -7.407 1.40e-13 ***
+#> regr.ranger    1.103089   0.018218  60.549  < 2e-16 ***
+#> regr.cubist    0.053461   0.006399   8.355  < 2e-16 ***
+#> regr.rpart     0.081260   0.014496   5.606 2.13e-08 ***
+#> regr.cvglmnet -0.166479   0.015487 -10.749  < 2e-16 ***
+#> ---
+#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#> 
+#> Residual standard error: 0.7232 on 9280 degrees of freedom
+#> Multiple R-squared:  0.6969,	Adjusted R-squared:  0.6968 
+#> F-statistic:  5334 on 4 and 9280 DF,  p-value: < 2.2e-16
+```
+
+The R-square is somewhat higher than if we use 30×30km spatial blocking (strict), and still 
+higher for the new set of covariates. Note that by blocking using only location ID, 
+we generate a somewhat smaller RMSE; the true accuracy of predictions for SOC % 
+is most likely somewhere between R-square of 0.50 and 0.70.
+
+
+```r
+plot_hexbin(varn="SOC_EML_ID", breaks=c(t.b[1], seq(t.b[2], t.b[3], length=25)), 
+      meas=emlB$learner.model$super.model$learner.model$model$log.oc, 
+      pred=emlB$learner.model$super.model$learner.model$fitted.values, 
+      main="SOC [EML] by ID")
+```
+
+<div class="figure" style="text-align: center">
+<img src="./img/plot_CV_SOC_EML_ID.png" alt="Accuracy plot for soil organic carbon fitted using Ensemble ML with blocking by profile ID only." width="70%" />
+<p class="caption">(\#fig:eml-soc2)Accuracy plot for soil organic carbon fitted using Ensemble ML with blocking by profile ID only.</p>
+</div>
+
+A comparison of predictions for an area shown below we notice that, by using 
+the 30-m resolution covariate layers we produce much finer grain of detail, plus 
+we most likely model SOC for deeper soils with higher accuracy / avoiding overfitting 
+the models.
+
+<div class="figure" style="text-align: center">
+<img src="./img/mangroves_previous_2022_version.gif" alt="Comparing previous predictions of SOC at 100-m resolution vs current predictions at 30-m." width="100%" />
+<p class="caption">(\#fig:qgis-compare)Comparing previous predictions of SOC at 100-m resolution vs current predictions at 30-m.</p>
+</div>
+
+## Removing uncertainty of predictions
+
+As you can notice from the modeling results, uncertainty of predictions for SOC 
+can be relatively large with R-square at CV points reaching max 0.5–0.7. To simplify 
+decisions for decision-makers we can remove uncertainty from predictions by rounding 
+all predictions using half-RMSE rule [@hengl2013mapping] i.e. by adjusting the 
+*numeric resolution* of predictions.
+
+Consider for example predictions of log-SOC % for 0–30 cm for the sample tile. We know that the average 
+mapping accuracy (RMSE) for this variable is 0.914 (see previous sections), hence we can round all numbers 
+using 0.914/2. This is an example:
+
+
+```r
+library(terra)
+#> terra version 0.8.11 (beta-release)
+#> 
+#> Attaching package: 'terra'
+#> The following objects are masked from 'package:Matrix':
+#> 
+#>     expand, pack
+#> The following object is masked from 'package:rgdal':
+#> 
+#>     project
+oc.pred = terra::rast("./output/T162E_10S/sol_log.oc_mangroves.typology_m_30m_s0..30cm_2020_global_v0.1.tif")
+names(oc.pred) = "log.oc"
+oc.predB = as.data.frame(terra::crop(oc.pred, 
+            ext(162.26889, 162.28905, -10.77543, -10.75329)), xy=TRUE)
+oc.predB = oc.predB[!is.na(oc.predB$log.oc),]
+oc.predB$CL = round(oc.predB$log.oc/10/(0.914/2))
+oc.predB$s.log.oc = oc.predB$CL * 0.914/2 * 10
+summary(as.factor(oc.predB$CL))
+#>    7    8    9 
+#>   41  396 1083
+```
+
+Assuming we want to know values with 67% probability confidence, then the map of 
+SOC for this small area would only have 3 classes:
+
+
+```r
+allN_df_long <- tidyr::pivot_longer(oc.predB, cols=c("log.oc","s.log.oc"))
+lims = range(oc.predB$log.oc)
+pal = RColorBrewer::brewer.pal(n=9, name = "RdYlGn")
+ggplot() + 
+  geom_raster(data = allN_df_long, aes(x=x, y=y, fill = value)) + 
+  geom_path() + 
+  facet_wrap(. ~ name, ncol = 2) + 
+  scale_fill_gradientn(colours=pal, name="", limits=lims) + 
+  theme_minimal() + xlab("Easting")+ ylab("Northing")
+```
+
+<div class="figure" style="text-align: center">
+<img src="spatiotemporal-soc_files/figure-html/nohi-pred-1.png" alt="Predicted log-SOC original values (left) and rounded values using the average mapping accuracy." width="100%" />
+<p class="caption">(\#fig:nohi-pred)Predicted log-SOC original values (left) and rounded values using the average mapping accuracy.</p>
+</div>
+
+Anyone wanting to use the maps for decisions without worrying about risks associated 
+with uncertainty should probably use the map on the right. Likewise, uncertainty can 
+also be used per pixel by combining the prediction errors with values and then deriving 
+with 67% or 90% probability confidence areas exceeding some threshold value.
+
 ## Summary points
 
 In this tutorial we have demonstrated how to fit spatiotemporal models for SOC to estimate 
@@ -778,15 +949,6 @@ From R you can access and crop this data using e.g.:
 
 ```r
 library(terra)
-#> terra version 0.8.11 (beta-release)
-#> 
-#> Attaching package: 'terra'
-#> The following objects are masked from 'package:Matrix':
-#> 
-#>     expand, pack
-#> The following object is masked from 'package:rgdal':
-#> 
-#>     project
 cog = "/vsicurl/https://s3.eu-central-1.wasabisys.com/openlandmap/mangroves/sol_soc.tha_mangroves.typology_m_30m_s0..30cm_2020_global_v1.0.tif"
 terra::rast(cog)
 #> class       : SpatRaster 

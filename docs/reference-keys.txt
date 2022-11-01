@@ -50,6 +50,8 @@ fig:soc-time
 fig:eml-soc1
 fig:varimp-soc
 fig:qgis-trend
+fig:eml-soc2
+fig:qgis-compare
 fig:global-trend
 fig:decomposition-signal
 fig:map-oc250m
@@ -103,6 +105,8 @@ pedo-tranfer-function-to-estimate-soc-density-from-content
 estimating-total-stocks-using-predictive-soil-mapping
 estimating-added-value-of-temporal-component
 producing-predictions-of-soc-and-bd
+comparing-previous-versions-of-soc-maps-for-mangroves
+removing-uncertainty-of-predictions
 summary-points
 access-global-predictions-of-soc-for-magroves
 multi-scale-spatial-prediction-models

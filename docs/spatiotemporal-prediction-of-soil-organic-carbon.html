@@ -692,9 +692,164 @@ Figure 6.10: Visualization of SOC t/ha predictions in QGIS.
 <code class="sourceCode R"><span class="fu">parallelMap</span><span class="fu">::</span><span class="fu"><a href="https://parallelmap.mlr-org.com/reference/parallelStop.html">parallelStop</a></span><span class="op">(</span><span class="op">)</span>
 <span class="co">#&gt; Stopped parallelization. All cleaned up.</span></code></pre></div>
 </div>
-<div id="summary-points" class="section level2" number="6.8">
+<div id="comparing-previous-versions-of-soc-maps-for-mangroves" class="section level2" number="6.8">
 <h2>
-<span class="header-section-number">6.8</span> Summary points<a class="anchor" aria-label="anchor" href="#summary-points"><i class="fas fa-link"></i></a>
+<span class="header-section-number">6.8</span> Comparing previous versions of SOC maps for mangroves<a class="anchor" aria-label="anchor" href="#comparing-previous-versions-of-soc-maps-for-mangroves"><i class="fas fa-link"></i></a>
+</h2>
+<p>The previous model for SOC for mangroves was based on a somewhat smaller dataset with
+some additional covariates such as sea-surface-temperature and tidal range <span class="citation">(<a href="references.html#ref-sanderman2018global" role="doc-biblioref">Sanderman et al., 2018</a>)</span>.
+We can again check the performance of the model using the strict cross-validation with
+blocking, this time we use the profile ID:</p>
+<div class="sourceCode" id="cb161"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">rm.oc</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html">readRDS</a></span><span class="op">(</span><span class="st">"./input/world.mangroves_soil.carbon_rm0.rds"</span><span class="op">)</span>
+<span class="va">rm.oc</span><span class="op">$</span><span class="va">log.oc</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html">log1p</a></span><span class="op">(</span><span class="va">rm.oc</span><span class="op">$</span><span class="va">ORCDRC</span><span class="op">)</span>
+<span class="va">fm.oc</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/formula.html">as.formula</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="st">"log.oc ~ DEPTH + SOCS_0_200cm_30m + TRC_30m +
+               SW1_30m + SW2_30m + SRTMGL1_30m + RED_30m + NIR_30m +"</span>, 
+              <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="st">"SST_"</span>,<span class="fu"><a href="https://rdrr.io/pkg/terra/man/c.html">c</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">4</span><span class="op">)</span>,<span class="st">"_30m"</span>, collapse<span class="op">=</span><span class="st">"+"</span><span class="op">)</span>, <span class="st">"+"</span>, 
+              <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="st">"TSM_"</span>,<span class="fu"><a href="https://rdrr.io/pkg/terra/man/c.html">c</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">4</span><span class="op">)</span>,<span class="st">"_30m"</span>, collapse<span class="op">=</span><span class="st">"+"</span><span class="op">)</span>, <span class="st">"+"</span>, 
+              <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="st">"MTYP_"</span>,<span class="fu"><a href="https://rdrr.io/pkg/terra/man/c.html">c</a></span><span class="op">(</span><span class="st">"Organogenic"</span>,<span class="st">"Mineralogenic"</span>,<span class="st">"Estuarine"</span><span class="op">)</span>, 
+                     <span class="st">"_30m"</span>, collapse <span class="op">=</span> <span class="st">"+"</span><span class="op">)</span>, <span class="st">"+ TidalRange_30m"</span><span class="op">)</span><span class="op">)</span></code></pre></div>
+<p>We again train the EML model by:</p>
+<div class="sourceCode" id="cb162"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">selA</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/complete.cases.html">complete.cases</a></span><span class="op">(</span><span class="va">rm.oc</span><span class="op">[</span>,<span class="fu"><a href="https://rdrr.io/r/base/allnames.html">all.vars</a></span><span class="op">(</span><span class="va">fm.oc</span><span class="op">)</span><span class="op">]</span><span class="op">)</span>
+<span class="va">tskA</span> <span class="op">&lt;-</span> <span class="fu">mlr</span><span class="fu">::</span><span class="fu"><a href="https://mlr.mlr-org.com/reference/RegrTask.html">makeRegrTask</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">rm.oc</span><span class="op">[</span><span class="va">selA</span>, <span class="fu"><a href="https://rdrr.io/r/base/allnames.html">all.vars</a></span><span class="op">(</span><span class="va">fm.oc</span><span class="op">)</span><span class="op">]</span>, 
+                          blocking <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/raster/man/factor.html">as.factor</a></span><span class="op">(</span><span class="va">rm.oc</span><span class="op">$</span><span class="va">SOURCEID</span><span class="op">[</span><span class="va">selA</span><span class="op">]</span><span class="op">)</span>, 
+                          target <span class="op">=</span> <span class="st">"log.oc"</span><span class="op">)</span>
+<span class="va">emlA</span> <span class="op">=</span> <span class="fu"><a href="https://mlr.mlr-org.com/reference/train.html">train</a></span><span class="op">(</span><span class="va">init.m</span>, <span class="va">tskA</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">emlA</span><span class="op">$</span><span class="va">learner.model</span><span class="op">$</span><span class="va">super.model</span><span class="op">$</span><span class="va">learner.model</span><span class="op">)</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; Call:</span>
+<span class="co">#&gt; stats::lm(formula = f, data = d)</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; Residuals:</span>
+<span class="co">#&gt;     Min      1Q  Median      3Q     Max </span>
+<span class="co">#&gt; -4.4416 -0.2995  0.0489  0.3840  2.8210 </span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; Coefficients:</span>
+<span class="co">#&gt;                Estimate Std. Error t value Pr(&gt;|t|)    </span>
+<span class="co">#&gt; (Intercept)   -0.436672   0.039217 -11.135  &lt; 2e-16 ***</span>
+<span class="co">#&gt; regr.ranger    0.900342   0.019145  47.027  &lt; 2e-16 ***</span>
+<span class="co">#&gt; regr.cubist    0.017427   0.006023   2.894  0.00382 ** </span>
+<span class="co">#&gt; regr.rpart     0.114944   0.021857   5.259 1.49e-07 ***</span>
+<span class="co">#&gt; regr.cvglmnet  0.094627   0.021764   4.348 1.40e-05 ***</span>
+<span class="co">#&gt; ---</span>
+<span class="co">#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; Residual standard error: 0.685 on 6618 degrees of freedom</span>
+<span class="co">#&gt; Multiple R-squared:  0.6692, Adjusted R-squared:  0.669 </span>
+<span class="co">#&gt; F-statistic:  3347 on 4 and 6618 DF,  p-value: &lt; 2.2e-16</span></code></pre></div>
+<div class="sourceCode" id="cb163"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">tskB</span> <span class="op">&lt;-</span> <span class="fu">mlr</span><span class="fu">::</span><span class="fu"><a href="https://mlr.mlr-org.com/reference/RegrTask.html">makeRegrTask</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">rms.df</span><span class="op">[</span><span class="va">sel1</span>, <span class="fu"><a href="https://rdrr.io/pkg/terra/man/c.html">c</a></span><span class="op">(</span><span class="st">"log.oc"</span>, <span class="st">"hzn_depth"</span>, <span class="va">pr.vars</span><span class="op">)</span><span class="op">]</span>, 
+                          blocking <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/raster/man/factor.html">as.factor</a></span><span class="op">(</span><span class="va">rms.df</span><span class="op">$</span><span class="va">olc_id</span><span class="op">[</span><span class="va">sel1</span><span class="op">]</span><span class="op">)</span>, 
+                          target <span class="op">=</span> <span class="st">"log.oc"</span><span class="op">)</span>
+<span class="va">emlB</span> <span class="op">=</span> <span class="fu"><a href="https://mlr.mlr-org.com/reference/train.html">train</a></span><span class="op">(</span><span class="va">init.m</span>, <span class="va">tskB</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">emlB</span><span class="op">$</span><span class="va">learner.model</span><span class="op">$</span><span class="va">super.model</span><span class="op">$</span><span class="va">learner.model</span><span class="op">)</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; Call:</span>
+<span class="co">#&gt; stats::lm(formula = f, data = d)</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; Residuals:</span>
+<span class="co">#&gt;     Min      1Q  Median      3Q     Max </span>
+<span class="co">#&gt; -4.0427 -0.3806  0.0076  0.3566  3.3374 </span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; Coefficients:</span>
+<span class="co">#&gt;                Estimate Std. Error t value Pr(&gt;|t|)    </span>
+<span class="co">#&gt; (Intercept)   -0.168854   0.022796  -7.407 1.40e-13 ***</span>
+<span class="co">#&gt; regr.ranger    1.103089   0.018218  60.549  &lt; 2e-16 ***</span>
+<span class="co">#&gt; regr.cubist    0.053461   0.006399   8.355  &lt; 2e-16 ***</span>
+<span class="co">#&gt; regr.rpart     0.081260   0.014496   5.606 2.13e-08 ***</span>
+<span class="co">#&gt; regr.cvglmnet -0.166479   0.015487 -10.749  &lt; 2e-16 ***</span>
+<span class="co">#&gt; ---</span>
+<span class="co">#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; Residual standard error: 0.7232 on 9280 degrees of freedom</span>
+<span class="co">#&gt; Multiple R-squared:  0.6969, Adjusted R-squared:  0.6968 </span>
+<span class="co">#&gt; F-statistic:  5334 on 4 and 9280 DF,  p-value: &lt; 2.2e-16</span></code></pre></div>
+<p>The R-square is somewhat higher than if we use 30×30km spatial blocking (strict), and still
+higher for the new set of covariates. Note that by blocking using only location ID,
+we generate a somewhat smaller RMSE; the true accuracy of predictions for SOC %
+is most likely somewhere between R-square of 0.50 and 0.70.</p>
+<div class="sourceCode" id="cb164"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu">plot_hexbin</span><span class="op">(</span>varn<span class="op">=</span><span class="st">"SOC_EML_ID"</span>, breaks<span class="op">=</span><span class="fu"><a href="https://rdrr.io/pkg/terra/man/c.html">c</a></span><span class="op">(</span><span class="va">t.b</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="va">t.b</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span>, <span class="va">t.b</span><span class="op">[</span><span class="fl">3</span><span class="op">]</span>, length<span class="op">=</span><span class="fl">25</span><span class="op">)</span><span class="op">)</span>, 
+      meas<span class="op">=</span><span class="va">emlB</span><span class="op">$</span><span class="va">learner.model</span><span class="op">$</span><span class="va">super.model</span><span class="op">$</span><span class="va">learner.model</span><span class="op">$</span><span class="va">model</span><span class="op">$</span><span class="va">log.oc</span>, 
+      pred<span class="op">=</span><span class="va">emlB</span><span class="op">$</span><span class="va">learner.model</span><span class="op">$</span><span class="va">super.model</span><span class="op">$</span><span class="va">learner.model</span><span class="op">$</span><span class="va">fitted.values</span>, 
+      main<span class="op">=</span><span class="st">"SOC [EML] by ID"</span><span class="op">)</span></code></pre></div>
+<div class="figure" style="text-align: center">
+<span id="fig:eml-soc2"></span>
+<img src="img/plot_CV_SOC_EML_ID.png" alt="Accuracy plot for soil organic carbon fitted using Ensemble ML with blocking by profile ID only." width="70%"><p class="caption">
+Figure 6.11: Accuracy plot for soil organic carbon fitted using Ensemble ML with blocking by profile ID only.
+</p>
+</div>
+<p>A comparison of predictions for an area shown below we notice that, by using
+the 30-m resolution covariate layers we produce much finer grain of detail, plus
+we most likely model SOC for deeper soils with higher accuracy / avoiding overfitting
+the models.</p>
+<div class="figure" style="text-align: center">
+<span id="fig:qgis-compare"></span>
+<img src="img/mangroves_previous_2022_version.gif" alt="Comparing previous predictions of SOC at 100-m resolution vs current predictions at 30-m." width="100%"><p class="caption">
+Figure 6.12: Comparing previous predictions of SOC at 100-m resolution vs current predictions at 30-m.
+</p>
+</div>
+</div>
+<div id="removing-uncertainty-of-predictions" class="section level2" number="6.9">
+<h2>
+<span class="header-section-number">6.9</span> Removing uncertainty of predictions<a class="anchor" aria-label="anchor" href="#removing-uncertainty-of-predictions"><i class="fas fa-link"></i></a>
+</h2>
+<p>As you can notice from the modeling results, uncertainty of predictions for SOC
+can be relatively large with R-square at CV points reaching max 0.5–0.7. To simplify
+decisions for decision-makers we can remove uncertainty from predictions by rounding
+all predictions using half-RMSE rule <span class="citation">(<a href="references.html#ref-hengl2013mapping" role="doc-biblioref">Tomislav Hengl et al., 2013</a>)</span> i.e. by adjusting the
+<em>numeric resolution</em> of predictions.</p>
+<p>Consider for example predictions of log-SOC % for 0–30 cm for the sample tile. We know that the average
+mapping accuracy (RMSE) for this variable is 0.914 (see previous sections), hence we can round all numbers
+using 0.914/2. This is an example:</p>
+<div class="sourceCode" id="cb165"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://rspatial.org/terra">terra</a></span><span class="op">)</span>
+<span class="co">#&gt; terra version 0.8.11 (beta-release)</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; Attaching package: 'terra'</span>
+<span class="co">#&gt; The following objects are masked from 'package:Matrix':</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt;     expand, pack</span>
+<span class="co">#&gt; The following object is masked from 'package:rgdal':</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt;     project</span>
+<span class="va">oc.pred</span> <span class="op">=</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/terra/man/rast.html">rast</a></span><span class="op">(</span><span class="st">"./output/T162E_10S/sol_log.oc_mangroves.typology_m_30m_s0..30cm_2020_global_v0.1.tif"</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/pkg/terra/man/names.html">names</a></span><span class="op">(</span><span class="va">oc.pred</span><span class="op">)</span> <span class="op">=</span> <span class="st">"log.oc"</span>
+<span class="va">oc.predB</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/terra/man/as.data.frame.html">as.data.frame</a></span><span class="op">(</span><span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/terra/man/crop.html">crop</a></span><span class="op">(</span><span class="va">oc.pred</span>, 
+            <span class="fu"><a href="https://rdrr.io/pkg/terra/man/ext.html">ext</a></span><span class="op">(</span><span class="fl">162.26889</span>, <span class="fl">162.28905</span>, <span class="op">-</span><span class="fl">10.77543</span>, <span class="op">-</span><span class="fl">10.75329</span><span class="op">)</span><span class="op">)</span>, xy<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span>
+<span class="va">oc.predB</span> <span class="op">=</span> <span class="va">oc.predB</span><span class="op">[</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="va">oc.predB</span><span class="op">$</span><span class="va">log.oc</span><span class="op">)</span>,<span class="op">]</span>
+<span class="va">oc.predB</span><span class="op">$</span><span class="va">CL</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="va">oc.predB</span><span class="op">$</span><span class="va">log.oc</span><span class="op">/</span><span class="fl">10</span><span class="op">/</span><span class="op">(</span><span class="fl">0.914</span><span class="op">/</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span>
+<span class="va">oc.predB</span><span class="op">$</span><span class="va">s.log.oc</span> <span class="op">=</span> <span class="va">oc.predB</span><span class="op">$</span><span class="va">CL</span> <span class="op">*</span> <span class="fl">0.914</span><span class="op">/</span><span class="fl">2</span> <span class="op">*</span> <span class="fl">10</span>
+<span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/terra/man/factors.html">as.factor</a></span><span class="op">(</span><span class="va">oc.predB</span><span class="op">$</span><span class="va">CL</span><span class="op">)</span><span class="op">)</span>
+<span class="co">#&gt;    7    8    9 </span>
+<span class="co">#&gt;   41  396 1083</span></code></pre></div>
+<p>Assuming we want to know values with 67% probability confidence, then the map of
+SOC for this small area would only have 3 classes:</p>
+<div class="sourceCode" id="cb166"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">allN_df_long</span> <span class="op">&lt;-</span> <span class="fu">tidyr</span><span class="fu">::</span><span class="fu"><a href="https://tidyr.tidyverse.org/reference/pivot_longer.html">pivot_longer</a></span><span class="op">(</span><span class="va">oc.predB</span>, cols<span class="op">=</span><span class="fu"><a href="https://rdrr.io/pkg/terra/man/c.html">c</a></span><span class="op">(</span><span class="st">"log.oc"</span>,<span class="st">"s.log.oc"</span><span class="op">)</span><span class="op">)</span>
+<span class="va">lims</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/range.html">range</a></span><span class="op">(</span><span class="va">oc.predB</span><span class="op">$</span><span class="va">log.oc</span><span class="op">)</span>
+<span class="va">pal</span> <span class="op">=</span> <span class="fu">RColorBrewer</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/RColorBrewer/man/ColorBrewer.html">brewer.pal</a></span><span class="op">(</span>n<span class="op">=</span><span class="fl">9</span>, name <span class="op">=</span> <span class="st">"RdYlGn"</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/pkg/ggplot2/man/ggplot.html">ggplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> 
+  <span class="fu"><a href="https://rdrr.io/pkg/ggplot2/man/geom_tile.html">geom_raster</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">allN_df_long</span>, <span class="fu"><a href="https://rdrr.io/pkg/ggplot2/man/aes.html">aes</a></span><span class="op">(</span>x<span class="op">=</span><span class="va">x</span>, y<span class="op">=</span><span class="va">y</span>, fill <span class="op">=</span> <span class="va">value</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> 
+  <span class="fu"><a href="https://rdrr.io/pkg/ggplot2/man/geom_path.html">geom_path</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> 
+  <span class="fu"><a href="https://rdrr.io/pkg/ggplot2/man/facet_wrap.html">facet_wrap</a></span><span class="op">(</span><span class="va">.</span> <span class="op">~</span> <span class="va">name</span>, ncol <span class="op">=</span> <span class="fl">2</span><span class="op">)</span> <span class="op">+</span> 
+  <span class="fu"><a href="https://rdrr.io/pkg/ggplot2/man/scale_gradient.html">scale_fill_gradientn</a></span><span class="op">(</span>colours<span class="op">=</span><span class="va">pal</span>, name<span class="op">=</span><span class="st">""</span>, limits<span class="op">=</span><span class="va">lims</span><span class="op">)</span> <span class="op">+</span> 
+  <span class="fu"><a href="https://rdrr.io/pkg/ggplot2/man/ggtheme.html">theme_minimal</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/pkg/ggplot2/man/labs.html">xlab</a></span><span class="op">(</span><span class="st">"Easting"</span><span class="op">)</span><span class="op">+</span> <span class="fu"><a href="https://rdrr.io/pkg/ggplot2/man/labs.html">ylab</a></span><span class="op">(</span><span class="st">"Northing"</span><span class="op">)</span></code></pre></div>
+<div class="figure" style="text-align: center">
+<span id="fig:nohi-pred"></span>
+<img src="spatiotemporal-soc_files/figure-html/nohi-pred-1.png" alt="Predicted log-SOC original values (left) and rounded values using the average mapping accuracy." width="100%"><p class="caption">
+Figure 3.11: Predicted log-SOC original values (left) and rounded values using the average mapping accuracy.
+</p>
+</div>
+<p>Anyone wanting to use the maps for decisions without worrying about risks associated
+with uncertainty should probably use the map on the right. Likewise, uncertainty can
+also be used per pixel by combining the prediction errors with values and then deriving
+with 67% or 90% probability confidence areas exceeding some threshold value.</p>
+</div>
+<div id="summary-points" class="section level2" number="6.10">
+<h2>
+<span class="header-section-number">6.10</span> Summary points<a class="anchor" aria-label="anchor" href="#summary-points"><i class="fas fa-link"></i></a>
 </h2>
 <p>In this tutorial we have demonstrated how to fit spatiotemporal models for SOC to estimate
 SOC stocks in t/ha (with prediction uncertainty) for the world mangrove forests.
@@ -736,13 +891,13 @@ prediction intervals for SOC stocks for mangrove forests through time.</p>
 <div class="figure" style="text-align: center">
 <span id="fig:global-trend"></span>
 <img src="img/mangroves_stock_0..30cm.png" alt="Global SOC stocks in gigatones with prediction uncertainty for the time-period of interest." width="80%"><p class="caption">
-Figure 6.11: Global SOC stocks in gigatones with prediction uncertainty for the time-period of interest.
+Figure 6.13: Global SOC stocks in gigatones with prediction uncertainty for the time-period of interest.
 </p>
 </div>
 </div>
-<div id="access-global-predictions-of-soc-for-magroves" class="section level2" number="6.9">
+<div id="access-global-predictions-of-soc-for-magroves" class="section level2" number="6.11">
 <h2>
-<span class="header-section-number">6.9</span> Access global predictions of SOC for magroves<a class="anchor" aria-label="anchor" href="#access-global-predictions-of-soc-for-magroves"><i class="fas fa-link"></i></a>
+<span class="header-section-number">6.11</span> Access global predictions of SOC for magroves<a class="anchor" aria-label="anchor" href="#access-global-predictions-of-soc-for-magroves"><i class="fas fa-link"></i></a>
 </h2>
 <p>To access global predictions you can use the Cloud-Optimized GeoTIFFs available at
 <a href="https://s3.eu-central-1.wasabisys.com/openlandmap/mangroves/" class="uri">https://s3.eu-central-1.wasabisys.com/openlandmap/mangroves/</a>. Simply expand the file name using
@@ -756,17 +911,8 @@ Example of mean, lower-prediction-interval and upper-prediction-interval maps ar
 <li>sol_soc.tha_mangroves.typology_u.std_30m_s0..30cm_2020_global_v1.0.tif</li>
 </ul>
 <p>From R you can access and crop this data using e.g.:</p>
-<div class="sourceCode" id="cb161"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb167"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://rspatial.org/terra">terra</a></span><span class="op">)</span>
-<span class="co">#&gt; terra version 0.8.11 (beta-release)</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; Attaching package: 'terra'</span>
-<span class="co">#&gt; The following objects are masked from 'package:Matrix':</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt;     expand, pack</span>
-<span class="co">#&gt; The following object is masked from 'package:rgdal':</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt;     project</span>
 <span class="va">cog</span> <span class="op">=</span> <span class="st">"/vsicurl/https://s3.eu-central-1.wasabisys.com/openlandmap/mangroves/sol_soc.tha_mangroves.typology_m_30m_s0..30cm_2020_global_v1.0.tif"</span>
 <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/terra/man/rast.html">rast</a></span><span class="op">(</span><span class="va">cog</span><span class="op">)</span>
 <span class="co">#&gt; class       : SpatRaster </span>
@@ -804,8 +950,10 @@ and World Wildlife Fund.</p>
 <li><a class="nav-link" href="#estimating-total-stocks-using-predictive-soil-mapping"><span class="header-section-number">6.5</span> Estimating total stocks using Predictive Soil Mapping</a></li>
 <li><a class="nav-link" href="#estimating-added-value-of-temporal-component"><span class="header-section-number">6.6</span> Estimating added value of temporal component</a></li>
 <li><a class="nav-link" href="#producing-predictions-of-soc-and-bd"><span class="header-section-number">6.7</span> Producing predictions of SOC and BD</a></li>
-<li><a class="nav-link" href="#summary-points"><span class="header-section-number">6.8</span> Summary points</a></li>
-<li><a class="nav-link" href="#access-global-predictions-of-soc-for-magroves"><span class="header-section-number">6.9</span> Access global predictions of SOC for magroves</a></li>
+<li><a class="nav-link" href="#comparing-previous-versions-of-soc-maps-for-mangroves"><span class="header-section-number">6.8</span> Comparing previous versions of SOC maps for mangroves</a></li>
+<li><a class="nav-link" href="#removing-uncertainty-of-predictions"><span class="header-section-number">6.9</span> Removing uncertainty of predictions</a></li>
+<li><a class="nav-link" href="#summary-points"><span class="header-section-number">6.10</span> Summary points</a></li>
+<li><a class="nav-link" href="#access-global-predictions-of-soc-for-magroves"><span class="header-section-number">6.11</span> Access global predictions of SOC for magroves</a></li>
 </ul>
 
       <div class="book-extra">

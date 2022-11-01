@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <title>Introduction | Spatial and spatiotemporal interpolation using Ensemble Machine Learning</title>
+
+    <meta name="author" content="Tom Hengl, Leandro Parente, Carmelo Bonannella and contributors" />
+  
+  <!-- JS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/fuse.js@6.4.2"></script>
+  <script src="https://kit.fontawesome.com/6ecbd6c532.js" crossorigin="anonymous"></script>
+    <script src="libs/header-attrs-2.14/header-attrs.js"></script>
+    <script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <link href="libs/bootstrap-4.6.0/bootstrap.min.css" rel="stylesheet" />
+    <script src="libs/bootstrap-4.6.0/bootstrap.bundle.min.js"></script>
+    <script src="libs/bs3compat-0.3.1/transition.js"></script>
+    <script src="libs/bs3compat-0.3.1/tabs.js"></script>
+    <script src="libs/bs3compat-0.3.1/bs3compat.js"></script>
+    <link href="libs/bs4_book-1.0.0/bs4_book.css" rel="stylesheet" />
+    <script src="libs/bs4_book-1.0.0/bs4_book.js"></script>
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1BH6J2NKGP"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-1BH6J2NKGP');
+    </script>
+    <script src="https://cdn.jsdelivr.net/autocomplete.js/0/autocomplete.jquery.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mark.js@8.11.1/dist/mark.min.js"></script>
+
+  <!-- CSS -->
+    
+</head>
+
+<body data-spy="scroll" data-target="#toc">
+
+<div class="container-fluid">
+<div class="row">
+  <header class="col-sm-12 col-lg-3 sidebar sidebar-book">
+    <a class="sr-only sr-only-focusable" href="#content">Skip to main content</a>
+
+    <div class="d-flex align-items-start justify-content-between">
+      <h1>
+        <a href="index.html" title="">Spatial and spatiotemporal interpolation using Ensemble Machine Learning</a>
+      </h1>
+      <button class="btn btn-outline-primary d-lg-none ml-2 mt-1" type="button" data-toggle="collapse" data-target="#main-nav" aria-expanded="true" aria-controls="main-nav"><i class="fas fa-bars"></i><span class="sr-only">Show table of contents</span></button>
+    </div>
+
+    <div id="main-nav" class="collapse-lg">
+      <form role="search">
+        <input id="search" class="form-control" type="search" placeholder="Search" aria-label="Search">
+      </form>
+
+      <nav aria-label="Table of contents">
+        <h2>Table of contents</h2>
+        <div id="book-toc"></div>
+
+        <div class="book-extra">
+          <p><a id="book-repo" href="#">View book source <i class="fab fa-github"></i></a></li></p>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <main class="col-sm-12 col-md-9 col-lg-7" id="content">
+<!--bookdown:title:end-->
+<!--bookdown:title:start-->
+<div id="introduction" class="section level1 unnumbered">
+<h1>Introduction</h1>
+<div id="ensemble-machine-learning" class="section level2 unnumbered">
+<h2>Ensemble Machine Learning</h2>
+<p><a href="https://doi.org/10.5281/zenodo.5894878"><img src="https://zenodo.org/badge/doi/10.5281/zenodo.5894878.svg" alt="DOI" /></a></p>
+<p><a href="https://opengeohub.github.io/spatial-prediction-eml/"><img src="cover.jpg" class="cover" width="250" alt="Access source code" /></a> This <a href="https://opengeohub.github.io/spatial-prediction-eml/">Rmarkdown tutorial</a> provides practical instructions, illustrated with sample
+dataset, on how to use Ensemble Machine Learning to generate predictions (maps) from
+2D, 3D, 2D+T (spatiotemporal) training (point) datasets. We show functionality to do
+automated benchmarking for spatial/spatiotemporal prediction problems, and for which
+we use primarily the mlr framework and spatial packages terra, rgdal and similar..</p>
+<p>Ensembles are predictive models that combine predictions from two or more learners
+<span class="citation">(<a href="#ref-seni2010ensemble" role="doc-biblioref">Seni &amp; Elder, 2010</a>; <a href="#ref-zhang2012ensemble" role="doc-biblioref">Zhang &amp; Ma, 2012</a>)</span>. The specific benefits of using Ensemble learners are:</p>
+<ul>
+<li><strong>Performance</strong>: they can help improve the average prediction performance over any individual contributing learner in the ensemble.</li>
+<li><strong>Robustness</strong>: they can help reduce extrapolation / overshooting effects of individual learners.</li>
+<li><strong>Unbiasness</strong>: they can help determine a model-free estimate of prediction errors.</li>
+</ul>
+<p>Even the most flexible and best performing learners such as Random Forest or neural
+networks always carry a bias in the sense that the fitting produces recognizable
+patterns and these are limited by the properties of the algorithm. In the case of
+ensembles, the modeling algorithm becomes secondary, and even though the improvements
+in accuracy are often minor as compared to the best individual learner, there is
+a good chance that the final EML model will be less prone to overshooting and
+extrapolation problems.</p>
+<p>There are in principle three ways to apply ensembles <span class="citation">(<a href="#ref-zhang2012ensemble" role="doc-biblioref">Zhang &amp; Ma, 2012</a>)</span>:</p>
+<ul>
+<li><em>bagging</em>: learn in parallel, then combine using some deterministic principle (e.g. weighted averaging),</li>
+<li><em>boosting</em>: learn sequentially in an adaptive way, then combine using some deterministic principle,</li>
+<li><em>stacking</em>: learn in parallel, then fit a meta-model to predict ensemble estimates,</li>
+</ul>
+<p>The <em>“meta-model”</em> is an additional model that basically combines all individual
+or <em>“base learners”</em>. In this tutorial we focus only on the stacking approach to Ensemble ML.</p>
+<p>There are several packages in R that implement Ensemble ML, for example:</p>
+<ul>
+<li><a href="https://cran.r-project.org/web/packages/SuperLearner/vignettes/Guide-to-SuperLearner.html">SuperLearner</a> package,</li>
+<li><a href="https://cran.r-project.org/web/packages/caretEnsemble/vignettes/caretEnsemble-intro.html">caretEnsemble</a> package,</li>
+<li><a href="http://docs.h2o.ai/h2o-tutorials/latest-stable/tutorials/ensembles-stacking/index.html">h2o.stackedEnsemble</a> package,</li>
+<li><a href="https://mlr.mlr-org.com/reference/makeStackedLearner.html">mlr</a> and <a href="https://mlr3gallery.mlr-org.com/posts/2020-04-27-tuning-stacking/">mlr3</a> packages,</li>
+</ul>
+<p>Ensemble ML is also available in Python through the <a href="https://scikit-learn.org/stable/modules/ensemble.html">scikit-learn</a> library.</p>
+<p>In this tutorial we focus primarily on using the <a href="https://mlr.mlr-org.com/">mlr package</a>,
+i.e. a wrapper functions to mlr implemented in the landmap package.</p>
+</div>
+<div id="using-geographical-distances-to-improve-spatial-interpolation" class="section level2 unnumbered">
+<h2>Using geographical distances to improve spatial interpolation</h2>
+<p>Machine Learning was for long time been considered suboptimal for spatial
+interpolation problems, in comparison to classical geostatistical techniques
+such as kriging, because it basically ignores spatial dependence structure in
+the data. To incorporate spatial dependence structures in machine learning, one
+can now add the so-called “geographical features”: buffer distance, oblique
+distances, and/or distances in the watershed, as features. This has shown to
+improve prediction performance and produce maps that visually appear as they
+have been produced by kriging <span class="citation">(<a href="#ref-hengl2018random" role="doc-biblioref">Hengl, Nussbaum, Wright, Heuvelink, &amp; Gräler, 2018</a>)</span>.</p>
+<p>Use of geographical as features in machine learning for spatial predictions is explained in detail in:</p>
+<ul>
+<li>Behrens, T., Schmidt, K., Viscarra Rossel, R. A., Gries, P., Scholten, T., &amp; MacMillan, R. A. (2018). <a href="https://doi.org/10.1111/ejss.12687">Spatial modelling with Euclidean distance fields and machine learning</a>. European journal of soil science, 69(5), 757-770.</li>
+<li>Hengl, T., Nussbaum, M., Wright, M. N., Heuvelink, G. B., &amp; Gräler, B. (2018). <a href="https://doi.org/10.7717/peerj.5518">Random forest as a generic framework for predictive modeling of spatial and spatio-temporal variables</a>. PeerJ, 6, e5518. <a href="https://doi.org/10.7717/peerj.5518" class="uri">https://doi.org/10.7717/peerj.5518</a><br />
+</li>
+<li>Møller, A. B., Beucher, A. M., Pouladi, N., and Greve, M. H. (2020). <a href="https://doi.org/10.5194/soil-6-269-2020">Oblique geographic coordinates as covariates for digital soil mapping</a>. SOIL, 6, 269–289, <a href="https://doi.org/10.5194/soil-6-269-2020" class="uri">https://doi.org/10.5194/soil-6-269-2020</a></li>
+<li>Sekulić, A., Kilibarda, M., Heuvelink, G.B., Nikolić, M., Bajat, B. (2020). <a href="https://doi.org/10.3390/rs12101687">Random Forest Spatial Interpolation</a>. Remote Sens. 12, 1687. <a href="https://doi.org/10.3390/rs12101687" class="uri">https://doi.org/10.3390/rs12101687</a></li>
+</ul>
+<p>In the case the number of covariates / features becomes large, and assuming the
+covariates are diverse, and that the points are equally spread in an area of
+interest, there is probably no need for using geographical distances in model
+training because unique combinations of features become so large that they can
+be used to represent <em>geographical position</em> <span class="citation">(<a href="#ref-hengl2018random" role="doc-biblioref">Hengl et al., 2018</a>)</span>.</p>
+</div>
+<div id="installing-the-landmap-package" class="section level2 unnumbered">
+<h2>Installing the landmap package</h2>
+<p>To install the most recent landmap package from Github use:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(devtools)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">install_github</span>(<span class="st">&quot;envirometrix/landmap&quot;</span>)</span></code></pre></div>
+</div>
+<div id="important-literature" class="section level2 unnumbered">
+<h2>Important literature</h2>
+<p>For an introduction to Spatial Data Science and Machine Learning with R we
+recommend studying first:</p>
+<ul>
+<li>Becker, M. et al.: <strong><a href="https://mlr3book.mlr-org.com/">“mlr3 book”</a></strong>;<br />
+</li>
+<li>Bivand, R., Pebesma, E. and Gómez-Rubio, V.: <strong><a href="https://asdar-book.org/">“Applied Spatial Data Analysis with R”</a></strong>;<br />
+</li>
+<li>Irizarry, R.A.: <strong><a href="https://rafalab.github.io/dsbook/">“Introduction to Data Science: Data Analysis and Prediction Algorithms with R”</a></strong>;<br />
+</li>
+<li>Kuhn, M.: <strong><a href="https://topepo.github.io/caret/">“The caret package”</a></strong>;<br />
+</li>
+<li>Molnar, C.: <strong><a href="https://christophm.github.io/interpretable-ml-book/">“Interpretable Machine Learning: A Guide for Making Black Box Models Explainable”</a></strong>;<br />
+</li>
+<li>Lovelace, R., Nowosad, J. and Muenchow, J.: <strong><a href="https://geocompr.robinlovelace.net/">“Geocomputation with R”</a></strong>;</li>
+</ul>
+<p>For an introduction to <strong>Predictive Soil Mapping</strong> using R refer to <a href="https://soilmapper.org" class="uri">https://soilmapper.org</a>.</p>
+<p>Machine Learning in <strong>python</strong> with resampling can be best implemented via the
+<a href="https://scikit-learn.org/stable/">scikit-learn library</a>, which matches in
+functionality what is available via the mlr package in R.</p>
+</div>
+<div id="license" class="section level2 unnumbered">
+<h2>License</h2>
+<p><a href="http://creativecommons.org/licenses/by-sa/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by-sa/4.0/88x31.png" /></a></p>
+<p>This work is licensed under a <a href="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International License</a>.</p>
+</div>
+<div id="acknowledgements" class="section level2 unnumbered">
+<h2>Acknowledgements</h2>
+<p><img src="tex/R_logo.svg.png" title="R project" alt="Rmarkdown" /> This tutorial is based on the <strong><a href="https://r4ds.had.co.nz/">“R for Data Science”</a></strong>
+book by Hadley Wickham and contributors.</p>
+<p><strong><a href="https://openlandmap.org">OpenLandMap</a></strong> is a collaborative effort and many people
+have contributed data, software, fixes and improvements via pull request.</p>
+<p><a href="https://opengeohub.org">OpenGeoHub</a> is an independent not-for-profit research
+foundation promoting Open Source and Open Data solutions. These tools were developed
+primarily for the need of the Geo-harmonizer project and to enable creation of
+next-generation environmental layers for continental Europe <span class="citation">(<a href="#ref-Bonannella2022" role="doc-biblioref">Bonannella et al., 2022</a>; <a href="#ref-witjes2021spatiotemporal" role="doc-biblioref">Witjes et al., 2022</a>)</span>.
+<strong><a href="https://envirometrix.nl">EnvirometriX Ltd.</a></strong> is the commercial branch of the group
+responsible for designing soil sampling designs for the <strong><a href="https://agricaptureco2.eu/">AgriCapture</a></strong>
+and similar soil monitoring projects.</p>
+<p><a href="https://opengeohub.org"><img src="tex/opengeohub_logo_ml.png" alt="OpenGeoHub logo" width="350"/></a></p>
+<p><strong><a href="https://EcoDataCube.eu/">EcoDataCube.eu</a></strong> project is co-financed by the European Union (<strong><a href="https://ec.europa.eu/inea/en/connecting-europe-facility/cef-telecom/2018-eu-ia-0095">CEF Telecom project 2018-EU-IA-0095</a></strong>).</p>
+<p><strong><a href="https://EarthMonitor.org/">EarthMonitor.org</a></strong> project has received funding from the European Union’s Horizon Europe research an innovation programme under grant agreement <strong><a href="https://cordis.europa.eu/project/id/101059548">No. 101059548</a></strong>.</p>
+<div id="refs" class="references csl-bib-body hanging-indent" line-spacing="2">
+<div id="ref-Bonannella2022" class="csl-entry">
+Bonannella, C., Hengl, T., Heisig, J., Parente, L., Wright, M. N., Herold, M., &amp; Bruin, S. de. (2022). <span class="nocase">Forest tree species distribution for Europe 2000-2020: mapping potential and realized distributions using spatiotemporal Machine Learning</span>. <em>PeerJ</em>. doi:<a href="https://doi.org/10.7717/peerj.13728">10.7717/peerj.13728</a>
+</div>
+<div id="ref-hengl2018random" class="csl-entry">
+Hengl, T., Nussbaum, M., Wright, M. N., Heuvelink, G. B. M., &amp; Gräler, B. (2018). Random forest as a generic framework for predictive modeling of spatial and spatio-temporal variables. <em>PeerJ</em>, <em>6</em>, e5518. doi:<a href="https://doi.org/10.7717/peerj.5518">10.7717/peerj.5518</a>
+</div>
+<div id="ref-seni2010ensemble" class="csl-entry">
+Seni, G., &amp; Elder, J. F. (2010). <em><span class="nocase">Ensemble Methods in Data Mining: Improving Accuracy Through Combining Predictions</span></em>. Morgan &amp; Claypool Publishers.
+</div>
+<div id="ref-witjes2021spatiotemporal" class="csl-entry">
+Witjes, M., Parente, L., Diemen, C. J. van, Hengl, T., Landa, M., Brodskỳ, L., et al.others. (2022). A spatiotemporal ensemble machine learning framework for generating land use/land cover time-series maps for europe (2000–2019) based on LUCAS, CORINE and GLAD landsat. <em>PeerJ</em>, <em>10</em>, e13573. doi:<a href="https://doi.org/10.7717/peerj.13573">10.7717/peerj.13573</a>
+</div>
+<div id="ref-zhang2012ensemble" class="csl-entry">
+Zhang, C., &amp; Ma, Y. (2012). <em>Ensemble machine learning: Methods and applications</em>. Springer New York.
+</div>
+</div>
+</div>
+</div>
+  </main>
+
+  <div class="col-md-3 col-lg-2 d-none d-md-block sidebar sidebar-chapter">
+    <nav id="toc" data-toggle="toc" aria-label="On this page">
+      <h2>On this page</h2>
+      <div id="book-on-this-page"></div>
+
+      <div class="book-extra">
+        <ul class="list-unstyled">
+          <li><a id="book-source" href="#">View source <i class="fab fa-github"></i></a></li>
+          <li><a id="book-edit" href="#">Edit this page <i class="fab fa-github"></i></a></li>
+        </ul>
+      </div>
+    </nav>
+  </div>
+
+</div>
+</div> <!-- .container -->
+
+<footer class="bg-primary text-light mt-5">
+  <div class="container"><div class="row">
+
+  <div class="col-12 col-md-6 mt-3">
+    <p>"<strong>Spatial and spatiotemporal interpolation using Ensemble Machine Learning</strong>" was written by Tom Hengl, Leandro Parente, Carmelo Bonannella and contributors. </p>
+  </div>
+
+  <div class="col-12 col-md-6 mt-3">
+    <p>This book was built by the <a class="text-light" href="https://bookdown.org">bookdown</a> R package.</p>
+  </div>
+
+</div></div>
+</footer>
+
+
+</body>
+
+</html>
