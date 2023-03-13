@@ -272,7 +272,6 @@ can be modeled, universally anywhere on globe, by using the following formula:
 ```{r}
 temp.from.geom <- function(fi, day, a=30.419375, 
                            b=-15.539232, elev=0, t.grad=0.6) {
-  f = ifelse(fi==0, 1e-10, fi)
   costeta = cos( (day-18 )*pi/182.5 + 2^(1-sign(fi) ) *pi) 
   cosfi = cos(fi*pi/180 )
   A = cosfi
