@@ -9,7 +9,7 @@ ls <- c("rgdal", "raster", "plotKML", "ranger", "mlr", "forestError",
         "xgboost", "glmnet", "matrixStats", "landmap", "yardstick", "Cubist", 
         "hexbin", "parallelMap", "Metrics", "fastSave", "devtools")
 new.packages <- ls[!(ls %in% installed.packages()[,"Package"])]
-if(length(new.packages)) install.packages(new.packages)
+if(length(new.packages)) install.packages(new.packages, repos = "https://cloud.r-project.org")
 lapply(ls, require, character.only = TRUE)
 #load.pigz("eml_data.RData")
 source("PSM_functions.R")
@@ -177,8 +177,9 @@ spatial Cross-Validation using:
 summary(m@spModel$learner.model$super.model$learner.model)
 ```
 
-Which shows that `regr.ranger` learner [@wright2017ranger] is the strongest learner, and also, by observing the
-residual standard error, that the models is somewhat more accurate than if we 
+Which shows that the model explains about 65% of variability in target variable 
+and that `regr.ranger` learner [@wright2017ranger] is the strongest learner. Average 
+mapping error RMSE = 213, hence the models is somewhat more accurate than if we 
 only used buffer distances.
 
 To predict values at all grids we use:

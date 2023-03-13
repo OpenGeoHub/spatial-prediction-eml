@@ -244,12 +244,12 @@ occ.ov = occ.ov[complete.cases(occ.ov),]
 #head(occ.ov)
 iso = isolationForest$new()
 iso$fit(dataset = occ.ov)
-#> INFO  [17:20:17.688] dataset has duplicated rows 
-#> INFO  [17:20:17.734] Building Isolation Forest ...  
-#> INFO  [17:20:17.822] done 
-#> INFO  [17:20:17.824] Computing depth of terminal nodes ...  
-#> INFO  [17:20:18.396] done 
-#> INFO  [17:20:18.653] Completed growing isolation forest
+#> INFO  [18:54:39.156] dataset has duplicated rows 
+#> INFO  [18:54:39.202] Building Isolation Forest ...  
+#> INFO  [18:54:39.293] done 
+#> INFO  [18:54:39.296] Computing depth of terminal nodes ...  
+#> INFO  [18:54:39.898] done 
+#> INFO  [18:54:40.146] Completed growing isolation forest
 ```
 
 The fitted model shows:
@@ -327,28 +327,33 @@ library(terra)
 tif = paste0("/vsicurl/", cov.lst$filename[2])
 r = rast(tif)
 #> Warning in new_CppObject_xp(fields$.module, fields$.pointer, ...): GDAL Message
-#> 1: HTTP response code on https://s3.eu-central-1.wasabisys.com/mood/CRP/
-#> lcv_globalcropland_bowen.et.al_p_1km_s0..0cm_2001_mood_v0.1.tif.aux.xml: 403
+#> 1: HTTP response code on
+#> https://s3.eu-central-1.wasabisys.com/mood/CRP/lcv_globalcropland_bowen.et.al_p_1km_s0..0cm_2001_mood_v0.1.tif.aux.xml:
+#> 403
 #> Warning in new_CppObject_xp(fields$.module, fields$.pointer, ...): GDAL Message
-#> 1: HTTP response code on https://s3.eu-central-1.wasabisys.com/mood/CRP/
-#> lcv_globalcropland_bowen.et.al_p_1km_s0..0cm_2001_mood_v0.1.aux: 403
+#> 1: HTTP response code on
+#> https://s3.eu-central-1.wasabisys.com/mood/CRP/lcv_globalcropland_bowen.et.al_p_1km_s0..0cm_2001_mood_v0.1.aux:
+#> 403
 #> Warning in new_CppObject_xp(fields$.module, fields$.pointer, ...): GDAL Message
-#> 1: HTTP response code on https://s3.eu-central-1.wasabisys.com/mood/CRP/
-#> lcv_globalcropland_bowen.et.al_p_1km_s0..0cm_2001_mood_v0.1.AUX: 403
+#> 1: HTTP response code on
+#> https://s3.eu-central-1.wasabisys.com/mood/CRP/lcv_globalcropland_bowen.et.al_p_1km_s0..0cm_2001_mood_v0.1.AUX:
+#> 403
 #> Warning in new_CppObject_xp(fields$.module, fields$.pointer, ...): GDAL Message
-#> 1: HTTP response code on https://s3.eu-central-1.wasabisys.com/mood/CRP/
-#> lcv_globalcropland_bowen.et.al_p_1km_s0..0cm_2001_mood_v0.1.tif.aux: 403
+#> 1: HTTP response code on
+#> https://s3.eu-central-1.wasabisys.com/mood/CRP/lcv_globalcropland_bowen.et.al_p_1km_s0..0cm_2001_mood_v0.1.tif.aux:
+#> 403
 #> Warning in new_CppObject_xp(fields$.module, fields$.pointer, ...): GDAL Message
-#> 1: HTTP response code on https://s3.eu-central-1.wasabisys.com/mood/CRP/
-#> lcv_globalcropland_bowen.et.al_p_1km_s0..0cm_2001_mood_v0.1.tif.AUX: 403
+#> 1: HTTP response code on
+#> https://s3.eu-central-1.wasabisys.com/mood/CRP/lcv_globalcropland_bowen.et.al_p_1km_s0..0cm_2001_mood_v0.1.tif.AUX:
+#> 403
 r
 #> class       : SpatRaster 
 #> dimensions  : 7360, 7845, 1  (nrow, ncol, nlyr)
 #> resolution  : 1000, 1000  (x, y)
 #> extent      : 867000, 8712000, -484000, 6876000  (xmin, xmax, ymin, ymax)
 #> coord. ref. : +proj=laea +lat_0=52 +lon_0=10 +x_0=4321000 +y_0=3210000 +ellps=GRS80 +units=m +no_defs 
-#> data source : lcv_globalcropland_bowen.et.al_p_1km_s0..0cm_2001_mood_v0.1.tif 
-#> names       : lcv_globalcropland_bowen.et.al_p_1km_s0..0cm_2001_mood_v0.1
+#> source      : lcv_globalcropland_bowen.et.al_p_1km_s0..0cm_2001_mood_v0.1.tif 
+#> name        : lcv_globalcropland_bowen.et.al_p_1km_s0..0cm_2001_mood_v0.1
 ```
 
 To get values of pixels at some location we can fetch values without downloading 
@@ -357,8 +362,8 @@ the complete rasters e.g.:
 
 ```r
 terra::extract(r, data.frame(x=3828332, y=2315068))
-#>      ID lcv_globalcropland_bowen.et.al_p_1km_s0..0cm_2001_mood_v0.1
-#> [1,]  1                                                          24
+#>   ID lcv_globalcropland_bowen.et.al_p_1km_s0..0cm_2001_mood_v0.1
+#> 1  1                                                          24
 ```
 
 <div class="figure" style="text-align: center">
@@ -424,7 +429,7 @@ library(dplyr)
 #>     count
 #> The following objects are masked from 'package:terra':
 #> 
-#>     collapse, select
+#>     intersect, union
 #> The following objects are masked from 'package:raster':
 #> 
 #>     intersect, select, union

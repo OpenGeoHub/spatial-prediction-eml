@@ -146,7 +146,7 @@ if(!exists("eml.pb")){
   eml.pb = train(init.pb, tsk0.pb)
   parallelMap::parallelStop()
 }
-#> [14:42:43] WARNING: amalgamation/../src/objective/regression_obj.cu:170: reg:linear is now deprecated in favor of reg:squarederror.
+#> [18:20:28] WARNING: amalgamation/../src/objective/regression_obj.cu:170: reg:linear is now deprecated in favor of reg:squarederror.
 ```
 
 

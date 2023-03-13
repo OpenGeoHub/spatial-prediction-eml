@@ -9,7 +9,7 @@ ls <- c("rgdal", "raster", "plotKML", "ranger", "mlr", "forestError", "randomFor
         "xgboost", "glmnet", "matrixStats", "landmap", "yardstick", "Cubist", "ggfortify", 
         "hexbin", "parallelMap", "Metrics", "fastSave", "devtools", "openair")
 new.packages <- ls[!(ls %in% installed.packages()[,"Package"])]
-if(length(new.packages)) install.packages(new.packages)
+if(length(new.packages)) install.packages(new.packages, repos = "https://cloud.r-project.org")
 lapply(ls, require, character.only = TRUE)
 #load.pigz("eml_data.RData")
 source("PSM_functions.R")

@@ -74,7 +74,7 @@ The analysis-ready data set overlaid vs time-series of EO covariates (regression
 rms.df = readRDS("./input/world.mangroves_soil.carbon_rm.rds")
 sel.db = rms.df$source_db %in% c("MangrovesDB","TNC_mangroves_2022","CSIRO_NatSoil","PRONASOLOS")
 dim(rms.df)
-#> [1] 12014   174
+#> [1] 11992   225
 ```
 
 Note that, unlike the training points used in @sanderman2018global, some of the points 
@@ -104,10 +104,10 @@ SOC content for world mangroves by using:
 sel.oc = rms.df$source_db %in% c("MangrovesDB","TNC_mangroves_2022")
 mean.oc = mean(rms.df[sel.oc,"oc"], na.rm=TRUE)
 mean.oc
-#> [1] 56.28807
+#> [1] 56.50853
 mean.hzn_depth = mean(rms.df[sel.oc,"hzn_depth"], na.rm=TRUE)
 mean.hzn_depth
-#> [1] 48.02937
+#> [1] 48.1298
 ```
 
 Hence world soil mangrove forest have about 5.6% SOC for an average soil depth of 48-cm. 
@@ -125,7 +125,8 @@ openair::scatterPlot(rms.df[sel.db,], y = "db_od", x = "oc", method = "hexbin", 
 
 This shows that, as expected BD can be related with SOC using linear-log relationship. 
 Note that most of bulk density points in @sanderman2018global (`MangrovesDB`) are based on using 
-a simple pedo-transfer function to estimate BD from SOC content hence the grouping on a line. 
+a simple pedo-transfer function to estimate BD from SOC content. In reality there are usually 
+much less soil laboratory samples available with actual BD measured in the lab.
 We can use actual SOC and BD measurements to estimate a more applicable pedo-transfer function for bulk density:
 
 
@@ -162,7 +163,7 @@ so that we can estimate bulk density for average SOC content and depth of 50-cm:
 mean.db_od = predict(m.bd.soc, data.frame(oc=mean.oc, hzn_depth=mean.hzn_depth))
 mean.db_od
 #>         1 
-#> 0.7701787
+#> 0.7689179
 ```
 
 i.e. it is about 770 kg/m-cubic. Based on these rough numbers we can estimate that the mean 
@@ -172,7 +173,7 @@ SOC density for world mangroves at 50-cm depth is about:
 ```r
 mean.oc/1000 * mean.db_od * 1000
 #>        1 
-#> 43.35187
+#> 43.45042
 ```
 
 i.e. about 43 kg/m-cubic, so that the total SOC stock for 0–100 cm is about 430 t/ha. 
@@ -205,9 +206,9 @@ openair::scatterPlot(rms.df[sel.db,], y = "oc_d", x = "oc", method = "hexbin", c
 <p class="caption">(\#fig:soc-dens)Relationship between SOC content and density on a log-scale.</p>
 </div>
 
-Which shows that SOC in kg/m3 is linearly correlated with SOC %, except for 
+Which shows that SOC in kg/m3 is log-linearly correlated with SOC %, except for 
 organic soils this relationship is curvilinear i.e. after some values of SOC % 
-SOC in kg/m3 stabilizes and does not grow any more. Again, we can fit a simple pedo-tranfer 
+SOC in kg/m3 stabilizes and does not grow any more. Again, we can fit a simple pedo-transfer 
 function using this data to predict SOC density (kg/m3) directly from SOC %:
 
 
@@ -388,14 +389,14 @@ m0.oc
 #> 
 #> Type:                             Regression 
 #> Number of trees:                  85 
-#> Sample size:                      11923 
+#> Sample size:                      11903 
 #> Number of independent variables:  18 
 #> Mtry:                             4 
 #> Target node size:                 5 
 #> Variable importance mode:         impurity 
 #> Splitrule:                        variance 
-#> OOB prediction error (MSE):       0.3371771 
-#> R squared (OOB):                  0.816463
+#> OOB prediction error (MSE):       0.3291843 
+#> R squared (OOB):                  0.8198406
 ```
 
 
@@ -412,14 +413,14 @@ m1.oc
 #> 
 #> Type:                             Regression 
 #> Number of trees:                  85 
-#> Sample size:                      9285 
+#> Sample size:                      9275 
 #> Number of independent variables:  156 
 #> Mtry:                             12 
 #> Target node size:                 5 
 #> Variable importance mode:         impurity 
 #> Splitrule:                        variance 
-#> OOB prediction error (MSE):       0.3411809 
-#> R squared (OOB):                  0.802172
+#> OOB prediction error (MSE):       0.3305873 
+#> R squared (OOB):                  0.8076966
 ```
 
 It appears that static variables are already sufficient to map SOC content and the models are highly significant. The 
@@ -459,21 +460,21 @@ summary(eml0$learner.model$super.model$learner.model)
 #> 
 #> Residuals:
 #>     Min      1Q  Median      3Q     Max 
-#> -4.4310 -0.6122 -0.0399  0.5997  4.2324 
+#> -4.2041 -0.6227 -0.0291  0.5827  4.3693 
 #> 
 #> Coefficients:
 #>               Estimate Std. Error t value Pr(>|t|)    
-#> (Intercept)   0.021028   0.032569   0.646   0.5185    
-#> regr.ranger   0.684439   0.024533  27.898  < 2e-16 ***
-#> regr.cubist   0.054240   0.007913   6.854 7.51e-12 ***
-#> regr.rpart    0.040341   0.019666   2.051   0.0403 *  
-#> regr.cvglmnet 0.209271   0.023780   8.800  < 2e-16 ***
+#> (Intercept)    0.02591    0.03257   0.795    0.426    
+#> regr.ranger    0.58974    0.02487  23.712   <2e-16 ***
+#> regr.cubist    0.09110    0.00806  11.302   <2e-16 ***
+#> regr.rpart     0.02610    0.01996   1.308    0.191    
+#> regr.cvglmnet  0.27673    0.02389  11.581   <2e-16 ***
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 #> 
-#> Residual standard error: 0.994 on 11918 degrees of freedom
-#> Multiple R-squared:  0.4624,	Adjusted R-squared:  0.4622 
-#> F-statistic:  2563 on 4 and 11918 DF,  p-value: < 2.2e-16
+#> Residual standard error: 0.9917 on 11898 degrees of freedom
+#> Multiple R-squared:  0.462,	Adjusted R-squared:  0.4618 
+#> F-statistic:  2554 on 4 and 11898 DF,  p-value: < 2.2e-16
 ```
 
 In this case we have added `ID` which is the unique ID of the spatial block (30×30-km).
@@ -504,21 +505,21 @@ summary(eml1$learner.model$super.model$learner.model)
 #> 
 #> Residuals:
 #>     Min      1Q  Median      3Q     Max 
-#> -3.9004 -0.6020 -0.0451  0.5698  3.6288 
+#> -3.8300 -0.5850 -0.0280  0.5595  3.5414 
 #> 
 #> Coefficients:
-#>               Estimate Std. Error t value Pr(>|t|)    
-#> (Intercept)   0.125251   0.030022   4.172 3.05e-05 ***
-#> regr.ranger   0.901598   0.021746  41.460  < 2e-16 ***
-#> regr.cubist   0.008529   0.004847   1.760   0.0785 .  
-#> regr.rpart    0.036059   0.017912   2.013   0.0441 *  
-#> regr.cvglmnet 0.008649   0.011591   0.746   0.4556    
+#>                Estimate Std. Error t value Pr(>|t|)    
+#> (Intercept)    0.099573   0.028541   3.489 0.000488 ***
+#> regr.ranger    0.786823   0.021184  37.143  < 2e-16 ***
+#> regr.cubist    0.064157   0.005681  11.293  < 2e-16 ***
+#> regr.rpart     0.141459   0.016134   8.768  < 2e-16 ***
+#> regr.cvglmnet -0.030274   0.012225  -2.476 0.013290 *  
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 #> 
-#> Residual standard error: 0.9572 on 9280 degrees of freedom
-#> Multiple R-squared:  0.4689,	Adjusted R-squared:  0.4687 
-#> F-statistic:  2049 on 4 and 9280 DF,  p-value: < 2.2e-16
+#> Residual standard error: 0.9216 on 9270 degrees of freedom
+#> Multiple R-squared:  0.5062,	Adjusted R-squared:  0.506 
+#> F-statistic:  2375 on 4 and 9270 DF,  p-value: < 2.2e-16
 ```
 
 This shows that: (1) adding temporal components helps increase mapping accuracy 
@@ -595,21 +596,21 @@ summary(bd.eml$learner.model$super.model$learner.model)
 #> 
 #> Residuals:
 #>      Min       1Q   Median       3Q      Max 
-#> -1.17339 -0.18635  0.01339  0.19663  1.02023 
+#> -1.05477 -0.19936  0.00039  0.20085  1.37838 
 #> 
 #> Coefficients:
 #>                Estimate Std. Error t value Pr(>|t|)    
-#> (Intercept)   -0.090269   0.014092  -6.406 1.62e-10 ***
-#> regr.ranger    1.295792   0.026694  48.542  < 2e-16 ***
-#> regr.cubist    0.029998   0.007837   3.828 0.000131 ***
-#> regr.rpart    -0.199207   0.015002 -13.279  < 2e-16 ***
-#> regr.cvglmnet  0.011559   0.019603   0.590 0.555431    
+#> (Intercept)    0.038527   0.013425   2.870  0.00412 ** 
+#> regr.ranger    1.047436   0.019730  53.088  < 2e-16 ***
+#> regr.cubist    0.039359   0.006733   5.846 5.35e-09 ***
+#> regr.rpart    -0.107278   0.014905  -7.197 6.99e-13 ***
+#> regr.cvglmnet  0.052440   0.018027   2.909  0.00364 ** 
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 #> 
-#> Residual standard error: 0.2892 on 5770 degrees of freedom
-#> Multiple R-squared:  0.5401,	Adjusted R-squared:  0.5397 
-#> F-statistic:  1694 on 4 and 5770 DF,  p-value: < 2.2e-16
+#> Residual standard error: 0.3044 on 5328 degrees of freedom
+#> Multiple R-squared:  0.5426,	Adjusted R-squared:  0.5422 
+#> F-statistic:  1580 on 4 and 5328 DF,  p-value: < 2.2e-16
 ```
 
 This has more missing values and is hence will likely be more cumbersome to 
@@ -630,7 +631,8 @@ The classes would be e.g.:
 
 ```r
 seq(bd.range[1], bd.range[2], length.out=round(diff(bd.range)/(0.293/2)))
-#>  [1] 0.130 0.295 0.460 0.625 0.790 0.955 1.120 1.285 1.450 1.615 1.780
+#>  [1] 0.1332139 0.2998925 0.4665711 0.6332497 0.7999283 0.9666069 1.1332855
+#>  [8] 1.2999642 1.4666428 1.6333214 1.8000000
 ```
 
 ## Producing predictions of SOC and BD
@@ -752,21 +754,21 @@ summary(emlA$learner.model$super.model$learner.model)
 #> 
 #> Residuals:
 #>     Min      1Q  Median      3Q     Max 
-#> -4.4416 -0.2995  0.0489  0.3840  2.8210 
+#> -4.3704 -0.2956  0.0384  0.3687  2.7122 
 #> 
 #> Coefficients:
 #>                Estimate Std. Error t value Pr(>|t|)    
-#> (Intercept)   -0.436672   0.039217 -11.135  < 2e-16 ***
-#> regr.ranger    0.900342   0.019145  47.027  < 2e-16 ***
-#> regr.cubist    0.017427   0.006023   2.894  0.00382 ** 
-#> regr.rpart     0.114944   0.021857   5.259 1.49e-07 ***
-#> regr.cvglmnet  0.094627   0.021764   4.348 1.40e-05 ***
+#> (Intercept)   -0.419323   0.038768 -10.816  < 2e-16 ***
+#> regr.ranger    0.870707   0.018685  46.599  < 2e-16 ***
+#> regr.cubist    0.021880   0.007254   3.016  0.00257 ** 
+#> regr.rpart     0.143778   0.019601   7.335 2.47e-13 ***
+#> regr.cvglmnet  0.084548   0.021101   4.007 6.22e-05 ***
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 #> 
-#> Residual standard error: 0.685 on 6618 degrees of freedom
-#> Multiple R-squared:  0.6692,	Adjusted R-squared:  0.669 
-#> F-statistic:  3347 on 4 and 6618 DF,  p-value: < 2.2e-16
+#> Residual standard error: 0.6792 on 6618 degrees of freedom
+#> Multiple R-squared:  0.6747,	Adjusted R-squared:  0.6745 
+#> F-statistic:  3432 on 4 and 6618 DF,  p-value: < 2.2e-16
 ```
 
 
@@ -782,21 +784,21 @@ summary(emlB$learner.model$super.model$learner.model)
 #> 
 #> Residuals:
 #>     Min      1Q  Median      3Q     Max 
-#> -4.0427 -0.3806  0.0076  0.3566  3.3374 
+#> -3.3770 -0.3835  0.0076  0.3603  3.6555 
 #> 
 #> Coefficients:
 #>                Estimate Std. Error t value Pr(>|t|)    
-#> (Intercept)   -0.168854   0.022796  -7.407 1.40e-13 ***
-#> regr.ranger    1.103089   0.018218  60.549  < 2e-16 ***
-#> regr.cubist    0.053461   0.006399   8.355  < 2e-16 ***
-#> regr.rpart     0.081260   0.014496   5.606 2.13e-08 ***
-#> regr.cvglmnet -0.166479   0.015487 -10.749  < 2e-16 ***
+#> (Intercept)   -0.169293   0.022562  -7.504 6.78e-14 ***
+#> regr.ranger    1.070425   0.017933  59.691  < 2e-16 ***
+#> regr.cubist    0.108671   0.006921  15.701  < 2e-16 ***
+#> regr.rpart     0.043195   0.014668   2.945  0.00324 ** 
+#> regr.cvglmnet -0.154658   0.015597  -9.916  < 2e-16 ***
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 #> 
-#> Residual standard error: 0.7232 on 9280 degrees of freedom
-#> Multiple R-squared:  0.6969,	Adjusted R-squared:  0.6968 
-#> F-statistic:  5334 on 4 and 9280 DF,  p-value: < 2.2e-16
+#> Residual standard error: 0.7126 on 9270 degrees of freedom
+#> Multiple R-squared:  0.7047,	Adjusted R-squared:  0.7046 
+#> F-statistic:  5531 on 4 and 9270 DF,  p-value: < 2.2e-16
 ```
 
 The R-square is somewhat higher than if we use 30×30km spatial blocking (strict), and still 
@@ -842,12 +844,15 @@ using 0.914/2. This is an example:
 
 ```r
 library(terra)
-#> terra version 0.8.11 (beta-release)
+#> terra 1.7.3
 #> 
 #> Attaching package: 'terra'
-#> The following objects are masked from 'package:Matrix':
+#> The following object is masked from 'package:landmap':
 #> 
-#>     expand, pack
+#>     makeTiles
+#> The following object is masked from 'package:mlr':
+#> 
+#>     resample
 #> The following object is masked from 'package:rgdal':
 #> 
 #>     project
@@ -929,8 +934,8 @@ parts there are gains / losses in SOC. The figure below shows global mean and lo
 prediction intervals for SOC stocks for mangrove forests through time.
 
 <div class="figure" style="text-align: center">
-<img src="./img/mangroves_stock_0..30cm.png" alt="Global SOC stocks in gigatones with prediction uncertainty for the time-period of interest." width="80%" />
-<p class="caption">(\#fig:global-trend)Global SOC stocks in gigatones with prediction uncertainty for the time-period of interest.</p>
+<img src="./img/mangroves_stock_0..30cm.png" alt="Global SOC stocks in gigatones with prediction uncertainty (+/- 1 std) for the time-period of interest." width="80%" />
+<p class="caption">(\#fig:global-trend)Global SOC stocks in gigatones with prediction uncertainty (+/- 1 std) for the time-period of interest.</p>
 </div>
 
 ## Access global predictions of SOC for magroves
@@ -940,24 +945,24 @@ To access global predictions you can use the Cloud-Optimized GeoTIFFs available 
 the file-name pattern of standard depths `s0..30cm`, `s30..100cm` and years of predictions e.g. `2020`. 
 Example of mean, lower-prediction-interval and upper-prediction-interval maps are:
 
-- sol_soc.tha_mangroves.typology_m_30m_s0..30cm_2020_global_v1.0.tif,  
-- sol_soc.tha_mangroves.typology_l.std_30m_s0..30cm_2020_global_v1.0.tif  
-- sol_soc.tha_mangroves.typology_u.std_30m_s0..30cm_2020_global_v1.0.tif  
+- soc.tha_tnc.mangroves.typology_m_30m_b0..100cm_2019_2020_go_epsg.4326_v1.2.tif,  
+- soc.tha_tnc.mangroves.typology_l.std_30m_b0..100cm_2019_2020_go_epsg.4326_v1.2.tif,  
+- soc.tha_tnc.mangroves.typology_u.std_30m_b0..100cm_2019_2020_go_epsg.4326_v1.2.tif,  
 
 From R you can access and crop this data using e.g.:
 
 
 ```r
 library(terra)
-cog = "/vsicurl/https://s3.eu-central-1.wasabisys.com/openlandmap/mangroves/sol_soc.tha_mangroves.typology_m_30m_s0..30cm_2020_global_v1.0.tif"
+cog = "/vsicurl/https://s3.eu-central-1.wasabisys.com/openlandmap/mangroves/sol/soc.tha_tnc.mangroves.typology_m_30m_b0..100cm_2019_2020_go_epsg.4326_v1.2.tif"
 terra::rast(cog)
 #> class       : SpatRaster 
-#> dimensions  : 280004, 1360004, 1  (nrow, ncol, nlyr)
+#> dimensions  : 288002, 1440002, 1  (nrow, ncol, nlyr)
 #> resolution  : 0.00025, 0.00025  (x, y)
-#> extent      : -160.0005, 180.0005, -39.0005, 31.0005  (xmin, xmax, ymin, ymax)
-#> coord. ref. : +proj=longlat +datum=WGS84 +no_defs 
-#> data source : sol_soc.tha_mangroves.typology_m_30m_s0..30cm_2020_global_v1.0.tif 
-#> names       : sol_soc.tha_mangroves.typology_m_30m_s0..30cm_2020_global_v1.0
+#> extent      : -180, 180.0005, -39.0005, 33  (xmin, xmax, ymin, ymax)
+#> coord. ref. : lon/lat WGS 84 (EPSG:4326) 
+#> source      : soc.tha_tnc.mangroves.typology_m_30m_b0..100cm_2019_2020_go_epsg.4326_v1.2.tif 
+#> name        : soc.tha_tnc.mangroves.typology~cm_2019_2020_go_epsg.4326_v1.2
 ```
 
 Once you define the COG in R, you can crop to bounding box of interest or simply [overlay points or polygons](https://gitlab.com/openlandmap/africa-soil-and-agronomy-data-cube).

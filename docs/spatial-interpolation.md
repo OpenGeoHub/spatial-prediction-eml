@@ -84,8 +84,8 @@ target variable. This can be implemented using the `meteo` package:
 
 ```r
 library(meteo)
-#> Warning: replacing previous import 'caret::MAE' by 'DescTools::MAE' when loading
-#> 'meteo'
+#> Warning: replacing previous import 'caret::MAE' by 'DescTools::MAE' when
+#> loading 'meteo'
 #> Warning: replacing previous import 'caret::RMSE' by 'DescTools::RMSE' when
 #> loading 'meteo'
 nearest_obs <- meteo::near.obs(locations = meuse.grid, 

@@ -104,12 +104,6 @@ we use our custom function `extract_st`, which basically builds on top of the
 
 ```r
 library(terra)
-#> terra version 0.8.11 (beta-release)
-#> 
-#> Attaching package: 'terra'
-#> The following object is masked from 'package:rgdal':
-#> 
-#>     project
 source("mlst_functions.R")
 hrmeteo$meteo$x = plyr::join(hrmeteo$meteo, hrmeteo$stations, by="IDSTA")$X
 hrmeteo$meteo$y = plyr::join(hrmeteo$meteo, hrmeteo$stations, by="IDSTA")$Y
@@ -140,7 +134,7 @@ ov.pnts = ov.pnts[!sapply(ov.pnts, is.null)]
 ov.tifs1 = plyr::join_all(ov.pnts, by="row.id", type="full")
 str(ov.tifs1)
 #> 'data.frame':	44895 obs. of  2 variables:
-#>  $ LST.day: num  0 0 0 0 0 0 0 0 0 0 ...
+#>  $ LST.day: int  0 0 0 0 0 0 0 0 0 0 ...
 #>  $ row.id : int  1 2 3 4 5 366 367 368 369 370 ...
 ov.tifs1$LST.day = ifelse(ov.tifs1$LST.day == 0, NA, ov.tifs1$LST.day)
 ```
@@ -166,7 +160,7 @@ ov.pnts = ov.pnts[!sapply(ov.pnts, is.null)]
 ov.tifs2 = plyr::join_all(ov.pnts, by="row.id", type="full")
 str(ov.tifs2)
 #> 'data.frame':	44895 obs. of  2 variables:
-#>  $ LST.night: num  13344 13344 13344 13344 13344 ...
+#>  $ LST.night: int  13344 13344 13344 13344 13344 13120 13120 13120 13120 13120 ...
 #>  $ row.id   : int  1 2 3 4 5 366 367 368 369 370 ...
 ov.tifs2$LST.night = ifelse(ov.tifs2$LST.night == 0, NA, ov.tifs2$LST.night)
 ```
@@ -205,14 +199,6 @@ We next fit an Ensemble ML using the same process described in the previous sect
 
 ```r
 library(mlr)
-#> Loading required package: ParamHelpers
-#> 'mlr' is in maintenance mode since July 2019. Future development
-#> efforts will go into its successor 'mlr3' (<https://mlr3.mlr-org.com>).
-#> 
-#> Attaching package: 'mlr'
-#> The following object is masked from 'package:terra':
-#> 
-#>     resample
 lrn.rf = mlr::makeLearner("regr.ranger", num.trees=150, importance="impurity",
                           num.threads = parallel::detectCores())
 lrns.st <- list(lrn.rf, mlr::makeLearner("regr.nnet"), mlr::makeLearner("regr.gamboost"))
@@ -263,14 +249,14 @@ summary(eml.TMP$learner.model$super.model$learner.model)
 #> 
 #> Residuals:
 #>      Min       1Q   Median       3Q      Max 
-#> -16.2439  -1.8106   0.0204   1.8004  14.9611 
+#> -16.2441  -1.8103   0.0187   1.8002  14.9609 
 #> 
 #> Coefficients:
 #>               Estimate Std. Error t value Pr(>|t|)    
-#> (Intercept)   35.06219    8.10904   4.324 1.55e-05 ***
-#> regr.ranger    0.70575    0.02770  25.474  < 2e-16 ***
-#> regr.nnet     -2.72276    0.62920  -4.327 1.53e-05 ***
-#> regr.gamboost  0.29540    0.02799  10.553  < 2e-16 ***
+#> (Intercept)   35.08516    8.10905   4.327 1.53e-05 ***
+#> regr.ranger    0.70576    0.02771  25.474  < 2e-16 ***
+#> regr.nnet     -2.72453    0.62920  -4.330 1.51e-05 ***
+#> regr.gamboost  0.29539    0.02799  10.552  < 2e-16 ***
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 #> 
@@ -492,6 +478,23 @@ library(rnaturalearth)
 library(raster)
 europe <- rnaturalearth::ne_countries(scale=10, continent = 'europe')
 europe <- raster::crop(europe, extent(-24.8,35.2,31,68.5))
+#> Warning in .getSpatDF(x@ptr$df, ...): NAs introduced by coercion to integer
+#> range
+
+#> Warning in .getSpatDF(x@ptr$df, ...): NAs introduced by coercion to integer
+#> range
+
+#> Warning in .getSpatDF(x@ptr$df, ...): NAs introduced by coercion to integer
+#> range
+
+#> Warning in .getSpatDF(x@ptr$df, ...): NAs introduced by coercion to integer
+#> range
+
+#> Warning in .getSpatDF(x@ptr$df, ...): NAs introduced by coercion to integer
+#> range
+
+#> Warning in .getSpatDF(x@ptr$df, ...): NAs introduced by coercion to integer
+#> range
 op = par(mar=c(0,0,0,0))
 plot(europe, col="lightgrey", border="darkgrey", axes=FALSE)
 points(occ.pnts[occ.pnts$Atlas_class==1,], pch="+", cex=.8)

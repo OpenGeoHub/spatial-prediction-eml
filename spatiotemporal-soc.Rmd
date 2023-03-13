@@ -9,7 +9,7 @@ ls <- c("rgdal", "raster", "plotKML", "ranger", "mlr", "forestError",
         "xgboost", "glmnet", "matrixStats", "landmap", "yardstick", "Cubist", "ggfortify", 
         "hexbin", "parallelMap", "Metrics", "fastSave", "devtools", "openair")
 new.packages <- ls[!(ls %in% installed.packages()[,"Package"])]
-if(length(new.packages)) install.packages(new.packages)
+if(length(new.packages)) install.packages(new.packages, repos = "https://cloud.r-project.org")
 lapply(ls, require, character.only = TRUE)
 #load.pigz("eml_data.RData")
 source("PSM_functions.R")
@@ -115,7 +115,8 @@ openair::scatterPlot(rms.df[sel.db,], y = "db_od", x = "oc", method = "hexbin", 
 
 This shows that, as expected BD can be related with SOC using linear-log relationship. 
 Note that most of bulk density points in @sanderman2018global (`MangrovesDB`) are based on using 
-a simple pedo-transfer function to estimate BD from SOC content hence the grouping on a line. 
+a simple pedo-transfer function to estimate BD from SOC content. In reality there are usually 
+much less soil laboratory samples available with actual BD measured in the lab.
 We can use actual SOC and BD measurements to estimate a more applicable pedo-transfer function for bulk density:
 
 ```{r}
@@ -159,9 +160,9 @@ available data this shows:
 openair::scatterPlot(rms.df[sel.db,], y = "oc_d", x = "oc", method = "hexbin", col = "increment", type = "source_db", log.x = TRUE, log.y = TRUE, ylab="SOC [kg/m3]", xlab="SOC [g/kg]")
 ```
 
-Which shows that SOC in kg/m3 is linearly correlated with SOC %, except for 
+Which shows that SOC in kg/m3 is log-linearly correlated with SOC %, except for 
 organic soils this relationship is curvilinear i.e. after some values of SOC % 
-SOC in kg/m3 stabilizes and does not grow any more. Again, we can fit a simple pedo-tranfer 
+SOC in kg/m3 stabilizes and does not grow any more. Again, we can fit a simple pedo-transfer 
 function using this data to predict SOC density (kg/m3) directly from SOC %:
 
 ```{r}
@@ -614,7 +615,7 @@ not change (see below), although one would need to validate specifies areas to s
 parts there are gains / losses in SOC. The figure below shows global mean and lower and upper 
 prediction intervals for SOC stocks for mangrove forests through time.
 
-```{r global-trend, echo=FALSE, fig.width=6, fig.cap="Global SOC stocks in gigatones with prediction uncertainty for the time-period of interest.", out.width="80%"}
+```{r global-trend, echo=FALSE, fig.width=6, fig.cap="Global SOC stocks in gigatones with prediction uncertainty (+/- 1 std) for the time-period of interest.", out.width="80%"}
 knitr::include_graphics("./img/mangroves_stock_0..30cm.png")
 ```
 
@@ -625,15 +626,15 @@ To access global predictions you can use the Cloud-Optimized GeoTIFFs available 
 the file-name pattern of standard depths `s0..30cm`, `s30..100cm` and years of predictions e.g. `2020`. 
 Example of mean, lower-prediction-interval and upper-prediction-interval maps are:
 
-- sol_soc.tha_mangroves.typology_m_30m_s0..30cm_2020_global_v1.0.tif,  
-- sol_soc.tha_mangroves.typology_l.std_30m_s0..30cm_2020_global_v1.0.tif  
-- sol_soc.tha_mangroves.typology_u.std_30m_s0..30cm_2020_global_v1.0.tif  
+- soc.tha_tnc.mangroves.typology_m_30m_b0..100cm_2019_2020_go_epsg.4326_v1.2.tif,  
+- soc.tha_tnc.mangroves.typology_l.std_30m_b0..100cm_2019_2020_go_epsg.4326_v1.2.tif,  
+- soc.tha_tnc.mangroves.typology_u.std_30m_b0..100cm_2019_2020_go_epsg.4326_v1.2.tif,  
 
 From R you can access and crop this data using e.g.:
 
 ```{r}
 library(terra)
-cog = "/vsicurl/https://s3.eu-central-1.wasabisys.com/openlandmap/mangroves/sol_soc.tha_mangroves.typology_m_30m_s0..30cm_2020_global_v1.0.tif"
+cog = "/vsicurl/https://s3.eu-central-1.wasabisys.com/openlandmap/mangroves/sol/soc.tha_tnc.mangroves.typology_m_30m_b0..100cm_2019_2020_go_epsg.4326_v1.2.tif"
 terra::rast(cog)
 ```
 

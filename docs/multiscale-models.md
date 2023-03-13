@@ -116,10 +116,10 @@ if(!exists("m.oc")){
 #> iter  40 value 78161.622563
 #> iter  50 value 71869.588437
 #> iter  60 value 69482.655270
-#> iter  70 value 68642.175713
-#> iter  80 value 68405.024865
-#> iter  90 value 68402.034341
-#> final  value 68402.000242 
+#> iter  70 value 68642.175705
+#> iter  80 value 68405.025197
+#> iter  90 value 68402.034647
+#> final  value 68402.000553 
 #> converged
 #> # weights:  25
 #> initial  value 254790.970425 
@@ -170,27 +170,27 @@ if(!exists("m.oc")){
 #> iter  30 value 88735.472097
 #> iter  40 value 78495.790097
 #> iter  50 value 72384.348608
-#> iter  60 value 69221.579541
+#> iter  60 value 69221.579542
 #> iter  70 value 68248.107158
-#> iter  80 value 68073.306877
-#> iter  80 value 68073.306456
-#> iter  90 value 68072.812887
-#> iter  90 value 68072.812254
-#> final  value 68072.784171 
+#> iter  80 value 68073.306874
+#> iter  80 value 68073.306453
+#> iter  90 value 68072.812884
+#> iter  90 value 68072.812251
+#> final  value 68072.784169 
 #> converged
 #> # weights:  25
 #> initial  value 268786.613045 
 #> iter  10 value 128937.282143
 #> iter  20 value 105536.706972
 #> iter  30 value 100970.717402
-#> iter  40 value 89676.958144
-#> iter  50 value 80499.715395
-#> iter  60 value 76269.748745
-#> iter  70 value 74645.990665
-#> iter  80 value 74429.114194
-#> iter  90 value 74041.488710
-#> iter 100 value 73877.378810
-#> final  value 73877.378810 
+#> iter  40 value 89676.958142
+#> iter  50 value 80499.715450
+#> iter  60 value 76269.748584
+#> iter  70 value 74645.989814
+#> iter  80 value 74429.111595
+#> iter  90 value 74041.488969
+#> iter 100 value 73877.377891
+#> final  value 73877.377891 
 #> stopped after 100 iterations
 ```
 
@@ -260,7 +260,7 @@ The average prediction error in the map is somewhat higher than the average erro
 ```r
 summary(edgeroi.oc$pred$model.error)
 #>    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-#>   2.323   4.710   6.340   6.929   9.257  15.338
+#>   2.323   4.710   6.342   6.929   9.257  15.338
 ```
 
 This is because we are predicting the top-soil SOC, which is exponentially higher at the soil surface and hence average model errors for top soil should be slightly larger than the mean error for the whole soil.
@@ -316,13 +316,13 @@ if(!exists("m.ocF")){
 #> iter  20 value 92849.746212
 #> iter  30 value 84138.890538
 #> iter  40 value 81171.674547
-#> iter  50 value 80244.316068
-#> iter  60 value 79942.793909
-#> iter  70 value 79368.296567
-#> iter  80 value 78323.201957
-#> iter  90 value 77181.404075
-#> iter 100 value 76708.190347
-#> final  value 76708.190347 
+#> iter  50 value 80244.316069
+#> iter  60 value 79942.755705
+#> iter  70 value 79714.285817
+#> iter  80 value 78299.292931
+#> iter  90 value 77660.229627
+#> iter 100 value 76439.632084
+#> final  value 76439.632084 
 #> stopped after 100 iterations
 #> # weights:  28
 #> initial  value 226902.901029 
@@ -335,8 +335,8 @@ if(!exists("m.ocF")){
 #> iter  70 value 93110.357174
 #> iter  80 value 92843.643684
 #> iter  90 value 92584.240506
-#> iter 100 value 92181.626754
-#> final  value 92181.626754 
+#> iter 100 value 92181.626755
+#> final  value 92181.626755 
 #> stopped after 100 iterations
 #> # weights:  28
 #> initial  value 234725.323531 
@@ -346,39 +346,39 @@ if(!exists("m.ocF")){
 #> iter  40 value 84502.258499
 #> iter  50 value 81245.631274
 #> iter  60 value 80530.199169
-#> iter  70 value 79322.812977
-#> iter  80 value 78753.418715
-#> iter  90 value 78202.739233
-#> iter 100 value 76867.515069
-#> final  value 76867.515069 
+#> iter  70 value 79322.812976
+#> iter  80 value 78753.418713
+#> iter  90 value 78202.739332
+#> iter 100 value 76862.478845
+#> final  value 76862.478845 
 #> stopped after 100 iterations
 #> # weights:  28
 #> initial  value 264624.170952 
 #> iter  10 value 101566.765280
 #> iter  20 value 93105.271953
-#> iter  30 value 79221.563953
-#> iter  40 value 75437.096559
-#> iter  50 value 74819.981899
-#> iter  60 value 74258.787761
-#> iter  70 value 72481.383976
-#> iter  80 value 71415.613349
-#> iter  90 value 69310.427661
-#> iter 100 value 66134.495814
-#> final  value 66134.495814 
+#> iter  30 value 79221.559605
+#> iter  40 value 75397.256524
+#> iter  50 value 74837.821575
+#> iter  60 value 74267.997307
+#> iter  70 value 73584.671645
+#> iter  80 value 72824.651446
+#> iter  90 value 67855.243367
+#> iter 100 value 64355.252219
+#> final  value 64355.252219 
 #> stopped after 100 iterations
 #> # weights:  28
 #> initial  value 269334.603789 
 #> iter  10 value 114589.803267
 #> iter  20 value 98585.812766
 #> iter  30 value 95611.345448
-#> iter  40 value 94119.323815
-#> iter  50 value 92069.210575
-#> iter  60 value 90209.532038
-#> iter  70 value 86238.674926
-#> iter  80 value 82014.171622
-#> iter  90 value 78106.825699
-#> iter 100 value 76099.552544
-#> final  value 76099.552544 
+#> iter  40 value 94119.323802
+#> iter  50 value 90814.981698
+#> iter  60 value 87341.568604
+#> iter  70 value 81668.185752
+#> iter  80 value 78304.161754
+#> iter  90 value 77329.599858
+#> iter 100 value 76085.626220
+#> final  value 76085.626220 
 #> stopped after 100 iterations
 #> # weights:  28
 #> initial  value 259884.878897 
@@ -390,23 +390,23 @@ if(!exists("m.ocF")){
 #> iter  60 value 72979.797218
 #> iter  70 value 72965.952547
 #> iter  80 value 72468.280591
-#> iter  90 value 72359.464672
-#> iter 100 value 71873.895760
-#> final  value 71873.895760 
+#> iter  90 value 72359.464671
+#> iter 100 value 71873.895824
+#> final  value 71873.895824 
 #> stopped after 100 iterations
 #> # weights:  28
 #> initial  value 285193.065615 
 #> iter  10 value 102340.204856
 #> iter  20 value 89532.696472
-#> iter  30 value 83391.890007
-#> iter  40 value 79203.819730
-#> iter  50 value 75520.520094
-#> iter  60 value 71641.894828
-#> iter  70 value 66583.248718
-#> iter  80 value 64316.930097
-#> iter  90 value 64067.020769
-#> iter 100 value 63723.399424
-#> final  value 63723.399424 
+#> iter  30 value 83391.937814
+#> iter  40 value 79216.548340
+#> iter  50 value 74814.819516
+#> iter  60 value 71281.809785
+#> iter  70 value 70042.875465
+#> iter  80 value 69036.157581
+#> iter  90 value 66429.444952
+#> iter 100 value 62457.856190
+#> final  value 62457.856190 
 #> stopped after 100 iterations
 #> # weights:  28
 #> initial  value 209074.598360 
@@ -414,27 +414,27 @@ if(!exists("m.ocF")){
 #> iter  20 value 88477.518932
 #> iter  30 value 83611.323463
 #> iter  40 value 80398.938707
-#> iter  50 value 75639.793693
-#> iter  60 value 72497.710902
-#> iter  70 value 68574.884188
-#> iter  80 value 66515.331380
-#> iter  90 value 64170.821850
-#> iter 100 value 63336.087094
-#> final  value 63336.087094 
+#> iter  50 value 75638.212800
+#> iter  60 value 72443.729706
+#> iter  70 value 68713.860329
+#> iter  80 value 64573.033967
+#> iter  90 value 62080.383861
+#> iter 100 value 61330.996785
+#> final  value 61330.996785 
 #> stopped after 100 iterations
 #> # weights:  28
 #> initial  value 264913.914581 
 #> iter  10 value 90799.203779
-#> iter  20 value 83326.307020
-#> iter  30 value 71495.281328
-#> iter  40 value 66078.704046
-#> iter  50 value 64850.594409
-#> iter  60 value 64005.390526
-#> iter  70 value 63563.194716
-#> iter  80 value 62770.259605
-#> iter  90 value 62084.800044
-#> iter 100 value 60518.371937
-#> final  value 60518.371937 
+#> iter  20 value 83326.307027
+#> iter  30 value 71756.357852
+#> iter  40 value 66352.773014
+#> iter  50 value 65346.537874
+#> iter  60 value 64426.380008
+#> iter  70 value 63807.365080
+#> iter  80 value 62839.592211
+#> iter  90 value 60737.710893
+#> iter 100 value 59915.872278
+#> final  value 59915.872278 
 #> stopped after 100 iterations
 #> # weights:  28
 #> initial  value 254133.236100 
@@ -446,9 +446,9 @@ if(!exists("m.ocF")){
 #> iter  60 value 77195.047203
 #> iter  70 value 74660.187056
 #> iter  80 value 70931.471910
-#> iter  90 value 69014.578845
-#> iter 100 value 68409.495245
-#> final  value 68409.495245 
+#> iter  90 value 69014.578843
+#> iter 100 value 68409.500899
+#> final  value 68409.500899 
 #> stopped after 100 iterations
 #> # weights:  28
 #> initial  value 325116.468080 
@@ -459,10 +459,10 @@ if(!exists("m.ocF")){
 #> iter  50 value 70168.831437
 #> iter  60 value 69050.767980
 #> iter  70 value 68627.297281
-#> iter  80 value 68156.983626
-#> iter  90 value 67374.568621
-#> iter 100 value 67164.637038
-#> final  value 67164.637038 
+#> iter  80 value 68156.983605
+#> iter  90 value 67374.570008
+#> iter 100 value 67164.637732
+#> final  value 67164.637732 
 #> stopped after 100 iterations
 summary(m.ocF@spModel$learner.model$super.model$learner.model)
 #> 
@@ -471,22 +471,22 @@ summary(m.ocF@spModel$learner.model$super.model$learner.model)
 #> 
 #> Residuals:
 #>     Min      1Q  Median      3Q     Max 
-#> -19.222  -0.952  -0.047   0.726  61.162 
+#> -19.274  -0.960  -0.052   0.725  61.100 
 #> 
 #> Coefficients:
-#>               Estimate Std. Error t value Pr(>|t|)    
-#> (Intercept)   -0.47135    0.11510  -4.095 4.29e-05 ***
-#> regr.ranger    1.10204    0.02467  44.667  < 2e-16 ***
-#> regr.xgboost   0.03329    0.07566   0.440    0.660    
-#> regr.nnet      0.03135    0.02196   1.428    0.153    
-#> regr.ksvm     -0.02556    0.02965  -0.862    0.389    
-#> regr.cvglmnet -0.03575    0.02887  -1.238    0.216    
+#>                Estimate Std. Error t value Pr(>|t|)    
+#> (Intercept)   -0.466388   0.114924  -4.058 5.02e-05 ***
+#> regr.ranger    1.098643   0.024682  44.512  < 2e-16 ***
+#> regr.xgboost   0.009181   0.075823   0.121   0.9036    
+#> regr.nnet      0.048347   0.021791   2.219   0.0266 *  
+#> regr.ksvm     -0.029587   0.029579  -1.000   0.3172    
+#> regr.cvglmnet -0.038096   0.028892  -1.319   0.1874    
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 #> 
 #> Residual standard error: 2.967 on 4995 degrees of freedom
-#> Multiple R-squared:  0.7146,	Adjusted R-squared:  0.7143 
-#> F-statistic:  2501 on 5 and 4995 DF,  p-value: < 2.2e-16
+#> Multiple R-squared:  0.7147,	Adjusted R-squared:  0.7145 
+#> F-statistic:  2503 on 5 and 4995 DF,  p-value: < 2.2e-16
 ```
 
 which shows that the 100-m resolution covariates help make even more accurate 
@@ -594,7 +594,7 @@ comp.var
 #>         rowMeans(x[, c(r1, r2)])^2)
 #>     return(data.frame(response = r, stdev = v))
 #> }
-#> <bytecode: 0x18ae89b0>
+#> <bytecode: 0x7019e838>
 edgeroi.ocF$pred$model.errorF = X$stdev
 out.tif = "output/edgeroi/pred_oc_100m_merged_pe.tif"
 if(!file.exists(out.tif)){

@@ -7,8 +7,8 @@
 <title>2 Spatial interpolation using Ensemble ML | Spatial and spatiotemporal interpolation using Ensemble Machine Learning</title>
 <meta name="author" content="Tom Hengl, Leandro Parente, Carmelo Bonannella and contributors">
 <!-- JS --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><script src="https://cdn.jsdelivr.net/npm/fuse.js@6.4.2"></script><script src="https://kit.fontawesome.com/6ecbd6c532.js" crossorigin="anonymous"></script><script src="libs/header-attrs-2.14/header-attrs.js"></script><script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<link href="libs/bootstrap-4.6.0/bootstrap.min.css" rel="stylesheet">
-<script src="libs/bootstrap-4.6.0/bootstrap.bundle.min.js"></script><script src="libs/bs3compat-0.3.1/transition.js"></script><script src="libs/bs3compat-0.3.1/tabs.js"></script><script src="libs/bs3compat-0.3.1/bs3compat.js"></script><link href="libs/bs4_book-1.0.0/bs4_book.css" rel="stylesheet">
+<link href="libs/bootstrap-5.2.2/bootstrap.min.css" rel="stylesheet">
+<script src="libs/bootstrap-5.2.2/bootstrap.bundle.min.js"></script><script src="libs/bs3compat-0.4.2/transition.js"></script><script src="libs/bs3compat-0.4.2/tabs.js"></script><script src="libs/bs3compat-0.4.2/bs3compat.js"></script><link href="libs/bs4_book-1.0.0/bs4_book.css" rel="stylesheet">
 <script src="libs/bs4_book-1.0.0/bs4_book.js"></script><!-- Global site tag (gtag.js) - Google Analytics --><script async src="https://www.googletagmanager.com/gtag/js?id=G-1BH6J2NKGP"></script><script>
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
@@ -130,8 +130,8 @@ method that uses closest neighbors (and their values) as covariates to predict
 target variable. This can be implemented using the <code>meteo</code> package:</p>
 <div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="http://meteo.r-forge.r-project.org/">meteo</a></span><span class="op">)</span>
-<span class="co">#&gt; Warning: replacing previous import 'caret::MAE' by 'DescTools::MAE' when loading</span>
-<span class="co">#&gt; 'meteo'</span>
+<span class="co">#&gt; Warning: replacing previous import 'caret::MAE' by 'DescTools::MAE' when</span>
+<span class="co">#&gt; loading 'meteo'</span>
 <span class="co">#&gt; Warning: replacing previous import 'caret::RMSE' by 'DescTools::RMSE' when</span>
 <span class="co">#&gt; loading 'meteo'</span>
 <span class="va">nearest_obs</span> <span class="op">&lt;-</span> <span class="fu">meteo</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/meteo/man/near.obs.html">near.obs</a></span><span class="op">(</span>locations <span class="op">=</span> <span class="va">meuse.grid</span>, 
